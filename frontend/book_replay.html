@@ -385,7 +385,8 @@
 
       function renderBook() {
         const container = document.getElementById("book-view");
-        const snap = pickBookSnapshot();
+        const picked = pickBookSnapshot();
+        const snap = picked?.snap;
         if (!snap) {
           container.textContent = "未加载 book.json / book_series.json";
           return;
@@ -415,36 +416,46 @@
               </table>
             </div>
           </div>
+          <div class="info" style="margin-top:6px;">快照 ts: ${picked?.ts ?? "-"}</div>
         `;
       }
 
       function pickBookSnapshot() {
         if (bookSeries && bookSeries.length) {
-          if (!trades.length) return bookSeries[0];
+          if (!trades.length) return { snap: bookSeries[0], ts: bookSeries[0].ts };
           const ts = trades[Math.min(highlightIndex, trades.length - 1)]?.ts ?? bookSeries[0].ts;
-          // 找到 ts 不大于当前的最近快照
+          // 选择与当前 ts 绝对差最小的快照，避免仅取 <= 导致偏移
           let candidate = bookSeries[0];
+          let bestDiff = Math.abs((candidate.ts || 0) - ts);
           for (const b of bookSeries) {
-            if (b.ts <= ts) candidate = b;
-            else break;
+            const diff = Math.abs((b.ts || 0) - ts);
+            if (diff < bestDiff) {
+              candidate = b;
+              bestDiff = diff;
+            }
           }
-          return candidate;
+          return { snap: candidate, ts: candidate.ts };
         }
-        return bookData;
+        return bookData ? { snap: bookData, ts: null } : null;
       }
 
       function pickAgentsSnapshot() {
         if (agentsSeries && agentsSeries.length) {
-          if (!trades.length) return agentsSeries[0].agents || [];
+          if (!trades.length) return { snap: agentsSeries[0].agents || [], ts: agentsSeries[0].ts };
           const ts = trades[Math.min(highlightIndex, trades.length - 1)]?.ts ?? agentsSeries[0].ts;
           let candidate = agentsSeries[0];
+          let bestDiff = Math.abs((candidate.ts || 0) - ts);
           for (const a of agentsSeries) {
-            if (a.ts <= ts) candidate = a;
-            else break;
+            const diff = Math.abs((a.ts || 0) - ts);
+            if (diff < bestDiff) {
+              candidate = a;
+              bestDiff = diff;
+            }
           }
-          return candidate.agents || [];
+          return { snap: candidate.agents || [], ts: candidate.ts };
         }
-        return Array.isArray(agentsData) ? agentsData : (agentsData?.agents || []);
+        const fallback = Array.isArray(agentsData) ? agentsData : (agentsData?.agents || []);
+        return fallback ? { snap: fallback, ts: null } : null;
       }
 
       function renderAgents() {

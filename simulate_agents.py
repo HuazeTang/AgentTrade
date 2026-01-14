@@ -97,7 +97,7 @@ def run_simulation(
     orders_per_sec: float = 20.0,
     log_dir: str = "sim_logs",
     sample_agent: str = "agent-001",
-    snapshot_interval: float = 1.0,
+    snapshot_interval: float = 0.0,  # 0 表示每次下单后都抓快照
 ):
     print(f"Registering {agent_count} agents...")
     for i in range(agent_count):
@@ -118,11 +118,12 @@ def run_simulation(
     while time.time() - start < duration_sec:
         aid = f"agent-{(n % agent_count) + 1:03d}"
         decision = llm_or_heuristic_decision(aid, mid=target_mid)
+        trade_ts = None
         try:
             res = place_order(aid, decision)
             # capture server trade timestamp if present (better alignment than client time)
             if res.get("trades"):
-                last_trade_ts = max(t.get("ts", 0) for t in res["trades"])
+                trade_ts = max(t.get("ts", 0) for t in res["trades"])
             orders_log.append(
                 {
                     "agent": aid,
@@ -143,9 +144,10 @@ def run_simulation(
         n += 1
 
         now = time.time()
-        if now - last_snapshot >= snapshot_interval:
-            # capture book and agents with timestamp
-            snap_ts = last_trade_ts or now
+        need_snap = snapshot_interval == 0 or now - last_snapshot >= snapshot_interval
+        if need_snap:
+            # capture book and agents with timestamp; if本次有成交，优先用本次成交 ts，否则用当前时间
+            snap_ts = trade_ts or now
             try:
                 book_snap = fetch_book(depth=10)
                 book_series.append({"ts": snap_ts, "bids": book_snap.get("bids", []), "asks": book_snap.get("asks", [])})

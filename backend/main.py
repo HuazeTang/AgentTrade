@@ -106,7 +106,8 @@ class OrderBook:
             ):
                 best = heapq.heappop(self._sells)
                 match_qty = min(incoming.quantity, best.order.quantity)
-                trade_price = (incoming.price + best.order.price) / 2
+                # Passive-side price:成交价=被动卖单价，满足价格/时间优先
+                trade_price = best.order.price
                 trades.append(self._settle(incoming, best.order, trade_price, match_qty))
                 incoming.quantity -= match_qty
                 best.order.quantity -= match_qty
@@ -122,7 +123,8 @@ class OrderBook:
             ):
                 best = heapq.heappop(self._buys)
                 match_qty = min(incoming.quantity, best.order.quantity)
-                trade_price = (incoming.price + best.order.price) / 2
+                # Passive-side price:成交价=被动买单价
+                trade_price = best.order.price
                 trades.append(self._settle(best.order, incoming, trade_price, match_qty))
                 incoming.quantity -= match_qty
                 best.order.quantity -= match_qty
