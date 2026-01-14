@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentTrade - 模拟撮合 & 结算</title>
+    <style>
+      :root {
+        --bg: #0b1221;
+        --card: rgba(18, 25, 42, 0.9);
+        --border: rgba(255, 255, 255, 0.08);
+        --accent: #5be7c4;
+        --accent-2: #7cb7ff;
+        --text: #e8edf7;
+        --muted: #a2acc3;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: radial-gradient(circle at 20% 20%, #16213e, transparent 25%),
+          radial-gradient(circle at 80% 0%, #0f3460, transparent 30%),
+          radial-gradient(circle at 50% 80%, #1f4068, transparent 35%), var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+      header {
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(6px);
+        background: linear-gradient(90deg, rgba(91, 231, 196, 0.1), rgba(124, 183, 255, 0.1));
+      }
+      .brand {
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .brand span {
+        color: var(--accent);
+      }
+      .tagline {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      main {
+        padding: 24px;
+        max-width: 1300px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+      .grid-2 {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      }
+      .grid-3 {
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      }
+      .card h2 {
+        margin: 0 0 10px 0;
+        font-size: 18px;
+      }
+      .card h3 {
+        margin: 0 0 8px 0;
+        font-size: 15px;
+        color: var(--muted);
+      }
+      .chart-wrap {
+        position: relative;
+        width: 100%;
+      }
+      .chart-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .current-price {
+        min-width: 140px;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(124, 183, 255, 0.08);
+        color: #fff;
+        text-align: center;
+        font-weight: 700;
+      }
+      .slider-row {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: center;
+      }
+      input[type="range"] {
+        width: 100%;
+      }
+      label {
+        display: block;
+        margin-bottom: 10px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+      input,
+      select,
+      button {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        font-size: 14px;
+      }
+      button {
+        background: linear-gradient(120deg, var(--accent), var(--accent-2));
+        color: #0b1221;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        transition: transform 0.1s ease, box-shadow 0.2s ease;
+        margin-top: 4px;
+      }
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 30px rgba(91, 231, 196, 0.25);
+      }
+      .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+      }
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+      }
+      th {
+        color: var(--muted);
+        font-weight: 600;
+      }
+      tr:hover td {
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+      }
+      .pill.buy {
+        background: rgba(91, 231, 196, 0.14);
+        color: var(--accent);
+      }
+      .pill.sell {
+        background: rgba(255, 129, 143, 0.15);
+        color: #ff8190;
+      }
+      .stat {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .stat .label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .stat .value {
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+      }
+      pre {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        overflow: auto;
+        color: var(--accent);
+      }
+      .split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 900px) {
+        .split {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <span>AgentTrade</span>
+        <div class="tagline">链下撮合 · 链上结算（模拟）</div>
+      </div>
+      <div class="pill" style="background: rgba(124,183,255,0.15); color: var(--accent-2);">
+        实验 / Demo
+      </div>
+    </header>
+
+    <main>
+      <div class="grid grid-3">
+        <div class="card stat">
+          <div class="label">Agent</div>
+          <div class="value" id="stat-agent">agent-1</div>
+        </div>
+        <div class="card stat">
+          <div class="label">最佳买 / 卖</div>
+          <div class="value" id="stat-bbo">-</div>
+        </div>
+        <div class="card stat">
+          <div class="label">最近成交价</div>
+          <div class="value" id="stat-last">-</div>
+        </div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <h2>下单</h2>
+          <form id="order-form">
+            <div class="row">
+              <label>Agent
+                <input id="agent" value="agent-1" required />
+              </label>
+              <label>方向
+                <select id="side">
+                  <option value="buy">买入</option>
+                  <option value="sell">卖出</option>
+                </select>
+              </label>
+            </div>
+            <div class="row">
+              <label>价格
+                <input id="price" type="number" step="0.01" value="100" required />
+              </label>
+              <label>数量
+                <input id="qty" type="number" step="1" min="1" value="1" required />
+              </label>
+            </div>
+            <button type="submit">提交订单</button>
+          </form>
+          <pre id="order-result">等待下单...</pre>
+        </div>
+
+        <div class="card">
+          <h2>Agent 管理</h2>
+          <form id="register-form" style="margin-bottom: 12px;">
+            <div class="row">
+              <label>Agent ID
+                <input id="reg-agent" placeholder="new-agent" required />
+              </label>
+              <label>初始余额
+                <input id="reg-cash" type="number" step="0.01" value="1000" />
+              </label>
+              <label>初始持仓
+                <input id="reg-pos" type="number" step="0.01" value="0" />
+              </label>
+            </div>
+            <button type="submit">注册 Agent</button>
+          </form>
+          <form id="deposit-form">
+            <div class="row">
+              <label>Agent ID
+                <input id="dep-agent" placeholder="agent-1" required />
+              </label>
+              <label>充值金额
+                <input id="dep-amount" type="number" step="0.01" value="500" required />
+              </label>
+            </div>
+            <button type="submit">充值</button>
+          </form>
+          <h3>当前 Agent 状态</h3>
+          <pre id="agent-state">loading...</pre>
+        </div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="split">
+            <div>
+              <h2>买盘</h2>
+              <div id="bids"></div>
+            </div>
+            <div>
+              <h2>卖盘</h2>
+              <div id="asks"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>最近成交</h2>
+          <div id="trades"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>价格走势 & 时间轴</h2>
+        <div class="chart-row">
+          <div class="chart-wrap" style="width:100%;">
+            <canvas id="price-chart" style="width:100%; height:260px;"></canvas>
+          </div>
+          <div class="current-price">
+            当前成交价
+            <div id="current-price" style="font-size:22px; margin-top:6px;">-</div>
+          </div>
+        </div>
+        <div class="slider-row">
+          <input type="range" id="timeline-range" min="0" max="0" value="0" />
+          <div id="timeline-info" style="color: var(--muted); font-size: 13px;">拖动查看历史成交</div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      let cachedTrades = [];
+      let chartHighlightIndex = null;
+
+      async function fetchJSON(path) {
+        const res = await fetch(path);
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+      }
+
+      async function refresh() {
+        try {
+          const [book, trades] = await Promise.all([
+            fetchJSON("/book?depth=8"),
+            fetchJSON("/trades?limit=500"),
+          ]);
+          const agent = document.getElementById("agent").value;
+          const agentState = await fetchJSON(`/agents/${encodeURIComponent(agent)}`);
+          document.getElementById("stat-agent").textContent = agent;
+          renderBook(book);
+          renderTrades(trades);
+          renderStats(book, trades);
+          renderChart(trades, chartHighlightIndex);
+          setupTimeline(trades);
+          document.getElementById("agent-state").textContent = JSON.stringify(
+            agentState,
+            null,
+            2
+          );
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      function renderBook(data) {
+        const bids = data.bids
+          .map(
+            (b) =>
+              `<tr><td>${b.price.toFixed(2)}</td><td>${b.quantity}</td><td><span class="pill buy">BID</span></td></tr>`
+          )
+          .join("");
+        const asks = data.asks
+          .map(
+            (a) =>
+              `<tr><td>${a.price.toFixed(2)}</td><td>${a.quantity}</td><td><span class="pill sell">ASK</span></td></tr>`
+          )
+          .join("");
+
+        document.getElementById("bids").innerHTML = `
+          <table>
+            <tr><th>价格</th><th>数量</th><th></th></tr>
+            ${bids || "<tr><td colspan='3'>暂无买盘</td></tr>"}
+          </table>
+        `;
+        document.getElementById("asks").innerHTML = `
+          <table>
+            <tr><th>价格</th><th>数量</th><th></th></tr>
+            ${asks || "<tr><td colspan='3'>暂无卖盘</td></tr>"}
+          </table>
+        `;
+      }
+
+      function renderTrades(data) {
+        const rows = data.trades
+          .slice()
+          .reverse()
+          .map(
+            (t) =>
+              `<tr>
+                <td>${new Date(t.ts * 1000).toLocaleTimeString()}</td>
+                <td>${t.price.toFixed(2)}</td>
+                <td>${t.quantity}</td>
+                <td>${t.buy_agent}</td>
+                <td>${t.sell_agent}</td>
+                <td><span class="pill" style="background: rgba(124,183,255,0.2); color: var(--accent-2);">${t.tx_hash}</span></td>
+              </tr>`
+          )
+          .join("");
+
+        document.getElementById("trades").innerHTML = `
+          <table>
+            <tr><th>时间</th><th>价格</th><th>数量</th><th>买方</th><th>卖方</th><th>链上 tx</th></tr>
+            ${rows || "<tr><td colspan='6'>暂无成交</td></tr>"}
+          </table>
+        `;
+      }
+
+      function renderStats(book, trades) {
+        const bestBid = book.bids?.[0]?.price;
+        const bestAsk = book.asks?.[0]?.price;
+        const lastTrade = trades.trades?.slice(-1)[0];
+        const bboText =
+          bestBid !== undefined && bestAsk !== undefined
+            ? `${bestBid.toFixed(2)} / ${bestAsk.toFixed(2)}`
+            : "-";
+        document.getElementById("stat-bbo").textContent = bboText;
+        const lastPrice = lastTrade ? lastTrade.price.toFixed(2) : "-";
+        document.getElementById("stat-last").textContent = lastPrice;
+        document.getElementById("current-price").textContent = lastPrice;
+      }
+
+      function renderChart(trades, highlightIndex = null) {
+        cachedTrades = trades.trades || [];
+        const canvas = document.getElementById("price-chart");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const dpr = window.devicePixelRatio || 1;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, width, height);
+
+        const pts = cachedTrades.map((t) => ({ ts: t.ts, price: t.price }));
+        if (pts.length < 2) {
+          ctx.fillStyle = "#a2acc3";
+          ctx.fillText("等待足够的成交数据...", 10, 20);
+          return;
+        }
+        const minP = Math.min(...pts.map((p) => p.price));
+        const maxP = Math.max(...pts.map((p) => p.price));
+        const pad = (maxP - minP) * 0.05 || 1;
+        const minY = minP - pad;
+        const maxY = maxP + pad;
+        const minX = pts[0].ts;
+        const maxX = pts[pts.length - 1].ts;
+        const xScale = (ts) => ((ts - minX) / (maxX - minX || 1)) * (width - 40) + 20;
+        const yScale = (p) => height - ((p - minY) / (maxY - minY || 1)) * (height - 30) - 10;
+
+        ctx.strokeStyle = "rgba(255,255,255,0.15)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, yScale(minY));
+        ctx.lineTo(width, yScale(minY));
+        ctx.stroke();
+
+        ctx.strokeStyle = "#7cb7ff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        pts.forEach((p, i) => {
+          const x = xScale(p.ts);
+          const y = yScale(p.price);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        const last = pts[pts.length - 1];
+        ctx.fillStyle = "#5be7c4";
+        ctx.beginPath();
+        ctx.arc(xScale(last.ts), yScale(last.price), 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (highlightIndex !== null && cachedTrades[highlightIndex]) {
+          const h = cachedTrades[highlightIndex];
+          ctx.fillStyle = "#ffcf66";
+          ctx.beginPath();
+          ctx.arc(xScale(h.ts), yScale(h.price), 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function setupTimeline(trades) {
+        const arr = trades.trades || [];
+        const slider = document.getElementById("timeline-range");
+        if (!slider) return;
+        slider.max = Math.max(arr.length - 1, 0);
+        slider.value = arr.length ? arr.length - 1 : 0;
+        chartHighlightIndex = arr.length ? arr.length - 1 : null;
+        updateTimelineInfo(arr, chartHighlightIndex);
+        slider.oninput = (e) => {
+          const idx = Number(e.target.value);
+          chartHighlightIndex = idx;
+          updateTimelineInfo(arr, idx);
+          renderChart({ trades: arr }, idx);
+        };
+      }
+
+      function updateTimelineInfo(arr, idx) {
+        const info = document.getElementById("timeline-info");
+        if (!arr.length || idx === null || idx >= arr.length) {
+          info.textContent = "拖动查看历史成交";
+          return;
+        }
+        const t = arr[idx];
+        const timeStr = new Date(t.ts * 1000).toLocaleTimeString();
+        info.textContent = `时间: ${timeStr} | 价格: ${t.price.toFixed(2)} | 数量: ${t.quantity}`;
+      }
+
+      document.getElementById("order-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const payload = {
+          agent: document.getElementById("agent").value,
+          side: document.getElementById("side").value,
+          price: Number(document.getElementById("price").value),
+          quantity: parseInt(document.getElementById("qty").value, 10),
+        };
+        try {
+          const res = await fetch("/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.detail || "下单失败");
+          document.getElementById("order-result").textContent = JSON.stringify(json, null, 2);
+          refresh();
+        } catch (err) {
+          document.getElementById("order-result").textContent = `错误: ${err.message}`;
+        }
+      });
+
+      document.getElementById("register-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const payload = {
+          agent: document.getElementById("reg-agent").value,
+          initial_cash: Number(document.getElementById("reg-cash").value || 0),
+          initial_position: Number(document.getElementById("reg-pos").value || 0),
+        };
+        try {
+          const res = await fetch("/agents", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.detail || "注册失败");
+          document.getElementById("agent-state").textContent = JSON.stringify(json, null, 2);
+          document.getElementById("agent").value = payload.agent;
+          document.getElementById("dep-agent").value = payload.agent;
+          refresh();
+        } catch (err) {
+          document.getElementById("agent-state").textContent = `错误: ${err.message}`;
+        }
+      });
+
+      document.getElementById("deposit-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const agent = document.getElementById("dep-agent").value;
+        const payload = { amount: Number(document.getElementById("dep-amount").value) };
+        try {
+          const res = await fetch(`/agents/${encodeURIComponent(agent)}/deposit`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const json = await res.json();
+          if (!res.ok) throw new Error(json.detail || "充值失败");
+          document.getElementById("agent-state").textContent = JSON.stringify(json, null, 2);
+          refresh();
+        } catch (err) {
+          document.getElementById("agent-state").textContent = `错误: ${err.message}`;
+        }
+      });
+
+      setInterval(refresh, 1500);
+      refresh();
+    </script>
+  </body>
+</html>
+

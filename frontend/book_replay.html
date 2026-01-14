@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>盘口回放 - AgentTrade</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #0b1221;
+        color: #e8edf7;
+      }
+      header {
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      main {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .card {
+        background: rgba(18, 25, 42, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 16px;
+      }
+      .info {
+        color: #a2acc3;
+        font-size: 13px;
+      }
+      input,
+      button {
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
+        color: #e8edf7;
+      }
+      button {
+        background: linear-gradient(120deg, #5be7c4, #7cb7ff);
+        color: #0b1221;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 13px;
+      }
+      th {
+        color: #a2acc3;
+      }
+      .slider-row {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 10px;
+        align-items: center;
+      }
+      input[type="range"] {
+        width: 100%;
+      }
+      .pill {
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .buy {
+        background: rgba(91, 231, 196, 0.14);
+        color: #5be7c4;
+      }
+      .sell {
+        background: rgba(255, 129, 143, 0.15);
+        color: #ff8190;
+      }
+      canvas {
+        width: 100%;
+        height: 260px;
+      }
+      .two-col {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <strong>盘口回放</strong>
+        <div class="info">加载保存的 trades.json，拖动时间轴或自动播放</div>
+      </div>
+      <div class="info">支持直接 file:// 打开或用 python -m http.server</div>
+    </header>
+
+    <main>
+      <div class="card">
+        <div class="info" style="margin-bottom:8px;">选择 trades.json（或包含 trades 数组的文件）</div>
+        <input type="file" id="file-input" accept=".json" />
+        <div class="info" style="margin-top:10px;">可选：加载 book.json（单次盘口快照）</div>
+        <input type="file" id="book-input" accept=".json" />
+        <div class="info" style="margin-top:10px;">可选：加载 book_series.json（时间序列盘口，含 ts/bids/asks 数组）</div>
+        <input type="file" id="book-series-input" accept=".json" />
+        <div class="info" style="margin-top:10px;">可选：加载 agents.json（包含 agents 数组：agent/cash/position，用于分布与极值）</div>
+        <input type="file" id="agents-input" accept=".json" />
+      </div>
+
+      <div class="card">
+        <div class="slider-row" style="margin-bottom: 10px;">
+          <input type="range" id="timeline" min="0" max="0" value="0" />
+          <button id="play-btn">▶︎ 播放</button>
+          <button id="pause-btn">⏸ 暂停</button>
+        </div>
+        <div class="info" id="timeline-info">尚未加载数据</div>
+      </div>
+
+      <div class="card">
+        <h3>价格走势</h3>
+        <canvas id="chart"></canvas>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>当前成交</h3>
+          <div id="current-trade">-</div>
+        </div>
+        <div class="card">
+          <h3>最近 10 条</h3>
+          <div id="recent"></div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <h3>盘口快照（买/卖各前5）</h3>
+          <div id="book-view">未加载 book.json</div>
+        </div>
+        <div class="card">
+          <h3>账户极值</h3>
+          <div id="agents-ext">未加载 agents.json</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>持仓分布</h3>
+          <canvas id="pos-chart"></canvas>
+        </div>
+        <div class="card">
+          <h3>余额分布</h3>
+          <canvas id="cash-chart"></canvas>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      let trades = [];
+      let timer = null;
+      let highlightIndex = 0;
+      let bookData = null;
+      let bookSeries = null; // [{ts,bids,asks}, ...] sorted by ts
+      let agentsSeries = null; // [{ts, agents:[...]}] sorted by ts
+      let agentsData = null; // fallback for non-ts format
+
+      const fileInput = document.getElementById("file-input");
+      const slider = document.getElementById("timeline");
+      const info = document.getElementById("timeline-info");
+      const playBtn = document.getElementById("play-btn");
+      const pauseBtn = document.getElementById("pause-btn");
+      const bookInput = document.getElementById("book-input");
+      const bookSeriesInput = document.getElementById("book-series-input");
+      const agentsInput = document.getElementById("agents-input");
+
+      fileInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const text = await file.text();
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch (err) {
+          alert("JSON 解析失败");
+          return;
+        }
+        trades = json.trades || json;
+        if (!Array.isArray(trades) || trades.length === 0) {
+          alert("未找到 trades 数据");
+          return;
+        }
+        trades.sort((a, b) => a.ts - b.ts);
+        slider.max = trades.length - 1;
+        slider.value = trades.length - 1;
+        highlightIndex = trades.length - 1;
+        renderAll();
+      });
+
+      slider.oninput = () => {
+        highlightIndex = Number(slider.value);
+        renderAll();
+      };
+
+      playBtn.onclick = () => {
+        if (timer) return;
+        timer = setInterval(() => {
+          if (!trades.length) return;
+          highlightIndex = (highlightIndex + 1) % trades.length;
+          slider.value = highlightIndex;
+          renderAll();
+        }, 400);
+      };
+
+      pauseBtn.onclick = () => {
+        if (timer) clearInterval(timer);
+        timer = null;
+      };
+
+      bookInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          const json = JSON.parse(await file.text());
+          bookData = json.book || json; // allow {book:{...}} or direct
+          bookSeries = null;
+          renderBook();
+        } catch (err) {
+          alert("book.json 解析失败");
+        }
+      });
+
+      bookSeriesInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          const json = JSON.parse(await file.text());
+          bookSeries = json.book_series || json; // allow {book_series:[...]} or direct array
+          if (!Array.isArray(bookSeries)) throw new Error("book_series 需为数组");
+          bookSeries.sort((a, b) => a.ts - b.ts);
+          bookData = null; // 优先用序列
+          renderBook();
+        } catch (err) {
+          alert("book_series 解析失败");
+        }
+      });
+
+      agentsInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          const json = JSON.parse(await file.text());
+          const series = json.agents_series || json;
+          if (Array.isArray(series) && series.length && series[0]?.ts !== undefined) {
+            agentsSeries = series.sort((a, b) => a.ts - b.ts);
+            agentsData = null;
+          } else {
+            agentsData = json.agents || json; // old format
+            agentsSeries = null;
+          }
+          renderAgents();
+          renderHists();
+        } catch (err) {
+          alert("agents.json 解析失败");
+        }
+      });
+
+      function renderAll() {
+        renderInfo();
+        renderCurrent();
+        renderRecent();
+        renderChart();
+        renderBook();
+        renderAgents();
+        renderHists();
+      }
+
+      function renderInfo() {
+        if (!trades.length) {
+          info.textContent = "尚未加载数据";
+          return;
+        }
+        const t = trades[highlightIndex];
+        info.textContent = `进度 ${highlightIndex + 1}/${trades.length} | 时间 ${new Date(
+          t.ts * 1000
+        ).toLocaleString()} | 价格 ${t.price.toFixed(2)} | 数量 ${t.quantity}`;
+      }
+
+      function renderCurrent() {
+        if (!trades.length) {
+          document.getElementById("current-trade").textContent = "-";
+          return;
+        }
+        const t = trades[highlightIndex];
+        document.getElementById(
+          "current-trade"
+        ).innerHTML = `<div>价格: <strong>${t.price.toFixed(2)}</strong></div>
+        <div>数量: ${t.quantity}</div>
+        <div>买方: ${t.buy_agent}</div>
+        <div>卖方: ${t.sell_agent}</div>
+        <div>时间: ${new Date(t.ts * 1000).toLocaleTimeString()}</div>`;
+      }
+
+      function renderRecent() {
+        const arr = trades.slice(Math.max(0, highlightIndex - 9), highlightIndex + 1).reverse();
+        const rows = arr
+          .map(
+            (t) =>
+              `<tr>
+                <td>${new Date(t.ts * 1000).toLocaleTimeString()}</td>
+                <td>${t.price.toFixed(2)}</td>
+                <td>${t.quantity}</td>
+                <td><span class="pill buy">${t.buy_agent}</span></td>
+                <td><span class="pill sell">${t.sell_agent}</span></td>
+              </tr>`
+          )
+          .join("");
+        document.getElementById("recent").innerHTML = `
+          <table>
+            <tr><th>时间</th><th>价格</th><th>数量</th><th>买方</th><th>卖方</th></tr>
+            ${rows}
+          </table>
+        `;
+      }
+
+      function renderChart() {
+        const canvas = document.getElementById("chart");
+        const ctx = canvas.getContext("2d");
+        const dpr = window.devicePixelRatio || 1;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, width, height);
+
+        if (trades.length < 2) {
+          ctx.fillStyle = "#a2acc3";
+          ctx.fillText("加载 trades.json 后显示价格轨迹", 10, 20);
+          return;
+        }
+
+        const pts = trades.map((t) => ({ ts: t.ts, price: t.price }));
+        const minP = Math.min(...pts.map((p) => p.price));
+        const maxP = Math.max(...pts.map((p) => p.price));
+        const pad = (maxP - minP) * 0.05 || 1;
+        const minY = minP - pad;
+        const maxY = maxP + pad;
+        const minX = pts[0].ts;
+        const maxX = pts[pts.length - 1].ts;
+        const xScale = (ts) => ((ts - minX) / (maxX - minX || 1)) * (width - 40) + 20;
+        const yScale = (p) => height - ((p - minY) / (maxY - minY || 1)) * (height - 30) - 10;
+
+        ctx.strokeStyle = "#7cb7ff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        pts.forEach((p, i) => {
+          const x = xScale(p.ts);
+          const y = yScale(p.price);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        const h = trades[highlightIndex];
+        ctx.fillStyle = "#ffcf66";
+        ctx.beginPath();
+        ctx.arc(xScale(h.ts), yScale(h.price), 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function renderBook() {
+        const container = document.getElementById("book-view");
+        const snap = pickBookSnapshot();
+        if (!snap) {
+          container.textContent = "未加载 book.json / book_series.json";
+          return;
+        }
+        const bids = (snap.bids || [])
+          .slice(0, 5)
+          .map((b) => `<tr><td>${b.price.toFixed(2)}</td><td>${b.quantity}</td><td><span class="pill buy">买</span></td></tr>`)
+          .join("");
+        const asks = (snap.asks || [])
+          .slice(0, 5)
+          .map((a) => `<tr><td>${a.price.toFixed(2)}</td><td>${a.quantity}</td><td><span class="pill sell">卖</span></td></tr>`)
+          .join("");
+        container.innerHTML = `
+          <div class="grid" style="grid-template-columns: 1fr 1fr; gap:12px;">
+            <div>
+              <div class="info">买盘</div>
+              <table>
+                <tr><th>价格</th><th>数量</th><th></th></tr>
+                ${bids || "<tr><td colspan='3'>无</td></tr>"}
+              </table>
+            </div>
+            <div>
+              <div class="info">卖盘</div>
+              <table>
+                <tr><th>价格</th><th>数量</th><th></th></tr>
+                ${asks || "<tr><td colspan='3'>无</td></tr>"}
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      function pickBookSnapshot() {
+        if (bookSeries && bookSeries.length) {
+          if (!trades.length) return bookSeries[0];
+          const ts = trades[Math.min(highlightIndex, trades.length - 1)]?.ts ?? bookSeries[0].ts;
+          // 找到 ts 不大于当前的最近快照
+          let candidate = bookSeries[0];
+          for (const b of bookSeries) {
+            if (b.ts <= ts) candidate = b;
+            else break;
+          }
+          return candidate;
+        }
+        return bookData;
+      }
+
+      function pickAgentsSnapshot() {
+        if (agentsSeries && agentsSeries.length) {
+          if (!trades.length) return agentsSeries[0].agents || [];
+          const ts = trades[Math.min(highlightIndex, trades.length - 1)]?.ts ?? agentsSeries[0].ts;
+          let candidate = agentsSeries[0];
+          for (const a of agentsSeries) {
+            if (a.ts <= ts) candidate = a;
+            else break;
+          }
+          return candidate.agents || [];
+        }
+        return Array.isArray(agentsData) ? agentsData : (agentsData?.agents || []);
+      }
+
+      function renderAgents() {
+        const container = document.getElementById("agents-ext");
+        const snap = pickAgentsSnapshot();
+        if (!snap || !snap.length) {
+          container.textContent = "未加载 agents.json";
+          return;
+        }
+        const topPos = [...snap].sort((a, b) => b.position - a.position)[0];
+        const topCash = [...snap].sort((a, b) => b.cash - a.cash)[0];
+        container.innerHTML = `
+          <div>最高持仓: <strong>${topPos.agent}</strong> | 持仓 ${topPos.position} | 余额 ${topPos.cash.toFixed(2)}</div>
+          <div style="margin-top:6px;">最高余额: <strong>${topCash.agent}</strong> | 余额 ${topCash.cash.toFixed(2)} | 持仓 ${topCash.position}</div>
+        `;
+      }
+
+      function renderHists() {
+        const posCanvas = document.getElementById("pos-chart");
+        const cashCanvas = document.getElementById("cash-chart");
+        if (!posCanvas || !cashCanvas) return;
+        const snap = pickAgentsSnapshot();
+        if (!snap || !snap.length) {
+          drawHist(posCanvas, [], "#7cb7ff");
+          drawHist(cashCanvas, [], "#5be7c4");
+          return;
+        }
+        drawHist(posCanvas, snap.map((a) => a.position), "#7cb7ff");
+        drawHist(cashCanvas, snap.map((a) => a.cash), "#5be7c4");
+      }
+
+      function drawHist(canvas, values, color) {
+        const ctx = canvas.getContext("2d");
+        const dpr = window.devicePixelRatio || 1;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, width, height);
+
+        if (!values.length) {
+          ctx.fillStyle = "#a2acc3";
+          ctx.fillText("未加载 agents.json", 10, 20);
+          return;
+        }
+
+        const minV = Math.min(...values);
+        const maxV = Math.max(...values);
+        const bins = 10;
+        const binSize = (maxV - minV || 1) / bins;
+        const counts = new Array(bins).fill(0);
+        values.forEach((v) => {
+          let idx = Math.floor((v - minV) / binSize);
+          if (idx >= bins) idx = bins - 1;
+          counts[idx] += 1;
+        });
+
+        const barWidth = width / bins;
+        const maxCount = Math.max(...counts) || 1;
+        counts.forEach((c, i) => {
+          const barHeight = (c / maxCount) * (height - 30);
+          ctx.fillStyle = color;
+          ctx.fillRect(i * barWidth + 2, height - barHeight - 10, barWidth - 4, barHeight);
+        });
+
+        ctx.fillStyle = "#a2acc3";
+        ctx.font = "12px sans-serif";
+        ctx.fillText(`min ${minV.toFixed(2)} | max ${maxV.toFixed(2)}`, 8, 16);
+      }
+    </script>
+  </body>
+</html>
+

@@ -1,0 +1,5316 @@
+{
+  "trades": [
+    {
+      "buy_agent": "agent-004",
+      "sell_agent": "agent-002",
+      "price": 99.825,
+      "quantity": 1.0,
+      "ts": 1768394797.3003478,
+      "tx_hash": "tx00000001"
+    },
+    {
+      "buy_agent": "agent-006",
+      "sell_agent": "agent-002",
+      "price": 99.415,
+      "quantity": 6.0,
+      "ts": 1768394797.409044,
+      "tx_hash": "tx00000002"
+    },
+    {
+      "buy_agent": "agent-009",
+      "sell_agent": "agent-008",
+      "price": 100.405,
+      "quantity": 2.0,
+      "ts": 1768394797.586783,
+      "tx_hash": "tx00000003"
+    },
+    {
+      "buy_agent": "agent-014",
+      "sell_agent": "agent-008",
+      "price": 100.78,
+      "quantity": 5.0,
+      "ts": 1768394797.865933,
+      "tx_hash": "tx00000004"
+    },
+    {
+      "buy_agent": "agent-014",
+      "sell_agent": "agent-002",
+      "price": 100.805,
+      "quantity": 2.0,
+      "ts": 1768394797.865974,
+      "tx_hash": "tx00000005"
+    },
+    {
+      "buy_agent": "agent-017",
+      "sell_agent": "agent-011",
+      "price": 99.66,
+      "quantity": 2.0,
+      "ts": 1768394798.0318432,
+      "tx_hash": "tx00000006"
+    },
+    {
+      "buy_agent": "agent-018",
+      "sell_agent": "agent-005",
+      "price": 101.81,
+      "quantity": 4.0,
+      "ts": 1768394798.089173,
+      "tx_hash": "tx00000007"
+    },
+    {
+      "buy_agent": "agent-024",
+      "sell_agent": "agent-005",
+      "price": 100.85499999999999,
+      "quantity": 5.0,
+      "ts": 1768394798.437365,
+      "tx_hash": "tx00000008"
+    },
+    {
+      "buy_agent": "agent-028",
+      "sell_agent": "agent-029",
+      "price": 99.88,
+      "quantity": 3.0,
+      "ts": 1768394798.727228,
+      "tx_hash": "tx00000009"
+    },
+    {
+      "buy_agent": "agent-028",
+      "sell_agent": "agent-034",
+      "price": 99.52000000000001,
+      "quantity": 7.0,
+      "ts": 1768394799.0050938,
+      "tx_hash": "tx00000010"
+    },
+    {
+      "buy_agent": "agent-037",
+      "sell_agent": "agent-010",
+      "price": 100.74000000000001,
+      "quantity": 7.0,
+      "ts": 1768394799.173569,
+      "tx_hash": "tx00000011"
+    },
+    {
+      "buy_agent": "agent-038",
+      "sell_agent": "agent-010",
+      "price": 100.97,
+      "quantity": 3.0,
+      "ts": 1768394799.2333481,
+      "tx_hash": "tx00000012"
+    },
+    {
+      "buy_agent": "agent-040",
+      "sell_agent": "agent-039",
+      "price": 100.61,
+      "quantity": 6.0,
+      "ts": 1768394799.344725,
+      "tx_hash": "tx00000013"
+    },
+    {
+      "buy_agent": "agent-040",
+      "sell_agent": "agent-041",
+      "price": 100.59,
+      "quantity": 3.0,
+      "ts": 1768394799.4004102,
+      "tx_hash": "tx00000014"
+    },
+    {
+      "buy_agent": "agent-044",
+      "sell_agent": "agent-007",
+      "price": 101.325,
+      "quantity": 5.0,
+      "ts": 1768394799.570417,
+      "tx_hash": "tx00000015"
+    },
+    {
+      "buy_agent": "agent-046",
+      "sell_agent": "agent-049",
+      "price": 100.4,
+      "quantity": 2.0,
+      "ts": 1768394799.847952,
+      "tx_hash": "tx00000016"
+    },
+    {
+      "buy_agent": "agent-050",
+      "sell_agent": "agent-007",
+      "price": 101.655,
+      "quantity": 5.0,
+      "ts": 1768394799.901094,
+      "tx_hash": "tx00000017"
+    },
+    {
+      "buy_agent": "agent-050",
+      "sell_agent": "agent-001",
+      "price": 101.725,
+      "quantity": 1.0,
+      "ts": 1768394799.901109,
+      "tx_hash": "tx00000018"
+    },
+    {
+      "buy_agent": "agent-053",
+      "sell_agent": "agent-055",
+      "price": 98.07,
+      "quantity": 1.0,
+      "ts": 1768394800.177839,
+      "tx_hash": "tx00000019"
+    },
+    {
+      "buy_agent": "agent-053",
+      "sell_agent": "agent-058",
+      "price": 99.765,
+      "quantity": 2.0,
+      "ts": 1768394800.343282,
+      "tx_hash": "tx00000020"
+    },
+    {
+      "buy_agent": "agent-051",
+      "sell_agent": "agent-058",
+      "price": 99.55,
+      "quantity": 1.0,
+      "ts": 1768394800.3433,
+      "tx_hash": "tx00000021"
+    },
+    {
+      "buy_agent": "agent-051",
+      "sell_agent": "agent-061",
+      "price": 99.83500000000001,
+      "quantity": 2.0,
+      "ts": 1768394800.513161,
+      "tx_hash": "tx00000022"
+    },
+    {
+      "buy_agent": "agent-046",
+      "sell_agent": "agent-061",
+      "price": 99.825,
+      "quantity": 5.0,
+      "ts": 1768394800.513186,
+      "tx_hash": "tx00000023"
+    },
+    {
+      "buy_agent": "agent-063",
+      "sell_agent": "agent-060",
+      "price": 101.19,
+      "quantity": 7.0,
+      "ts": 1768394800.6273139,
+      "tx_hash": "tx00000024"
+    },
+    {
+      "buy_agent": "agent-063",
+      "sell_agent": "agent-001",
+      "price": 101.25,
+      "quantity": 3.0,
+      "ts": 1768394800.6273448,
+      "tx_hash": "tx00000025"
+    },
+    {
+      "buy_agent": "agent-062",
+      "sell_agent": "agent-066",
+      "price": 100.36,
+      "quantity": 5.0,
+      "ts": 1768394800.801846,
+      "tx_hash": "tx00000026"
+    },
+    {
+      "buy_agent": "agent-046",
+      "sell_agent": "agent-066",
+      "price": 100.14500000000001,
+      "quantity": 3.0,
+      "ts": 1768394800.801915,
+      "tx_hash": "tx00000027"
+    },
+    {
+      "buy_agent": "agent-042",
+      "sell_agent": "agent-067",
+      "price": 99.945,
+      "quantity": 1.0,
+      "ts": 1768394800.862468,
+      "tx_hash": "tx00000028"
+    },
+    {
+      "buy_agent": "agent-027",
+      "sell_agent": "agent-067",
+      "price": 99.82,
+      "quantity": 5.0,
+      "ts": 1768394800.86253,
+      "tx_hash": "tx00000029"
+    },
+    {
+      "buy_agent": "agent-032",
+      "sell_agent": "agent-067",
+      "price": 99.805,
+      "quantity": 1.0,
+      "ts": 1768394800.8625522,
+      "tx_hash": "tx00000030"
+    },
+    {
+      "buy_agent": "agent-032",
+      "sell_agent": "agent-069",
+      "price": 99.91,
+      "quantity": 4.0,
+      "ts": 1768394800.976663,
+      "tx_hash": "tx00000031"
+    },
+    {
+      "buy_agent": "agent-032",
+      "sell_agent": "agent-070",
+      "price": 99.65,
+      "quantity": 4.0,
+      "ts": 1768394801.0329962,
+      "tx_hash": "tx00000032"
+    },
+    {
+      "buy_agent": "agent-021",
+      "sell_agent": "agent-070",
+      "price": 99.59,
+      "quantity": 2.0,
+      "ts": 1768394801.0330508,
+      "tx_hash": "tx00000033"
+    },
+    {
+      "buy_agent": "agent-052",
+      "sell_agent": "agent-070",
+      "price": 99.58,
+      "quantity": 1.0,
+      "ts": 1768394801.033073,
+      "tx_hash": "tx00000034"
+    },
+    {
+      "buy_agent": "agent-071",
+      "sell_agent": "agent-001",
+      "price": 101.99000000000001,
+      "quantity": 2.0,
+      "ts": 1768394801.089142,
+      "tx_hash": "tx00000035"
+    },
+    {
+      "buy_agent": "agent-071",
+      "sell_agent": "agent-036",
+      "price": 102.065,
+      "quantity": 2.0,
+      "ts": 1768394801.089199,
+      "tx_hash": "tx00000036"
+    },
+    {
+      "buy_agent": "agent-072",
+      "sell_agent": "agent-076",
+      "price": 100.02000000000001,
+      "quantity": 8.0,
+      "ts": 1768394801.390162,
+      "tx_hash": "tx00000037"
+    },
+    {
+      "buy_agent": "agent-052",
+      "sell_agent": "agent-076",
+      "price": 99.745,
+      "quantity": 1.0,
+      "ts": 1768394801.390251,
+      "tx_hash": "tx00000038"
+    },
+    {
+      "buy_agent": "agent-017",
+      "sell_agent": "agent-076",
+      "price": 99.715,
+      "quantity": 1.0,
+      "ts": 1768394801.3902771,
+      "tx_hash": "tx00000039"
+    },
+    {
+      "buy_agent": "agent-079",
+      "sell_agent": "agent-078",
+      "price": 101.225,
+      "quantity": 5.0,
+      "ts": 1768394801.5668569,
+      "tx_hash": "tx00000040"
+    },
+    {
+      "buy_agent": "agent-079",
+      "sell_agent": "agent-036",
+      "price": 101.83,
+      "quantity": 4.0,
+      "ts": 1768394801.566937,
+      "tx_hash": "tx00000041"
+    },
+    {
+      "buy_agent": "agent-017",
+      "sell_agent": "agent-081",
+      "price": 99.48,
+      "quantity": 3.0,
+      "ts": 1768394801.6886559,
+      "tx_hash": "tx00000042"
+    },
+    {
+      "buy_agent": "agent-026",
+      "sell_agent": "agent-081",
+      "price": 99.475,
+      "quantity": 1.0,
+      "ts": 1768394801.6887329,
+      "tx_hash": "tx00000043"
+    },
+    {
+      "buy_agent": "agent-089",
+      "sell_agent": "agent-080",
+      "price": 101.205,
+      "quantity": 2.0,
+      "ts": 1768394802.156338,
+      "tx_hash": "tx00000044"
+    },
+    {
+      "buy_agent": "agent-089",
+      "sell_agent": "agent-083",
+      "price": 101.265,
+      "quantity": 3.0,
+      "ts": 1768394802.1564102,
+      "tx_hash": "tx00000045"
+    },
+    {
+      "buy_agent": "agent-089",
+      "sell_agent": "agent-085",
+      "price": 101.66499999999999,
+      "quantity": 1.0,
+      "ts": 1768394802.15643,
+      "tx_hash": "tx00000046"
+    },
+    {
+      "buy_agent": "agent-086",
+      "sell_agent": "agent-092",
+      "price": 97.92,
+      "quantity": 2.0,
+      "ts": 1768394802.3441,
+      "tx_hash": "tx00000047"
+    },
+    {
+      "buy_agent": "agent-026",
+      "sell_agent": "agent-092",
+      "price": 97.875,
+      "quantity": 2.0,
+      "ts": 1768394802.344191,
+      "tx_hash": "tx00000048"
+    },
+    {
+      "buy_agent": "agent-094",
+      "sell_agent": "agent-097",
+      "price": 99.75999999999999,
+      "quantity": 7.0,
+      "ts": 1768394802.6259258,
+      "tx_hash": "tx00000049"
+    },
+    {
+      "buy_agent": "agent-026",
+      "sell_agent": "agent-097",
+      "price": 99.71000000000001,
+      "quantity": 1.0,
+      "ts": 1768394802.6259499,
+      "tx_hash": "tx00000050"
+    },
+    {
+      "buy_agent": "agent-026",
+      "sell_agent": "agent-099",
+      "price": 98.97,
+      "quantity": 1.0,
+      "ts": 1768394802.738796,
+      "tx_hash": "tx00000051"
+    },
+    {
+      "buy_agent": "agent-033",
+      "sell_agent": "agent-099",
+      "price": 98.96000000000001,
+      "quantity": 3.0,
+      "ts": 1768394802.738882,
+      "tx_hash": "tx00000052"
+    },
+    {
+      "buy_agent": "agent-045",
+      "sell_agent": "agent-099",
+      "price": 98.94,
+      "quantity": 2.0,
+      "ts": 1768394802.7389052,
+      "tx_hash": "tx00000053"
+    },
+    {
+      "buy_agent": "agent-001",
+      "sell_agent": "agent-090",
+      "price": 101.14,
+      "quantity": 4.0,
+      "ts": 1768394802.859411,
+      "tx_hash": "tx00000054"
+    },
+    {
+      "buy_agent": "agent-005",
+      "sell_agent": "agent-090",
+      "price": 102.345,
+      "quantity": 1.0,
+      "ts": 1768394803.093459,
+      "tx_hash": "tx00000055"
+    },
+    {
+      "buy_agent": "agent-006",
+      "sell_agent": "agent-085",
+      "price": 101.92500000000001,
+      "quantity": 7.0,
+      "ts": 1768394803.148863,
+      "tx_hash": "tx00000056"
+    },
+    {
+      "buy_agent": "agent-045",
+      "sell_agent": "agent-012",
+      "price": 99.61500000000001,
+      "quantity": 6.0,
+      "ts": 1768394803.504868,
+      "tx_hash": "tx00000057"
+    },
+    {
+      "buy_agent": "agent-056",
+      "sell_agent": "agent-012",
+      "price": 99.58500000000001,
+      "quantity": 2.0,
+      "ts": 1768394803.504968,
+      "tx_hash": "tx00000058"
+    },
+    {
+      "buy_agent": "agent-054",
+      "sell_agent": "agent-012",
+      "price": 99.575,
+      "quantity": 2.0,
+      "ts": 1768394803.504996,
+      "tx_hash": "tx00000059"
+    },
+    {
+      "buy_agent": "agent-013",
+      "sell_agent": "agent-008",
+      "price": 101.25,
+      "quantity": 2.0,
+      "ts": 1768394803.564576,
+      "tx_hash": "tx00000060"
+    },
+    {
+      "buy_agent": "agent-054",
+      "sell_agent": "agent-015",
+      "price": 99.75999999999999,
+      "quantity": 2.0,
+      "ts": 1768394803.686096,
+      "tx_hash": "tx00000061"
+    },
+    {
+      "buy_agent": "agent-020",
+      "sell_agent": "agent-023",
+      "price": 100.35,
+      "quantity": 3.0,
+      "ts": 1768394804.154523,
+      "tx_hash": "tx00000062"
+    },
+    {
+      "buy_agent": "agent-026",
+      "sell_agent": "agent-008",
+      "price": 102.53999999999999,
+      "quantity": 1.0,
+      "ts": 1768394804.3441322,
+      "tx_hash": "tx00000063"
+    },
+    {
+      "buy_agent": "agent-026",
+      "sell_agent": "agent-019",
+      "price": 102.745,
+      "quantity": 5.0,
+      "ts": 1768394804.34422,
+      "tx_hash": "tx00000064"
+    },
+    {
+      "buy_agent": "agent-026",
+      "sell_agent": "agent-085",
+      "price": 102.75,
+      "quantity": 2.0,
+      "ts": 1768394804.344248,
+      "tx_hash": "tx00000065"
+    },
+    {
+      "buy_agent": "agent-026",
+      "sell_agent": "agent-036",
+      "price": 102.815,
+      "quantity": 2.0,
+      "ts": 1768394804.344267,
+      "tx_hash": "tx00000066"
+    },
+    {
+      "buy_agent": "agent-028",
+      "sell_agent": "agent-029",
+      "price": 100.75,
+      "quantity": 6.0,
+      "ts": 1768394804.522649,
+      "tx_hash": "tx00000067"
+    },
+    {
+      "buy_agent": "agent-028",
+      "sell_agent": "agent-033",
+      "price": 99.71000000000001,
+      "quantity": 2.0,
+      "ts": 1768394804.754105,
+      "tx_hash": "tx00000068"
+    },
+    {
+      "buy_agent": "agent-020",
+      "sell_agent": "agent-033",
+      "price": 99.47999999999999,
+      "quantity": 6.0,
+      "ts": 1768394804.754169,
+      "tx_hash": "tx00000069"
+    },
+    {
+      "buy_agent": "agent-020",
+      "sell_agent": "agent-036",
+      "price": 100.13999999999999,
+      "quantity": 1.0,
+      "ts": 1768394804.926692,
+      "tx_hash": "tx00000070"
+    },
+    {
+      "buy_agent": "agent-016",
+      "sell_agent": "agent-036",
+      "price": 99.905,
+      "quantity": 4.0,
+      "ts": 1768394804.9267561,
+      "tx_hash": "tx00000071"
+    },
+    {
+      "buy_agent": "agent-022",
+      "sell_agent": "agent-036",
+      "price": 99.835,
+      "quantity": 1.0,
+      "ts": 1768394804.9267762,
+      "tx_hash": "tx00000072"
+    },
+    {
+      "buy_agent": "agent-041",
+      "sell_agent": "agent-043",
+      "price": 99.7,
+      "quantity": 5.0,
+      "ts": 1768394805.352161,
+      "tx_hash": "tx00000073"
+    },
+    {
+      "buy_agent": "agent-041",
+      "sell_agent": "agent-044",
+      "price": 98.82,
+      "quantity": 2.0,
+      "ts": 1768394805.4094138,
+      "tx_hash": "tx00000074"
+    },
+    {
+      "buy_agent": "agent-041",
+      "sell_agent": "agent-046",
+      "price": 98.985,
+      "quantity": 3.0,
+      "ts": 1768394805.5263581,
+      "tx_hash": "tx00000075"
+    },
+    {
+      "buy_agent": "agent-022",
+      "sell_agent": "agent-046",
+      "price": 98.91999999999999,
+      "quantity": 1.0,
+      "ts": 1768394805.526433,
+      "tx_hash": "tx00000076"
+    },
+    {
+      "buy_agent": "agent-022",
+      "sell_agent": "agent-053",
+      "price": 99.89,
+      "quantity": 7.0,
+      "ts": 1768394805.93572,
+      "tx_hash": "tx00000077"
+    },
+    {
+      "buy_agent": "agent-022",
+      "sell_agent": "agent-054",
+      "price": 99.995,
+      "quantity": 1.0,
+      "ts": 1768394805.9961228,
+      "tx_hash": "tx00000078"
+    },
+    {
+      "buy_agent": "agent-018",
+      "sell_agent": "agent-055",
+      "price": 99.285,
+      "quantity": 7.0,
+      "ts": 1768394806.055538,
+      "tx_hash": "tx00000079"
+    },
+    {
+      "buy_agent": "agent-060",
+      "sell_agent": "agent-059",
+      "price": 100.56,
+      "quantity": 2.0,
+      "ts": 1768394806.3539908,
+      "tx_hash": "tx00000080"
+    },
+    {
+      "buy_agent": "agent-061",
+      "sell_agent": "agent-059",
+      "price": 99.88,
+      "quantity": 6.0,
+      "ts": 1768394806.414808,
+      "tx_hash": "tx00000081"
+    },
+    {
+      "buy_agent": "agent-061",
+      "sell_agent": "agent-062",
+      "price": 99.10499999999999,
+      "quantity": 2.0,
+      "ts": 1768394806.4745889,
+      "tx_hash": "tx00000082"
+    },
+    {
+      "buy_agent": "agent-018",
+      "sell_agent": "agent-062",
+      "price": 99.09,
+      "quantity": 1.0,
+      "ts": 1768394806.4746618,
+      "tx_hash": "tx00000083"
+    },
+    {
+      "buy_agent": "agent-049",
+      "sell_agent": "agent-062",
+      "price": 99.08500000000001,
+      "quantity": 2.0,
+      "ts": 1768394806.474695,
+      "tx_hash": "tx00000084"
+    },
+    {
+      "buy_agent": "agent-027",
+      "sell_agent": "agent-062",
+      "price": 98.99000000000001,
+      "quantity": 1.0,
+      "ts": 1768394806.47473,
+      "tx_hash": "tx00000085"
+    },
+    {
+      "buy_agent": "agent-063",
+      "sell_agent": "agent-054",
+      "price": 100.47999999999999,
+      "quantity": 3.0,
+      "ts": 1768394806.531113,
+      "tx_hash": "tx00000086"
+    },
+    {
+      "buy_agent": "agent-063",
+      "sell_agent": "agent-047",
+      "price": 100.62,
+      "quantity": 1.0,
+      "ts": 1768394806.531157,
+      "tx_hash": "tx00000087"
+    },
+    {
+      "buy_agent": "agent-065",
+      "sell_agent": "agent-047",
+      "price": 100.53,
+      "quantity": 4.0,
+      "ts": 1768394806.644222,
+      "tx_hash": "tx00000088"
+    },
+    {
+      "buy_agent": "agent-066",
+      "sell_agent": "agent-047",
+      "price": 100.78999999999999,
+      "quantity": 4.0,
+      "ts": 1768394806.70184,
+      "tx_hash": "tx00000089"
+    },
+    {
+      "buy_agent": "agent-066",
+      "sell_agent": "agent-056",
+      "price": 101.035,
+      "quantity": 2.0,
+      "ts": 1768394806.701899,
+      "tx_hash": "tx00000090"
+    },
+    {
+      "buy_agent": "agent-068",
+      "sell_agent": "agent-056",
+      "price": 102.44999999999999,
+      "quantity": 2.0,
+      "ts": 1768394806.8173912,
+      "tx_hash": "tx00000091"
+    },
+    {
+      "buy_agent": "agent-068",
+      "sell_agent": "agent-050",
+      "price": 102.59,
+      "quantity": 2.0,
+      "ts": 1768394806.8174431,
+      "tx_hash": "tx00000092"
+    },
+    {
+      "buy_agent": "agent-071",
+      "sell_agent": "agent-050",
+      "price": 101.03999999999999,
+      "quantity": 4.0,
+      "ts": 1768394806.998196,
+      "tx_hash": "tx00000093"
+    },
+    {
+      "buy_agent": "agent-067",
+      "sell_agent": "agent-072",
+      "price": 99.465,
+      "quantity": 2.0,
+      "ts": 1768394807.058157,
+      "tx_hash": "tx00000094"
+    },
+    {
+      "buy_agent": "agent-067",
+      "sell_agent": "agent-073",
+      "price": 99.555,
+      "quantity": 6.0,
+      "ts": 1768394807.117697,
+      "tx_hash": "tx00000095"
+    },
+    {
+      "buy_agent": "agent-027",
+      "sell_agent": "agent-073",
+      "price": 99.14,
+      "quantity": 3.0,
+      "ts": 1768394807.1177542,
+      "tx_hash": "tx00000096"
+    },
+    {
+      "buy_agent": "agent-074",
+      "sell_agent": "agent-050",
+      "price": 101.895,
+      "quantity": 2.0,
+      "ts": 1768394807.177968,
+      "tx_hash": "tx00000097"
+    },
+    {
+      "buy_agent": "agent-074",
+      "sell_agent": "agent-093",
+      "price": 102.095,
+      "quantity": 1.0,
+      "ts": 1768394807.1780689,
+      "tx_hash": "tx00000098"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-078",
+      "price": 99.74000000000001,
+      "quantity": 3.0,
+      "ts": 1768394807.4175098,
+      "tx_hash": "tx00000099"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-085",
+      "price": 100.685,
+      "quantity": 2.0,
+      "ts": 1768394807.8224058,
+      "tx_hash": "tx00000100"
+    },
+    {
+      "buy_agent": "agent-086",
+      "sell_agent": "agent-093",
+      "price": 101.545,
+      "quantity": 8.0,
+      "ts": 1768394807.881699,
+      "tx_hash": "tx00000101"
+    },
+    {
+      "buy_agent": "agent-086",
+      "sell_agent": "agent-012",
+      "price": 101.575,
+      "quantity": 1.0,
+      "ts": 1768394807.8817751,
+      "tx_hash": "tx00000102"
+    },
+    {
+      "buy_agent": "agent-077",
+      "sell_agent": "agent-087",
+      "price": 99.74000000000001,
+      "quantity": 1.0,
+      "ts": 1768394807.940325,
+      "tx_hash": "tx00000103"
+    },
+    {
+      "buy_agent": "agent-090",
+      "sell_agent": "agent-058",
+      "price": 101.44,
+      "quantity": 4.0,
+      "ts": 1768394808.109704,
+      "tx_hash": "tx00000104"
+    },
+    {
+      "buy_agent": "agent-090",
+      "sell_agent": "agent-003",
+      "price": 101.46000000000001,
+      "quantity": 3.0,
+      "ts": 1768394808.10973,
+      "tx_hash": "tx00000105"
+    },
+    {
+      "buy_agent": "agent-077",
+      "sell_agent": "agent-091",
+      "price": 100.975,
+      "quantity": 4.0,
+      "ts": 1768394808.166812,
+      "tx_hash": "tx00000106"
+    },
+    {
+      "buy_agent": "agent-027",
+      "sell_agent": "agent-092",
+      "price": 99.6,
+      "quantity": 3.0,
+      "ts": 1768394808.2240279,
+      "tx_hash": "tx00000107"
+    },
+    {
+      "buy_agent": "agent-094",
+      "sell_agent": "agent-091",
+      "price": 101.3,
+      "quantity": 3.0,
+      "ts": 1768394808.345189,
+      "tx_hash": "tx00000108"
+    },
+    {
+      "buy_agent": "agent-094",
+      "sell_agent": "agent-003",
+      "price": 101.66,
+      "quantity": 5.0,
+      "ts": 1768394808.3452659,
+      "tx_hash": "tx00000109"
+    },
+    {
+      "buy_agent": "agent-094",
+      "sell_agent": "agent-075",
+      "price": 101.68,
+      "quantity": 2.0,
+      "ts": 1768394808.345289,
+      "tx_hash": "tx00000110"
+    },
+    {
+      "buy_agent": "agent-095",
+      "sell_agent": "agent-013",
+      "price": 102.00999999999999,
+      "quantity": 8.0,
+      "ts": 1768394808.409535,
+      "tx_hash": "tx00000111"
+    },
+    {
+      "buy_agent": "agent-095",
+      "sell_agent": "agent-042",
+      "price": 102.02,
+      "quantity": 2.0,
+      "ts": 1768394808.409625,
+      "tx_hash": "tx00000112"
+    },
+    {
+      "buy_agent": "agent-027",
+      "sell_agent": "agent-097",
+      "price": 99.11,
+      "quantity": 3.0,
+      "ts": 1768394808.5275059,
+      "tx_hash": "tx00000113"
+    },
+    {
+      "buy_agent": "agent-011",
+      "sell_agent": "agent-097",
+      "price": 99.10499999999999,
+      "quantity": 2.0,
+      "ts": 1768394808.527542,
+      "tx_hash": "tx00000114"
+    },
+    {
+      "buy_agent": "agent-011",
+      "sell_agent": "agent-098",
+      "price": 99.1,
+      "quantity": 5.0,
+      "ts": 1768394808.588404,
+      "tx_hash": "tx00000115"
+    },
+    {
+      "buy_agent": "agent-059",
+      "sell_agent": "agent-098",
+      "price": 99.065,
+      "quantity": 3.0,
+      "ts": 1768394808.588492,
+      "tx_hash": "tx00000116"
+    },
+    {
+      "buy_agent": "agent-100",
+      "sell_agent": "agent-096",
+      "price": 101.49000000000001,
+      "quantity": 8.0,
+      "ts": 1768394808.705008,
+      "tx_hash": "tx00000117"
+    },
+    {
+      "buy_agent": "agent-004",
+      "sell_agent": "agent-002",
+      "price": 100.36500000000001,
+      "quantity": 6.0,
+      "ts": 1768394808.9425762,
+      "tx_hash": "tx00000118"
+    },
+    {
+      "buy_agent": "agent-004",
+      "sell_agent": "agent-006",
+      "price": 99.37,
+      "quantity": 3.0,
+      "ts": 1768394809.060931,
+      "tx_hash": "tx00000119"
+    },
+    {
+      "buy_agent": "agent-005",
+      "sell_agent": "agent-006",
+      "price": 99.24,
+      "quantity": 2.0,
+      "ts": 1768394809.060989,
+      "tx_hash": "tx00000120"
+    },
+    {
+      "buy_agent": "agent-009",
+      "sell_agent": "agent-096",
+      "price": 101.11500000000001,
+      "quantity": 1.0,
+      "ts": 1768394809.235841,
+      "tx_hash": "tx00000121"
+    },
+    {
+      "buy_agent": "agent-009",
+      "sell_agent": "agent-008",
+      "price": 101.22999999999999,
+      "quantity": 2.0,
+      "ts": 1768394809.235877,
+      "tx_hash": "tx00000122"
+    },
+    {
+      "buy_agent": "agent-009",
+      "sell_agent": "agent-010",
+      "price": 101.045,
+      "quantity": 7.0,
+      "ts": 1768394809.2970612,
+      "tx_hash": "tx00000123"
+    },
+    {
+      "buy_agent": "agent-005",
+      "sell_agent": "agent-011",
+      "price": 99.91999999999999,
+      "quantity": 8.0,
+      "ts": 1768394809.3566651,
+      "tx_hash": "tx00000124"
+    },
+    {
+      "buy_agent": "agent-087",
+      "sell_agent": "agent-013",
+      "price": 99.32,
+      "quantity": 8.0,
+      "ts": 1768394809.4857311,
+      "tx_hash": "tx00000125"
+    },
+    {
+      "buy_agent": "agent-020",
+      "sell_agent": "agent-013",
+      "price": 99.305,
+      "quantity": 1.0,
+      "ts": 1768394809.485832,
+      "tx_hash": "tx00000126"
+    },
+    {
+      "buy_agent": "agent-020",
+      "sell_agent": "agent-014",
+      "price": 99.21000000000001,
+      "quantity": 3.0,
+      "ts": 1768394809.544151,
+      "tx_hash": "tx00000127"
+    },
+    {
+      "buy_agent": "agent-015",
+      "sell_agent": "agent-011",
+      "price": 99.755,
+      "quantity": 1.0,
+      "ts": 1768394809.6062112,
+      "tx_hash": "tx00000128"
+    },
+    {
+      "buy_agent": "agent-015",
+      "sell_agent": "agent-012",
+      "price": 99.83,
+      "quantity": 8.0,
+      "ts": 1768394809.6063008,
+      "tx_hash": "tx00000129"
+    },
+    {
+      "buy_agent": "agent-069",
+      "sell_agent": "agent-019",
+      "price": 99.485,
+      "quantity": 2.0,
+      "ts": 1768394809.834232,
+      "tx_hash": "tx00000130"
+    },
+    {
+      "buy_agent": "agent-075",
+      "sell_agent": "agent-019",
+      "price": 99.475,
+      "quantity": 2.0,
+      "ts": 1768394809.8342578,
+      "tx_hash": "tx00000131"
+    },
+    {
+      "buy_agent": "agent-022",
+      "sell_agent": "agent-012",
+      "price": 100.575,
+      "quantity": 1.0,
+      "ts": 1768394810.013422,
+      "tx_hash": "tx00000132"
+    },
+    {
+      "buy_agent": "agent-023",
+      "sell_agent": "agent-012",
+      "price": 100.00999999999999,
+      "quantity": 1.0,
+      "ts": 1768394810.0750122,
+      "tx_hash": "tx00000133"
+    },
+    {
+      "buy_agent": "agent-027",
+      "sell_agent": "agent-016",
+      "price": 100.66,
+      "quantity": 7.0,
+      "ts": 1768394810.3064268,
+      "tx_hash": "tx00000134"
+    },
+    {
+      "buy_agent": "agent-023",
+      "sell_agent": "agent-028",
+      "price": 99.975,
+      "quantity": 1.0,
+      "ts": 1768394810.366868,
+      "tx_hash": "tx00000135"
+    },
+    {
+      "buy_agent": "agent-023",
+      "sell_agent": "agent-029",
+      "price": 100.125,
+      "quantity": 1.0,
+      "ts": 1768394810.429417,
+      "tx_hash": "tx00000136"
+    },
+    {
+      "buy_agent": "agent-033",
+      "sell_agent": "agent-010",
+      "price": 101.015,
+      "quantity": 1.0,
+      "ts": 1768394810.651932,
+      "tx_hash": "tx00000137"
+    },
+    {
+      "buy_agent": "agent-033",
+      "sell_agent": "agent-020",
+      "price": 101.035,
+      "quantity": 2.0,
+      "ts": 1768394810.651972,
+      "tx_hash": "tx00000138"
+    },
+    {
+      "buy_agent": "agent-023",
+      "sell_agent": "agent-035",
+      "price": 100.27,
+      "quantity": 1.0,
+      "ts": 1768394810.768352,
+      "tx_hash": "tx00000139"
+    },
+    {
+      "buy_agent": "agent-023",
+      "sell_agent": "agent-036",
+      "price": 99.805,
+      "quantity": 3.0,
+      "ts": 1768394810.823586,
+      "tx_hash": "tx00000140"
+    },
+    {
+      "buy_agent": "agent-037",
+      "sell_agent": "agent-020",
+      "price": 101.49000000000001,
+      "quantity": 3.0,
+      "ts": 1768394810.8824582,
+      "tx_hash": "tx00000141"
+    },
+    {
+      "buy_agent": "agent-040",
+      "sell_agent": "agent-044",
+      "price": 99.77,
+      "quantity": 2.0,
+      "ts": 1768394811.299656,
+      "tx_hash": "tx00000142"
+    },
+    {
+      "buy_agent": "agent-055",
+      "sell_agent": "agent-054",
+      "price": 100.59,
+      "quantity": 6.0,
+      "ts": 1768394811.965159,
+      "tx_hash": "tx00000143"
+    },
+    {
+      "buy_agent": "agent-055",
+      "sell_agent": "agent-049",
+      "price": 100.68,
+      "quantity": 3.0,
+      "ts": 1768394811.965255,
+      "tx_hash": "tx00000144"
+    },
+    {
+      "buy_agent": "agent-055",
+      "sell_agent": "agent-050",
+      "price": 100.78,
+      "quantity": 1.0,
+      "ts": 1768394811.9652789,
+      "tx_hash": "tx00000145"
+    },
+    {
+      "buy_agent": "agent-056",
+      "sell_agent": "agent-050",
+      "price": 101.52000000000001,
+      "quantity": 4.0,
+      "ts": 1768394812.027863,
+      "tx_hash": "tx00000146"
+    },
+    {
+      "buy_agent": "agent-056",
+      "sell_agent": "agent-020",
+      "price": 101.61,
+      "quantity": 1.0,
+      "ts": 1768394812.02794,
+      "tx_hash": "tx00000147"
+    },
+    {
+      "buy_agent": "agent-056",
+      "sell_agent": "agent-021",
+      "price": 101.89,
+      "quantity": 4.0,
+      "ts": 1768394812.027966,
+      "tx_hash": "tx00000148"
+    },
+    {
+      "buy_agent": "agent-057",
+      "sell_agent": "agent-058",
+      "price": 99.16,
+      "quantity": 7.0,
+      "ts": 1768394812.152278,
+      "tx_hash": "tx00000149"
+    },
+    {
+      "buy_agent": "agent-057",
+      "sell_agent": "agent-059",
+      "price": 100.36500000000001,
+      "quantity": 3.0,
+      "ts": 1768394812.213814,
+      "tx_hash": "tx00000150"
+    },
+    {
+      "buy_agent": "agent-038",
+      "sell_agent": "agent-059",
+      "price": 100.20500000000001,
+      "quantity": 1.0,
+      "ts": 1768394812.2138948,
+      "tx_hash": "tx00000151"
+    },
+    {
+      "buy_agent": "agent-038",
+      "sell_agent": "agent-060",
+      "price": 99.555,
+      "quantity": 8.0,
+      "ts": 1768394812.2746189,
+      "tx_hash": "tx00000152"
+    },
+    {
+      "buy_agent": "agent-024",
+      "sell_agent": "agent-063",
+      "price": 98.89500000000001,
+      "quantity": 3.0,
+      "ts": 1768394812.4515939,
+      "tx_hash": "tx00000153"
+    },
+    {
+      "buy_agent": "agent-025",
+      "sell_agent": "agent-063",
+      "price": 98.86,
+      "quantity": 1.0,
+      "ts": 1768394812.45167,
+      "tx_hash": "tx00000154"
+    },
+    {
+      "buy_agent": "agent-064",
+      "sell_agent": "agent-061",
+      "price": 100.975,
+      "quantity": 2.0,
+      "ts": 1768394812.51778,
+      "tx_hash": "tx00000155"
+    },
+    {
+      "buy_agent": "agent-046",
+      "sell_agent": "agent-065",
+      "price": 99.09,
+      "quantity": 2.0,
+      "ts": 1768394812.579492,
+      "tx_hash": "tx00000156"
+    },
+    {
+      "buy_agent": "agent-066",
+      "sell_agent": "agent-061",
+      "price": 100.38999999999999,
+      "quantity": 4.0,
+      "ts": 1768394812.638669,
+      "tx_hash": "tx00000157"
+    },
+    {
+      "buy_agent": "agent-046",
+      "sell_agent": "agent-067",
+      "price": 99.155,
+      "quantity": 5.0,
+      "ts": 1768394812.6980522,
+      "tx_hash": "tx00000158"
+    },
+    {
+      "buy_agent": "agent-043",
+      "sell_agent": "agent-067",
+      "price": 99.065,
+      "quantity": 3.0,
+      "ts": 1768394812.698099,
+      "tx_hash": "tx00000159"
+    },
+    {
+      "buy_agent": "agent-069",
+      "sell_agent": "agent-061",
+      "price": 100.49,
+      "quantity": 3.0,
+      "ts": 1768394812.8103712,
+      "tx_hash": "tx00000160"
+    },
+    {
+      "buy_agent": "agent-043",
+      "sell_agent": "agent-070",
+      "price": 99.535,
+      "quantity": 7.0,
+      "ts": 1768394812.868331,
+      "tx_hash": "tx00000161"
+    },
+    {
+      "buy_agent": "agent-031",
+      "sell_agent": "agent-070",
+      "price": 99.465,
+      "quantity": 3.0,
+      "ts": 1768394812.868396,
+      "tx_hash": "tx00000162"
+    },
+    {
+      "buy_agent": "agent-071",
+      "sell_agent": "agent-061",
+      "price": 101.125,
+      "quantity": 1.0,
+      "ts": 1768394812.927742,
+      "tx_hash": "tx00000163"
+    },
+    {
+      "buy_agent": "agent-071",
+      "sell_agent": "agent-062",
+      "price": 101.545,
+      "quantity": 4.0,
+      "ts": 1768394812.927809,
+      "tx_hash": "tx00000164"
+    },
+    {
+      "buy_agent": "agent-031",
+      "sell_agent": "agent-074",
+      "price": 99.245,
+      "quantity": 2.0,
+      "ts": 1768394813.101983,
+      "tx_hash": "tx00000165"
+    },
+    {
+      "buy_agent": "agent-075",
+      "sell_agent": "agent-074",
+      "price": 99.235,
+      "quantity": 2.0,
+      "ts": 1768394813.102005,
+      "tx_hash": "tx00000166"
+    },
+    {
+      "buy_agent": "agent-096",
+      "sell_agent": "agent-074",
+      "price": 99.18,
+      "quantity": 5.0,
+      "ts": 1768394813.102014,
+      "tx_hash": "tx00000167"
+    },
+    {
+      "buy_agent": "agent-096",
+      "sell_agent": "agent-075",
+      "price": 98.575,
+      "quantity": 1.0,
+      "ts": 1768394813.154042,
+      "tx_hash": "tx00000168"
+    },
+    {
+      "buy_agent": "agent-052",
+      "sell_agent": "agent-075",
+      "price": 98.56,
+      "quantity": 2.0,
+      "ts": 1768394813.154059,
+      "tx_hash": "tx00000169"
+    },
+    {
+      "buy_agent": "agent-019",
+      "sell_agent": "agent-075",
+      "price": 98.55000000000001,
+      "quantity": 1.0,
+      "ts": 1768394813.1540658,
+      "tx_hash": "tx00000170"
+    },
+    {
+      "buy_agent": "agent-031",
+      "sell_agent": "agent-075",
+      "price": 98.53999999999999,
+      "quantity": 1.0,
+      "ts": 1768394813.154073,
+      "tx_hash": "tx00000171"
+    },
+    {
+      "buy_agent": "agent-025",
+      "sell_agent": "agent-075",
+      "price": 98.535,
+      "quantity": 1.0,
+      "ts": 1768394813.154078,
+      "tx_hash": "tx00000172"
+    },
+    {
+      "buy_agent": "agent-001",
+      "sell_agent": "agent-075",
+      "price": 98.53,
+      "quantity": 1.0,
+      "ts": 1768394813.1540842,
+      "tx_hash": "tx00000173"
+    },
+    {
+      "buy_agent": "agent-001",
+      "sell_agent": "agent-078",
+      "price": 98.74000000000001,
+      "quantity": 3.0,
+      "ts": 1768394813.328532,
+      "tx_hash": "tx00000174"
+    },
+    {
+      "buy_agent": "agent-001",
+      "sell_agent": "agent-079",
+      "price": 99.265,
+      "quantity": 3.0,
+      "ts": 1768394813.3862212,
+      "tx_hash": "tx00000175"
+    },
+    {
+      "buy_agent": "agent-001",
+      "sell_agent": "agent-080",
+      "price": 98.61500000000001,
+      "quantity": 3.0,
+      "ts": 1768394813.4430962,
+      "tx_hash": "tx00000176"
+    },
+    {
+      "buy_agent": "agent-093",
+      "sell_agent": "agent-080",
+      "price": 98.61000000000001,
+      "quantity": 3.0,
+      "ts": 1768394813.443169,
+      "tx_hash": "tx00000177"
+    },
+    {
+      "buy_agent": "agent-042",
+      "sell_agent": "agent-083",
+      "price": 98.845,
+      "quantity": 1.0,
+      "ts": 1768394813.627695,
+      "tx_hash": "tx00000178"
+    },
+    {
+      "buy_agent": "agent-093",
+      "sell_agent": "agent-083",
+      "price": 98.845,
+      "quantity": 6.0,
+      "ts": 1768394813.6278038,
+      "tx_hash": "tx00000179"
+    },
+    {
+      "buy_agent": "agent-080",
+      "sell_agent": "agent-083",
+      "price": 98.83500000000001,
+      "quantity": 1.0,
+      "ts": 1768394813.62783,
+      "tx_hash": "tx00000180"
+    },
+    {
+      "buy_agent": "agent-080",
+      "sell_agent": "agent-085",
+      "price": 98.71000000000001,
+      "quantity": 3.0,
+      "ts": 1768394813.7418501,
+      "tx_hash": "tx00000181"
+    },
+    {
+      "buy_agent": "agent-086",
+      "sell_agent": "agent-077",
+      "price": 101.095,
+      "quantity": 5.0,
+      "ts": 1768394813.798087,
+      "tx_hash": "tx00000182"
+    },
+    {
+      "buy_agent": "agent-080",
+      "sell_agent": "agent-090",
+      "price": 98.805,
+      "quantity": 6.0,
+      "ts": 1768394814.0341492,
+      "tx_hash": "tx00000183"
+    },
+    {
+      "buy_agent": "agent-091",
+      "sell_agent": "agent-077",
+      "price": 100.41,
+      "quantity": 4.0,
+      "ts": 1768394814.0935428,
+      "tx_hash": "tx00000184"
+    },
+    {
+      "buy_agent": "agent-091",
+      "sell_agent": "agent-072",
+      "price": 100.63499999999999,
+      "quantity": 2.0,
+      "ts": 1768394814.093587,
+      "tx_hash": "tx00000185"
+    },
+    {
+      "buy_agent": "agent-095",
+      "sell_agent": "agent-096",
+      "price": 98.565,
+      "quantity": 4.0,
+      "ts": 1768394814.377111,
+      "tx_hash": "tx00000186"
+    },
+    {
+      "buy_agent": "agent-088",
+      "sell_agent": "agent-096",
+      "price": 98.555,
+      "quantity": 2.0,
+      "ts": 1768394814.377183,
+      "tx_hash": "tx00000187"
+    },
+    {
+      "buy_agent": "agent-088",
+      "sell_agent": "agent-098",
+      "price": 98.945,
+      "quantity": 2.0,
+      "ts": 1768394814.495757,
+      "tx_hash": "tx00000188"
+    },
+    {
+      "buy_agent": "agent-014",
+      "sell_agent": "agent-098",
+      "price": 98.935,
+      "quantity": 5.0,
+      "ts": 1768394814.495849,
+      "tx_hash": "tx00000189"
+    },
+    {
+      "buy_agent": "agent-014",
+      "sell_agent": "agent-099",
+      "price": 98.675,
+      "quantity": 1.0,
+      "ts": 1768394814.558518,
+      "tx_hash": "tx00000190"
+    },
+    {
+      "buy_agent": "agent-016",
+      "sell_agent": "agent-099",
+      "price": 98.66499999999999,
+      "quantity": 5.0,
+      "ts": 1768394814.558604,
+      "tx_hash": "tx00000191"
+    },
+    {
+      "buy_agent": "agent-100",
+      "sell_agent": "agent-072",
+      "price": 100.035,
+      "quantity": 2.0,
+      "ts": 1768394814.630177,
+      "tx_hash": "tx00000192"
+    },
+    {
+      "buy_agent": "agent-100",
+      "sell_agent": "agent-087",
+      "price": 100.095,
+      "quantity": 3.0,
+      "ts": 1768394814.630251,
+      "tx_hash": "tx00000193"
+    },
+    {
+      "buy_agent": "agent-003",
+      "sell_agent": "agent-087",
+      "price": 100.045,
+      "quantity": 4.0,
+      "ts": 1768394814.8025868,
+      "tx_hash": "tx00000194"
+    },
+    {
+      "buy_agent": "agent-005",
+      "sell_agent": "agent-097",
+      "price": 100.185,
+      "quantity": 5.0,
+      "ts": 1768394814.9167821,
+      "tx_hash": "tx00000195"
+    },
+    {
+      "buy_agent": "agent-006",
+      "sell_agent": "agent-097",
+      "price": 101.17500000000001,
+      "quantity": 2.0,
+      "ts": 1768394814.973035,
+      "tx_hash": "tx00000196"
+    },
+    {
+      "buy_agent": "agent-004",
+      "sell_agent": "agent-011",
+      "price": 99.02000000000001,
+      "quantity": 2.0,
+      "ts": 1768394815.2693539,
+      "tx_hash": "tx00000197"
+    },
+    {
+      "buy_agent": "agent-012",
+      "sell_agent": "agent-008",
+      "price": 100.795,
+      "quantity": 6.0,
+      "ts": 1768394815.326278,
+      "tx_hash": "tx00000198"
+    },
+    {
+      "buy_agent": "agent-012",
+      "sell_agent": "agent-097",
+      "price": 100.9,
+      "quantity": 3.0,
+      "ts": 1768394815.326299,
+      "tx_hash": "tx00000199"
+    },
+    {
+      "buy_agent": "agent-014",
+      "sell_agent": "agent-010",
+      "price": 101.28,
+      "quantity": 2.0,
+      "ts": 1768394815.4367192,
+      "tx_hash": "tx00000200"
+    },
+    {
+      "buy_agent": "agent-020",
+      "sell_agent": "agent-018",
+      "price": 101.08500000000001,
+      "quantity": 7.0,
+      "ts": 1768394815.791866,
+      "tx_hash": "tx00000201"
+    },
+    {
+      "buy_agent": "agent-016",
+      "sell_agent": "agent-022",
+      "price": 98.705,
+      "quantity": 3.0,
+      "ts": 1768394815.9115798,
+      "tx_hash": "tx00000202"
+    },
+    {
+      "buy_agent": "agent-037",
+      "sell_agent": "agent-022",
+      "price": 98.69,
+      "quantity": 5.0,
+      "ts": 1768394815.911659,
+      "tx_hash": "tx00000203"
+    },
+    {
+      "buy_agent": "agent-053",
+      "sell_agent": "agent-024",
+      "price": 98.455,
+      "quantity": 1.0,
+      "ts": 1768394816.030668,
+      "tx_hash": "tx00000204"
+    },
+    {
+      "buy_agent": "agent-026",
+      "sell_agent": "agent-021",
+      "price": 100.24,
+      "quantity": 3.0,
+      "ts": 1768394816.14542,
+      "tx_hash": "tx00000205"
+    },
+    {
+      "buy_agent": "agent-026",
+      "sell_agent": "agent-018",
+      "price": 100.27,
+      "quantity": 3.0,
+      "ts": 1768394816.145453,
+      "tx_hash": "tx00000206"
+    },
+    {
+      "buy_agent": "agent-026",
+      "sell_agent": "agent-023",
+      "price": 100.32,
+      "quantity": 4.0,
+      "ts": 1768394816.145462,
+      "tx_hash": "tx00000207"
+    },
+    {
+      "buy_agent": "agent-053",
+      "sell_agent": "agent-027",
+      "price": 98.25,
+      "quantity": 2.0,
+      "ts": 1768394816.205552,
+      "tx_hash": "tx00000208"
+    },
+    {
+      "buy_agent": "agent-030",
+      "sell_agent": "agent-023",
+      "price": 99.75,
+      "quantity": 2.0,
+      "ts": 1768394816.386969,
+      "tx_hash": "tx00000209"
+    },
+    {
+      "buy_agent": "agent-030",
+      "sell_agent": "agent-033",
+      "price": 99.835,
+      "quantity": 1.0,
+      "ts": 1768394816.5636191,
+      "tx_hash": "tx00000210"
+    },
+    {
+      "buy_agent": "agent-053",
+      "sell_agent": "agent-034",
+      "price": 98.85,
+      "quantity": 3.0,
+      "ts": 1768394816.622984,
+      "tx_hash": "tx00000211"
+    },
+    {
+      "buy_agent": "agent-089",
+      "sell_agent": "agent-034",
+      "price": 98.84,
+      "quantity": 2.0,
+      "ts": 1768394816.623065,
+      "tx_hash": "tx00000212"
+    },
+    {
+      "buy_agent": "agent-037",
+      "sell_agent": "agent-033",
+      "price": 100.84,
+      "quantity": 4.0,
+      "ts": 1768394816.795319,
+      "tx_hash": "tx00000213"
+    },
+    {
+      "buy_agent": "agent-037",
+      "sell_agent": "agent-032",
+      "price": 101.12,
+      "quantity": 6.0,
+      "ts": 1768394816.795368,
+      "tx_hash": "tx00000214"
+    },
+    {
+      "buy_agent": "agent-036",
+      "sell_agent": "agent-039",
+      "price": 99.11500000000001,
+      "quantity": 7.0,
+      "ts": 1768394816.909348,
+      "tx_hash": "tx00000215"
+    },
+    {
+      "buy_agent": "agent-038",
+      "sell_agent": "agent-039",
+      "price": 99.095,
+      "quantity": 3.0,
+      "ts": 1768394816.9094121,
+      "tx_hash": "tx00000216"
+    },
+    {
+      "buy_agent": "agent-041",
+      "sell_agent": "agent-032",
+      "price": 100.52,
+      "quantity": 2.0,
+      "ts": 1768394817.023424,
+      "tx_hash": "tx00000217"
+    },
+    {
+      "buy_agent": "agent-043",
+      "sell_agent": "agent-032",
+      "price": 101.005,
+      "quantity": 1.0,
+      "ts": 1768394817.1420622,
+      "tx_hash": "tx00000218"
+    },
+    {
+      "buy_agent": "agent-043",
+      "sell_agent": "agent-010",
+      "price": 101.025,
+      "quantity": 1.0,
+      "ts": 1768394817.142146,
+      "tx_hash": "tx00000219"
+    },
+    {
+      "buy_agent": "agent-043",
+      "sell_agent": "agent-076",
+      "price": 101.095,
+      "quantity": 3.0,
+      "ts": 1768394817.1421719,
+      "tx_hash": "tx00000220"
+    },
+    {
+      "buy_agent": "agent-043",
+      "sell_agent": "agent-015",
+      "price": 101.125,
+      "quantity": 5.0,
+      "ts": 1768394817.1421921,
+      "tx_hash": "tx00000221"
+    },
+    {
+      "buy_agent": "agent-049",
+      "sell_agent": "agent-045",
+      "price": 100.5,
+      "quantity": 5.0,
+      "ts": 1768394817.49426,
+      "tx_hash": "tx00000222"
+    },
+    {
+      "buy_agent": "agent-051",
+      "sell_agent": "agent-045",
+      "price": 99.96000000000001,
+      "quantity": 3.0,
+      "ts": 1768394817.612129,
+      "tx_hash": "tx00000223"
+    },
+    {
+      "buy_agent": "agent-051",
+      "sell_agent": "agent-047",
+      "price": 100.245,
+      "quantity": 6.0,
+      "ts": 1768394817.612191,
+      "tx_hash": "tx00000224"
+    },
+    {
+      "buy_agent": "agent-054",
+      "sell_agent": "agent-052",
+      "price": 100.25,
+      "quantity": 3.0,
+      "ts": 1768394817.795719,
+      "tx_hash": "tx00000225"
+    },
+    {
+      "buy_agent": "agent-054",
+      "sell_agent": "agent-047",
+      "price": 100.44,
+      "quantity": 1.0,
+      "ts": 1768394817.795797,
+      "tx_hash": "tx00000226"
+    },
+    {
+      "buy_agent": "agent-054",
+      "sell_agent": "agent-015",
+      "price": 100.58500000000001,
+      "quantity": 1.0,
+      "ts": 1768394817.795831,
+      "tx_hash": "tx00000227"
+    },
+    {
+      "buy_agent": "agent-054",
+      "sell_agent": "agent-016",
+      "price": 100.61,
+      "quantity": 1.0,
+      "ts": 1768394817.795852,
+      "tx_hash": "tx00000228"
+    },
+    {
+      "buy_agent": "agent-056",
+      "sell_agent": "agent-057",
+      "price": 99.63,
+      "quantity": 7.0,
+      "ts": 1768394817.9769988,
+      "tx_hash": "tx00000229"
+    },
+    {
+      "buy_agent": "agent-048",
+      "sell_agent": "agent-057",
+      "price": 99.195,
+      "quantity": 2.0,
+      "ts": 1768394817.977056,
+      "tx_hash": "tx00000230"
+    },
+    {
+      "buy_agent": "agent-060",
+      "sell_agent": "agent-059",
+      "price": 101.105,
+      "quantity": 9.0,
+      "ts": 1768394818.149698,
+      "tx_hash": "tx00000231"
+    },
+    {
+      "buy_agent": "agent-063",
+      "sell_agent": "agent-059",
+      "price": 100.89500000000001,
+      "quantity": 1.0,
+      "ts": 1768394818.325192,
+      "tx_hash": "tx00000232"
+    },
+    {
+      "buy_agent": "agent-063",
+      "sell_agent": "agent-061",
+      "price": 100.92,
+      "quantity": 6.0,
+      "ts": 1768394818.3253171,
+      "tx_hash": "tx00000233"
+    },
+    {
+      "buy_agent": "agent-063",
+      "sell_agent": "agent-016",
+      "price": 101.035,
+      "quantity": 3.0,
+      "ts": 1768394818.3253582,
+      "tx_hash": "tx00000234"
+    },
+    {
+      "buy_agent": "agent-067",
+      "sell_agent": "agent-068",
+      "price": 98.57,
+      "quantity": 6.0,
+      "ts": 1768394818.611378,
+      "tx_hash": "tx00000235"
+    },
+    {
+      "buy_agent": "agent-070",
+      "sell_agent": "agent-066",
+      "price": 100.495,
+      "quantity": 5.0,
+      "ts": 1768394818.732162,
+      "tx_hash": "tx00000236"
+    },
+    {
+      "buy_agent": "agent-070",
+      "sell_agent": "agent-009",
+      "price": 100.655,
+      "quantity": 2.0,
+      "ts": 1768394818.7322729,
+      "tx_hash": "tx00000237"
+    },
+    {
+      "buy_agent": "agent-067",
+      "sell_agent": "agent-071",
+      "price": 99.57499999999999,
+      "quantity": 2.0,
+      "ts": 1768394818.7937212,
+      "tx_hash": "tx00000238"
+    },
+    {
+      "buy_agent": "agent-069",
+      "sell_agent": "agent-071",
+      "price": 99.465,
+      "quantity": 1.0,
+      "ts": 1768394818.793788,
+      "tx_hash": "tx00000239"
+    },
+    {
+      "buy_agent": "agent-069",
+      "sell_agent": "agent-072",
+      "price": 99.395,
+      "quantity": 3.0,
+      "ts": 1768394818.852057,
+      "tx_hash": "tx00000240"
+    },
+    {
+      "buy_agent": "agent-074",
+      "sell_agent": "agent-009",
+      "price": 101.455,
+      "quantity": 3.0,
+      "ts": 1768394818.97118,
+      "tx_hash": "tx00000241"
+    },
+    {
+      "buy_agent": "agent-073",
+      "sell_agent": "agent-078",
+      "price": 98.965,
+      "quantity": 1.0,
+      "ts": 1768394819.205552,
+      "tx_hash": "tx00000242"
+    },
+    {
+      "buy_agent": "agent-069",
+      "sell_agent": "agent-078",
+      "price": 98.875,
+      "quantity": 2.0,
+      "ts": 1768394819.20563,
+      "tx_hash": "tx00000243"
+    },
+    {
+      "buy_agent": "agent-082",
+      "sell_agent": "agent-080",
+      "price": 100.755,
+      "quantity": 7.0,
+      "ts": 1768394819.447382,
+      "tx_hash": "tx00000244"
+    },
+    {
+      "buy_agent": "agent-081",
+      "sell_agent": "agent-088",
+      "price": 98.98500000000001,
+      "quantity": 1.0,
+      "ts": 1768394819.8111029,
+      "tx_hash": "tx00000245"
+    },
+    {
+      "buy_agent": "agent-069",
+      "sell_agent": "agent-088",
+      "price": 98.905,
+      "quantity": 3.0,
+      "ts": 1768394819.8111858,
+      "tx_hash": "tx00000246"
+    },
+    {
+      "buy_agent": "agent-098",
+      "sell_agent": "agent-080",
+      "price": 100.85,
+      "quantity": 3.0,
+      "ts": 1768394820.4033122,
+      "tx_hash": "tx00000247"
+    },
+    {
+      "buy_agent": "agent-098",
+      "sell_agent": "agent-009",
+      "price": 100.955,
+      "quantity": 1.0,
+      "ts": 1768394820.403394,
+      "tx_hash": "tx00000248"
+    },
+    {
+      "buy_agent": "agent-089",
+      "sell_agent": "agent-099",
+      "price": 99.245,
+      "quantity": 3.0,
+      "ts": 1768394820.4642591,
+      "tx_hash": "tx00000249"
+    },
+    {
+      "buy_agent": "agent-002",
+      "sell_agent": "agent-009",
+      "price": 100.93,
+      "quantity": 1.0,
+      "ts": 1768394820.644303,
+      "tx_hash": "tx00000250"
+    },
+    {
+      "buy_agent": "agent-003",
+      "sell_agent": "agent-009",
+      "price": 101.925,
+      "quantity": 1.0,
+      "ts": 1768394820.701906,
+      "tx_hash": "tx00000251"
+    },
+    {
+      "buy_agent": "agent-003",
+      "sell_agent": "agent-094",
+      "price": 101.93,
+      "quantity": 5.0,
+      "ts": 1768394820.701987,
+      "tx_hash": "tx00000252"
+    },
+    {
+      "buy_agent": "agent-001",
+      "sell_agent": "agent-004",
+      "price": 99.85,
+      "quantity": 1.0,
+      "ts": 1768394820.764989,
+      "tx_hash": "tx00000253"
+    },
+    {
+      "buy_agent": "agent-089",
+      "sell_agent": "agent-004",
+      "price": 99.825,
+      "quantity": 1.0,
+      "ts": 1768394820.765057,
+      "tx_hash": "tx00000254"
+    },
+    {
+      "buy_agent": "agent-095",
+      "sell_agent": "agent-004",
+      "price": 99.82,
+      "quantity": 1.0,
+      "ts": 1768394820.765079,
+      "tx_hash": "tx00000255"
+    },
+    {
+      "buy_agent": "agent-006",
+      "sell_agent": "agent-094",
+      "price": 101.52000000000001,
+      "quantity": 3.0,
+      "ts": 1768394820.881813,
+      "tx_hash": "tx00000256"
+    },
+    {
+      "buy_agent": "agent-006",
+      "sell_agent": "agent-073",
+      "price": 101.55000000000001,
+      "quantity": 5.0,
+      "ts": 1768394820.881869,
+      "tx_hash": "tx00000257"
+    },
+    {
+      "buy_agent": "agent-095",
+      "sell_agent": "agent-008",
+      "price": 99.78999999999999,
+      "quantity": 1.0,
+      "ts": 1768394820.9986508,
+      "tx_hash": "tx00000258"
+    },
+    {
+      "buy_agent": "agent-065",
+      "sell_agent": "agent-008",
+      "price": 99.53,
+      "quantity": 2.0,
+      "ts": 1768394820.9987571,
+      "tx_hash": "tx00000259"
+    },
+    {
+      "buy_agent": "agent-010",
+      "sell_agent": "agent-008",
+      "price": 99.61,
+      "quantity": 2.0,
+      "ts": 1768394821.119838,
+      "tx_hash": "tx00000260"
+    },
+    {
+      "buy_agent": "agent-011",
+      "sell_agent": "agent-007",
+      "price": 100.995,
+      "quantity": 4.0,
+      "ts": 1768394821.178625,
+      "tx_hash": "tx00000261"
+    },
+    {
+      "buy_agent": "agent-011",
+      "sell_agent": "agent-073",
+      "price": 101.08,
+      "quantity": 2.0,
+      "ts": 1768394821.178702,
+      "tx_hash": "tx00000262"
+    },
+    {
+      "buy_agent": "agent-011",
+      "sell_agent": "agent-025",
+      "price": 101.13,
+      "quantity": 1.0,
+      "ts": 1768394821.178729,
+      "tx_hash": "tx00000263"
+    },
+    {
+      "buy_agent": "agent-011",
+      "sell_agent": "agent-019",
+      "price": 101.13499999999999,
+      "quantity": 2.0,
+      "ts": 1768394821.178754,
+      "tx_hash": "tx00000264"
+    },
+    {
+      "buy_agent": "agent-012",
+      "sell_agent": "agent-019",
+      "price": 100.83,
+      "quantity": 3.0,
+      "ts": 1768394821.236723,
+      "tx_hash": "tx00000265"
+    },
+    {
+      "buy_agent": "agent-010",
+      "sell_agent": "agent-014",
+      "price": 98.27,
+      "quantity": 5.0,
+      "ts": 1768394821.34972,
+      "tx_hash": "tx00000266"
+    },
+    {
+      "buy_agent": "agent-015",
+      "sell_agent": "agent-019",
+      "price": 100.89,
+      "quantity": 4.0,
+      "ts": 1768394821.409306,
+      "tx_hash": "tx00000267"
+    },
+    {
+      "buy_agent": "agent-015",
+      "sell_agent": "agent-090",
+      "price": 100.95,
+      "quantity": 5.0,
+      "ts": 1768394821.40939,
+      "tx_hash": "tx00000268"
+    },
+    {
+      "buy_agent": "agent-021",
+      "sell_agent": "agent-090",
+      "price": 101.01,
+      "quantity": 4.0,
+      "ts": 1768394821.754555,
+      "tx_hash": "tx00000269"
+    },
+    {
+      "buy_agent": "agent-021",
+      "sell_agent": "agent-002",
+      "price": 101.03,
+      "quantity": 6.0,
+      "ts": 1768394821.754634,
+      "tx_hash": "tx00000270"
+    },
+    {
+      "buy_agent": "agent-018",
+      "sell_agent": "agent-026",
+      "price": 99.55,
+      "quantity": 3.0,
+      "ts": 1768394822.058218,
+      "tx_hash": "tx00000271"
+    },
+    {
+      "buy_agent": "agent-023",
+      "sell_agent": "agent-026",
+      "price": 99.525,
+      "quantity": 3.0,
+      "ts": 1768394822.058273,
+      "tx_hash": "tx00000272"
+    },
+    {
+      "buy_agent": "agent-023",
+      "sell_agent": "agent-028",
+      "price": 100.095,
+      "quantity": 7.0,
+      "ts": 1768394822.186142,
+      "tx_hash": "tx00000273"
+    },
+    {
+      "buy_agent": "agent-020",
+      "sell_agent": "agent-028",
+      "price": 99.89500000000001,
+      "quantity": 3.0,
+      "ts": 1768394822.186172,
+      "tx_hash": "tx00000274"
+    },
+    {
+      "buy_agent": "agent-020",
+      "sell_agent": "agent-029",
+      "price": 99.515,
+      "quantity": 3.0,
+      "ts": 1768394822.253314,
+      "tx_hash": "tx00000275"
+    },
+    {
+      "buy_agent": "agent-010",
+      "sell_agent": "agent-029",
+      "price": 99.395,
+      "quantity": 3.0,
+      "ts": 1768394822.253345,
+      "tx_hash": "tx00000276"
+    },
+    {
+      "buy_agent": "agent-100",
+      "sell_agent": "agent-029",
+      "price": 99.28999999999999,
+      "quantity": 3.0,
+      "ts": 1768394822.253354,
+      "tx_hash": "tx00000277"
+    },
+    {
+      "buy_agent": "agent-055",
+      "sell_agent": "agent-029",
+      "price": 99.22,
+      "quantity": 1.0,
+      "ts": 1768394822.25336,
+      "tx_hash": "tx00000278"
+    },
+    {
+      "buy_agent": "agent-055",
+      "sell_agent": "agent-030",
+      "price": 99.235,
+      "quantity": 1.0,
+      "ts": 1768394822.310005,
+      "tx_hash": "tx00000279"
+    },
+    {
+      "buy_agent": "agent-009",
+      "sell_agent": "agent-030",
+      "price": 99.22,
+      "quantity": 8.0,
+      "ts": 1768394822.310026,
+      "tx_hash": "tx00000280"
+    },
+    {
+      "buy_agent": "agent-038",
+      "sell_agent": "agent-030",
+      "price": 99.19,
+      "quantity": 1.0,
+      "ts": 1768394822.310034,
+      "tx_hash": "tx00000281"
+    },
+    {
+      "buy_agent": "agent-033",
+      "sell_agent": "agent-025",
+      "price": 101.96000000000001,
+      "quantity": 1.0,
+      "ts": 1768394822.475612,
+      "tx_hash": "tx00000282"
+    },
+    {
+      "buy_agent": "agent-033",
+      "sell_agent": "agent-027",
+      "price": 101.995,
+      "quantity": 7.0,
+      "ts": 1768394822.4756339,
+      "tx_hash": "tx00000283"
+    },
+    {
+      "buy_agent": "agent-036",
+      "sell_agent": "agent-027",
+      "price": 101.345,
+      "quantity": 3.0,
+      "ts": 1768394822.645194,
+      "tx_hash": "tx00000284"
+    },
+    {
+      "buy_agent": "agent-036",
+      "sell_agent": "agent-024",
+      "price": 101.36,
+      "quantity": 5.0,
+      "ts": 1768394822.645262,
+      "tx_hash": "tx00000285"
+    },
+    {
+      "buy_agent": "agent-040",
+      "sell_agent": "agent-024",
+      "price": 100.91999999999999,
+      "quantity": 3.0,
+      "ts": 1768394822.87967,
+      "tx_hash": "tx00000286"
+    },
+    {
+      "buy_agent": "agent-040",
+      "sell_agent": "agent-002",
+      "price": 101.10499999999999,
+      "quantity": 1.0,
+      "ts": 1768394822.879725,
+      "tx_hash": "tx00000287"
+    },
+    {
+      "buy_agent": "agent-037",
+      "sell_agent": "agent-041",
+      "price": 98.95,
+      "quantity": 2.0,
+      "ts": 1768394822.93916,
+      "tx_hash": "tx00000288"
+    },
+    {
+      "buy_agent": "agent-044",
+      "sell_agent": "agent-045",
+      "price": 100.025,
+      "quantity": 1.0,
+      "ts": 1768394823.1686242,
+      "tx_hash": "tx00000289"
+    },
+    {
+      "buy_agent": "agent-037",
+      "sell_agent": "agent-046",
+      "price": 99.25,
+      "quantity": 1.0,
+      "ts": 1768394823.228365,
+      "tx_hash": "tx00000290"
+    },
+    {
+      "buy_agent": "agent-042",
+      "sell_agent": "agent-046",
+      "price": 99.13499999999999,
+      "quantity": 6.0,
+      "ts": 1768394823.228425,
+      "tx_hash": "tx00000291"
+    },
+    {
+      "buy_agent": "agent-048",
+      "sell_agent": "agent-047",
+      "price": 101.235,
+      "quantity": 5.0,
+      "ts": 1768394823.3389409,
+      "tx_hash": "tx00000292"
+    },
+    {
+      "buy_agent": "agent-054",
+      "sell_agent": "agent-052",
+      "price": 100.495,
+      "quantity": 3.0,
+      "ts": 1768394823.696154,
+      "tx_hash": "tx00000293"
+    },
+    {
+      "buy_agent": "agent-054",
+      "sell_agent": "agent-053",
+      "price": 100.53,
+      "quantity": 5.0,
+      "ts": 1768394823.696233,
+      "tx_hash": "tx00000294"
+    },
+    {
+      "buy_agent": "agent-057",
+      "sell_agent": "agent-053",
+      "price": 100.445,
+      "quantity": 1.0,
+      "ts": 1768394823.8771589,
+      "tx_hash": "tx00000295"
+    },
+    {
+      "buy_agent": "agent-057",
+      "sell_agent": "agent-047",
+      "price": 100.725,
+      "quantity": 4.0,
+      "ts": 1768394823.877228,
+      "tx_hash": "tx00000296"
+    },
+    {
+      "buy_agent": "agent-057",
+      "sell_agent": "agent-050",
+      "price": 100.78999999999999,
+      "quantity": 5.0,
+      "ts": 1768394823.877248,
+      "tx_hash": "tx00000297"
+    },
+    {
+      "buy_agent": "agent-058",
+      "sell_agent": "agent-050",
+      "price": 100.33,
+      "quantity": 2.0,
+      "ts": 1768394823.936606,
+      "tx_hash": "tx00000298"
+    },
+    {
+      "buy_agent": "agent-059",
+      "sell_agent": "agent-055",
+      "price": 100.78,
+      "quantity": 2.0,
+      "ts": 1768394823.9965172,
+      "tx_hash": "tx00000299"
+    },
+    {
+      "buy_agent": "agent-059",
+      "sell_agent": "agent-062",
+      "price": 100.71000000000001,
+      "quantity": 1.0,
+      "ts": 1768394824.167596,
+      "tx_hash": "tx00000300"
+    },
+    {
+      "buy_agent": "agent-059",
+      "sell_agent": "agent-063",
+      "price": 99.68,
+      "quantity": 2.0,
+      "ts": 1768394824.227194,
+      "tx_hash": "tx00000301"
+    },
+    {
+      "buy_agent": "agent-059",
+      "sell_agent": "agent-064",
+      "price": 100.35,
+      "quantity": 1.0,
+      "ts": 1768394824.2859688,
+      "tx_hash": "tx00000302"
+    },
+    {
+      "buy_agent": "agent-066",
+      "sell_agent": "agent-065",
+      "price": 102.33500000000001,
+      "quantity": 6.0,
+      "ts": 1768394824.40281,
+      "tx_hash": "tx00000303"
+    },
+    {
+      "buy_agent": "agent-067",
+      "sell_agent": "agent-065",
+      "price": 99.67,
+      "quantity": 3.0,
+      "ts": 1768394824.463249,
+      "tx_hash": "tx00000304"
+    },
+    {
+      "buy_agent": "agent-067",
+      "sell_agent": "agent-068",
+      "price": 99.025,
+      "quantity": 1.0,
+      "ts": 1768394824.5228941,
+      "tx_hash": "tx00000305"
+    },
+    {
+      "buy_agent": "agent-067",
+      "sell_agent": "agent-069",
+      "price": 99.155,
+      "quantity": 2.0,
+      "ts": 1768394824.581994,
+      "tx_hash": "tx00000306"
+    },
+    {
+      "buy_agent": "agent-067",
+      "sell_agent": "agent-070",
+      "price": 99.03999999999999,
+      "quantity": 4.0,
+      "ts": 1768394824.644168,
+      "tx_hash": "tx00000307"
+    },
+    {
+      "buy_agent": "agent-049",
+      "sell_agent": "agent-070",
+      "price": 98.845,
+      "quantity": 1.0,
+      "ts": 1768394824.644224,
+      "tx_hash": "tx00000308"
+    },
+    {
+      "buy_agent": "agent-072",
+      "sell_agent": "agent-064",
+      "price": 100.05,
+      "quantity": 2.0,
+      "ts": 1768394824.758593,
+      "tx_hash": "tx00000309"
+    },
+    {
+      "buy_agent": "agent-075",
+      "sell_agent": "agent-082",
+      "price": 100.745,
+      "quantity": 7.0,
+      "ts": 1768394825.343144,
+      "tx_hash": "tx00000310"
+    },
+    {
+      "buy_agent": "agent-077",
+      "sell_agent": "agent-084",
+      "price": 100.195,
+      "quantity": 2.0,
+      "ts": 1768394825.465218,
+      "tx_hash": "tx00000311"
+    },
+    {
+      "buy_agent": "agent-072",
+      "sell_agent": "agent-085",
+      "price": 100.11500000000001,
+      "quantity": 4.0,
+      "ts": 1768394825.521606,
+      "tx_hash": "tx00000312"
+    },
+    {
+      "buy_agent": "agent-074",
+      "sell_agent": "agent-088",
+      "price": 98.78999999999999,
+      "quantity": 1.0,
+      "ts": 1768394825.6933,
+      "tx_hash": "tx00000313"
+    },
+    {
+      "buy_agent": "agent-090",
+      "sell_agent": "agent-085",
+      "price": 100.685,
+      "quantity": 5.0,
+      "ts": 1768394825.8076138,
+      "tx_hash": "tx00000314"
+    },
+    {
+      "buy_agent": "agent-093",
+      "sell_agent": "agent-092",
+      "price": 100.695,
+      "quantity": 5.0,
+      "ts": 1768394825.9865391,
+      "tx_hash": "tx00000315"
+    },
+    {
+      "buy_agent": "agent-091",
+      "sell_agent": "agent-099",
+      "price": 99.70500000000001,
+      "quantity": 6.0,
+      "ts": 1768394826.338599,
+      "tx_hash": "tx00000316"
+    },
+    {
+      "buy_agent": "agent-074",
+      "sell_agent": "agent-099",
+      "price": 99.545,
+      "quantity": 1.0,
+      "ts": 1768394826.3386729,
+      "tx_hash": "tx00000317"
+    },
+    {
+      "buy_agent": "agent-074",
+      "sell_agent": "agent-001",
+      "price": 99.31,
+      "quantity": 8.0,
+      "ts": 1768394826.45205,
+      "tx_hash": "tx00000318"
+    },
+    {
+      "buy_agent": "agent-049",
+      "sell_agent": "agent-001",
+      "price": 99.10499999999999,
+      "quantity": 2.0,
+      "ts": 1768394826.452111,
+      "tx_hash": "tx00000319"
+    },
+    {
+      "buy_agent": "agent-008",
+      "sell_agent": "agent-002",
+      "price": 100.52000000000001,
+      "quantity": 3.0,
+      "ts": 1768394826.860397,
+      "tx_hash": "tx00000320"
+    },
+    {
+      "buy_agent": "agent-005",
+      "sell_agent": "agent-014",
+      "price": 97.91,
+      "quantity": 7.0,
+      "ts": 1768394827.2209501,
+      "tx_hash": "tx00000321"
+    },
+    {
+      "buy_agent": "agent-017",
+      "sell_agent": "agent-013",
+      "price": 100.025,
+      "quantity": 8.0,
+      "ts": 1768394827.398251,
+      "tx_hash": "tx00000322"
+    },
+    {
+      "buy_agent": "agent-019",
+      "sell_agent": "agent-092",
+      "price": 101.655,
+      "quantity": 1.0,
+      "ts": 1768394827.518618,
+      "tx_hash": "tx00000323"
+    },
+    {
+      "buy_agent": "agent-019",
+      "sell_agent": "agent-097",
+      "price": 101.75999999999999,
+      "quantity": 2.0,
+      "ts": 1768394827.5186958,
+      "tx_hash": "tx00000324"
+    },
+    {
+      "buy_agent": "agent-009",
+      "sell_agent": "agent-025",
+      "price": 98.88,
+      "quantity": 4.0,
+      "ts": 1768394827.863977,
+      "tx_hash": "tx00000325"
+    },
+    {
+      "buy_agent": "agent-006",
+      "sell_agent": "agent-025",
+      "price": 98.815,
+      "quantity": 1.0,
+      "ts": 1768394827.864002,
+      "tx_hash": "tx00000326"
+    },
+    {
+      "buy_agent": "agent-027",
+      "sell_agent": "agent-020",
+      "price": 101.045,
+      "quantity": 1.0,
+      "ts": 1768394827.972468,
+      "tx_hash": "tx00000327"
+    },
+    {
+      "buy_agent": "agent-030",
+      "sell_agent": "agent-028",
+      "price": 99.64,
+      "quantity": 6.0,
+      "ts": 1768394828.1497128,
+      "tx_hash": "tx00000328"
+    },
+    {
+      "buy_agent": "agent-031",
+      "sell_agent": "agent-028",
+      "price": 101.44999999999999,
+      "quantity": 2.0,
+      "ts": 1768394828.206625,
+      "tx_hash": "tx00000329"
+    },
+    {
+      "buy_agent": "agent-031",
+      "sell_agent": "agent-020",
+      "price": 101.805,
+      "quantity": 1.0,
+      "ts": 1768394828.206641,
+      "tx_hash": "tx00000330"
+    },
+    {
+      "buy_agent": "agent-038",
+      "sell_agent": "agent-020",
+      "price": 100.92500000000001,
+      "quantity": 1.0,
+      "ts": 1768394828.612155,
+      "tx_hash": "tx00000331"
+    },
+    {
+      "buy_agent": "agent-038",
+      "sell_agent": "agent-036",
+      "price": 100.96000000000001,
+      "quantity": 7.0,
+      "ts": 1768394828.612222,
+      "tx_hash": "tx00000332"
+    },
+    {
+      "buy_agent": "agent-032",
+      "sell_agent": "agent-039",
+      "price": 98.97,
+      "quantity": 1.0,
+      "ts": 1768394828.670326,
+      "tx_hash": "tx00000333"
+    },
+    {
+      "buy_agent": "agent-032",
+      "sell_agent": "agent-042",
+      "price": 99.53999999999999,
+      "quantity": 2.0,
+      "ts": 1768394828.8418298,
+      "tx_hash": "tx00000334"
+    },
+    {
+      "buy_agent": "agent-032",
+      "sell_agent": "agent-043",
+      "price": 99.455,
+      "quantity": 2.0,
+      "ts": 1768394828.902267,
+      "tx_hash": "tx00000335"
+    },
+    {
+      "buy_agent": "agent-042",
+      "sell_agent": "agent-043",
+      "price": 99.33,
+      "quantity": 1.0,
+      "ts": 1768394828.902337,
+      "tx_hash": "tx00000336"
+    },
+    {
+      "buy_agent": "agent-010",
+      "sell_agent": "agent-043",
+      "price": 99.33,
+      "quantity": 1.0,
+      "ts": 1768394828.902365,
+      "tx_hash": "tx00000337"
+    },
+    {
+      "buy_agent": "agent-010",
+      "sell_agent": "agent-044",
+      "price": 99.1,
+      "quantity": 2.0,
+      "ts": 1768394828.960665,
+      "tx_hash": "tx00000338"
+    },
+    {
+      "buy_agent": "agent-080",
+      "sell_agent": "agent-044",
+      "price": 99.08,
+      "quantity": 7.0,
+      "ts": 1768394828.9607282,
+      "tx_hash": "tx00000339"
+    },
+    {
+      "buy_agent": "agent-047",
+      "sell_agent": "agent-048",
+      "price": 99.485,
+      "quantity": 3.0,
+      "ts": 1768394829.203166,
+      "tx_hash": "tx00000340"
+    },
+    {
+      "buy_agent": "agent-049",
+      "sell_agent": "agent-036",
+      "price": 101.08500000000001,
+      "quantity": 2.0,
+      "ts": 1768394829.263982,
+      "tx_hash": "tx00000341"
+    },
+    {
+      "buy_agent": "agent-049",
+      "sell_agent": "agent-024",
+      "price": 101.12,
+      "quantity": 3.0,
+      "ts": 1768394829.264066,
+      "tx_hash": "tx00000342"
+    },
+    {
+      "buy_agent": "agent-055",
+      "sell_agent": "agent-052",
+      "price": 99.935,
+      "quantity": 5.0,
+      "ts": 1768394829.6230779,
+      "tx_hash": "tx00000343"
+    },
+    {
+      "buy_agent": "agent-056",
+      "sell_agent": "agent-052",
+      "price": 100.23,
+      "quantity": 4.0,
+      "ts": 1768394829.6787698,
+      "tx_hash": "tx00000344"
+    },
+    {
+      "buy_agent": "agent-056",
+      "sell_agent": "agent-050",
+      "price": 100.39,
+      "quantity": 2.0,
+      "ts": 1768394829.678813,
+      "tx_hash": "tx00000345"
+    },
+    {
+      "buy_agent": "agent-056",
+      "sell_agent": "agent-024",
+      "price": 100.45,
+      "quantity": 2.0,
+      "ts": 1768394829.678829,
+      "tx_hash": "tx00000346"
+    },
+    {
+      "buy_agent": "agent-047",
+      "sell_agent": "agent-057",
+      "price": 98.545,
+      "quantity": 1.0,
+      "ts": 1768394829.735751,
+      "tx_hash": "tx00000347"
+    },
+    {
+      "buy_agent": "agent-058",
+      "sell_agent": "agent-059",
+      "price": 100.055,
+      "quantity": 2.0,
+      "ts": 1768394829.850057,
+      "tx_hash": "tx00000348"
+    },
+    {
+      "buy_agent": "agent-047",
+      "sell_agent": "agent-059",
+      "price": 99.92,
+      "quantity": 3.0,
+      "ts": 1768394829.8501399,
+      "tx_hash": "tx00000349"
+    },
+    {
+      "buy_agent": "agent-060",
+      "sell_agent": "agent-059",
+      "price": 100.03,
+      "quantity": 4.0,
+      "ts": 1768394829.908857,
+      "tx_hash": "tx00000350"
+    },
+    {
+      "buy_agent": "agent-062",
+      "sell_agent": "agent-024",
+      "price": 100.65,
+      "quantity": 2.0,
+      "ts": 1768394830.0320032,
+      "tx_hash": "tx00000351"
+    },
+    {
+      "buy_agent": "agent-060",
+      "sell_agent": "agent-063",
+      "price": 99.5,
+      "quantity": 1.0,
+      "ts": 1768394830.1032221,
+      "tx_hash": "tx00000352"
+    },
+    {
+      "buy_agent": "agent-054",
+      "sell_agent": "agent-063",
+      "price": 99.28999999999999,
+      "quantity": 1.0,
+      "ts": 1768394830.1033049,
+      "tx_hash": "tx00000353"
+    },
+    {
+      "buy_agent": "agent-064",
+      "sell_agent": "agent-069",
+      "price": 99.05000000000001,
+      "quantity": 8.0,
+      "ts": 1768394830.459449,
+      "tx_hash": "tx00000354"
+    },
+    {
+      "buy_agent": "agent-064",
+      "sell_agent": "agent-070",
+      "price": 99.53999999999999,
+      "quantity": 1.0,
+      "ts": 1768394830.520204,
+      "tx_hash": "tx00000355"
+    },
+    {
+      "buy_agent": "agent-065",
+      "sell_agent": "agent-070",
+      "price": 99.5,
+      "quantity": 3.0,
+      "ts": 1768394830.520287,
+      "tx_hash": "tx00000356"
+    },
+    {
+      "buy_agent": "agent-054",
+      "sell_agent": "agent-070",
+      "price": 99.285,
+      "quantity": 6.0,
+      "ts": 1768394830.52031,
+      "tx_hash": "tx00000357"
+    },
+    {
+      "buy_agent": "agent-075",
+      "sell_agent": "agent-072",
+      "price": 100.795,
+      "quantity": 7.0,
+      "ts": 1768394830.8056252,
+      "tx_hash": "tx00000358"
+    },
+    {
+      "buy_agent": "agent-078",
+      "sell_agent": "agent-072",
+      "price": 100.66499999999999,
+      "quantity": 1.0,
+      "ts": 1768394830.985449,
+      "tx_hash": "tx00000359"
+    },
+    {
+      "buy_agent": "agent-078",
+      "sell_agent": "agent-071",
+      "price": 100.795,
+      "quantity": 2.0,
+      "ts": 1768394830.9855309,
+      "tx_hash": "tx00000360"
+    },
+    {
+      "buy_agent": "agent-078",
+      "sell_agent": "agent-024",
+      "price": 100.81,
+      "quantity": 2.0,
+      "ts": 1768394830.985559,
+      "tx_hash": "tx00000361"
+    },
+    {
+      "buy_agent": "agent-078",
+      "sell_agent": "agent-022",
+      "price": 100.83500000000001,
+      "quantity": 1.0,
+      "ts": 1768394830.985589,
+      "tx_hash": "tx00000362"
+    },
+    {
+      "buy_agent": "agent-078",
+      "sell_agent": "agent-023",
+      "price": 100.905,
+      "quantity": 2.0,
+      "ts": 1768394830.985616,
+      "tx_hash": "tx00000363"
+    },
+    {
+      "buy_agent": "agent-083",
+      "sell_agent": "agent-081",
+      "price": 100.1,
+      "quantity": 1.0,
+      "ts": 1768394831.286006,
+      "tx_hash": "tx00000364"
+    },
+    {
+      "buy_agent": "agent-084",
+      "sell_agent": "agent-023",
+      "price": 101.65,
+      "quantity": 2.0,
+      "ts": 1768394831.3447108,
+      "tx_hash": "tx00000365"
+    },
+    {
+      "buy_agent": "agent-084",
+      "sell_agent": "agent-097",
+      "price": 101.66999999999999,
+      "quantity": 2.0,
+      "ts": 1768394831.344775,
+      "tx_hash": "tx00000366"
+    },
+    {
+      "buy_agent": "agent-084",
+      "sell_agent": "agent-021",
+      "price": 101.695,
+      "quantity": 2.0,
+      "ts": 1768394831.344803,
+      "tx_hash": "tx00000367"
+    },
+    {
+      "buy_agent": "agent-089",
+      "sell_agent": "agent-090",
+      "price": 100.495,
+      "quantity": 4.0,
+      "ts": 1768394831.691827,
+      "tx_hash": "tx00000368"
+    },
+    {
+      "buy_agent": "agent-089",
+      "sell_agent": "agent-091",
+      "price": 100.285,
+      "quantity": 2.0,
+      "ts": 1768394831.751667,
+      "tx_hash": "tx00000369"
+    },
+    {
+      "buy_agent": "agent-088",
+      "sell_agent": "agent-091",
+      "price": 100.245,
+      "quantity": 4.0,
+      "ts": 1768394831.751722,
+      "tx_hash": "tx00000370"
+    },
+    {
+      "buy_agent": "agent-088",
+      "sell_agent": "agent-092",
+      "price": 99.41999999999999,
+      "quantity": 4.0,
+      "ts": 1768394831.811659,
+      "tx_hash": "tx00000371"
+    },
+    {
+      "buy_agent": "agent-093",
+      "sell_agent": "agent-021",
+      "price": 101.035,
+      "quantity": 3.0,
+      "ts": 1768394831.8727129,
+      "tx_hash": "tx00000372"
+    },
+    {
+      "buy_agent": "agent-093",
+      "sell_agent": "agent-046",
+      "price": 101.05000000000001,
+      "quantity": 6.0,
+      "ts": 1768394831.872776,
+      "tx_hash": "tx00000373"
+    },
+    {
+      "buy_agent": "agent-093",
+      "sell_agent": "agent-096",
+      "price": 101.1,
+      "quantity": 1.0,
+      "ts": 1768394831.872799,
+      "tx_hash": "tx00000374"
+    },
+    {
+      "buy_agent": "agent-088",
+      "sell_agent": "agent-094",
+      "price": 99.805,
+      "quantity": 1.0,
+      "ts": 1768394831.931592,
+      "tx_hash": "tx00000375"
+    },
+    {
+      "buy_agent": "agent-083",
+      "sell_agent": "agent-094",
+      "price": 99.64,
+      "quantity": 6.0,
+      "ts": 1768394831.931662,
+      "tx_hash": "tx00000376"
+    },
+    {
+      "buy_agent": "agent-082",
+      "sell_agent": "agent-094",
+      "price": 99.575,
+      "quantity": 1.0,
+      "ts": 1768394831.931689,
+      "tx_hash": "tx00000377"
+    },
+    {
+      "buy_agent": "agent-098",
+      "sell_agent": "agent-096",
+      "price": 102.14,
+      "quantity": 4.0,
+      "ts": 1768394832.178373,
+      "tx_hash": "tx00000378"
+    },
+    {
+      "buy_agent": "agent-098",
+      "sell_agent": "agent-097",
+      "price": 102.15,
+      "quantity": 4.0,
+      "ts": 1768394832.178449,
+      "tx_hash": "tx00000379"
+    },
+    {
+      "buy_agent": "agent-100",
+      "sell_agent": "agent-097",
+      "price": 101.07499999999999,
+      "quantity": 1.0,
+      "ts": 1768394832.293887,
+      "tx_hash": "tx00000380"
+    },
+    {
+      "buy_agent": "agent-001",
+      "sell_agent": "agent-097",
+      "price": 101.75,
+      "quantity": 4.0,
+      "ts": 1768394832.353846,
+      "tx_hash": "tx00000381"
+    },
+    {
+      "buy_agent": "agent-001",
+      "sell_agent": "agent-079",
+      "price": 101.78,
+      "quantity": 1.0,
+      "ts": 1768394832.353926,
+      "tx_hash": "tx00000382"
+    },
+    {
+      "buy_agent": "agent-003",
+      "sell_agent": "agent-079",
+      "price": 100.96000000000001,
+      "quantity": 7.0,
+      "ts": 1768394832.4721432,
+      "tx_hash": "tx00000383"
+    },
+    {
+      "buy_agent": "agent-003",
+      "sell_agent": "agent-061",
+      "price": 100.965,
+      "quantity": 3.0,
+      "ts": 1768394832.4722319,
+      "tx_hash": "tx00000384"
+    },
+    {
+      "buy_agent": "agent-096",
+      "sell_agent": "agent-006",
+      "price": 98.91499999999999,
+      "quantity": 2.0,
+      "ts": 1768394832.6464992,
+      "tx_hash": "tx00000385"
+    },
+    {
+      "buy_agent": "agent-082",
+      "sell_agent": "agent-007",
+      "price": 99.315,
+      "quantity": 3.0,
+      "ts": 1768394832.7012322,
+      "tx_hash": "tx00000386"
+    },
+    {
+      "buy_agent": "agent-008",
+      "sell_agent": "agent-061",
+      "price": 101.96000000000001,
+      "quantity": 1.0,
+      "ts": 1768394832.762114,
+      "tx_hash": "tx00000387"
+    },
+    {
+      "buy_agent": "agent-009",
+      "sell_agent": "agent-061",
+      "price": 101.305,
+      "quantity": 5.0,
+      "ts": 1768394832.8213792,
+      "tx_hash": "tx00000388"
+    },
+    {
+      "buy_agent": "agent-009",
+      "sell_agent": "agent-026",
+      "price": 101.315,
+      "quantity": 4.0,
+      "ts": 1768394832.821439,
+      "tx_hash": "tx00000389"
+    },
+    {
+      "buy_agent": "agent-011",
+      "sell_agent": "agent-033",
+      "price": 100.96000000000001,
+      "quantity": 3.0,
+      "ts": 1768394832.937269,
+      "tx_hash": "tx00000390"
+    },
+    {
+      "buy_agent": "agent-012",
+      "sell_agent": "agent-026",
+      "price": 101.75,
+      "quantity": 3.0,
+      "ts": 1768394832.997338,
+      "tx_hash": "tx00000391"
+    },
+    {
+      "buy_agent": "agent-012",
+      "sell_agent": "agent-033",
+      "price": 101.75,
+      "quantity": 1.0,
+      "ts": 1768394832.997416,
+      "tx_hash": "tx00000392"
+    },
+    {
+      "buy_agent": "agent-004",
+      "sell_agent": "agent-014",
+      "price": 99.77000000000001,
+      "quantity": 5.0,
+      "ts": 1768394833.117483,
+      "tx_hash": "tx00000393"
+    },
+    {
+      "buy_agent": "agent-082",
+      "sell_agent": "agent-017",
+      "price": 99.65,
+      "quantity": 2.0,
+      "ts": 1768394833.291418,
+      "tx_hash": "tx00000394"
+    },
+    {
+      "buy_agent": "agent-004",
+      "sell_agent": "agent-017",
+      "price": 99.65,
+      "quantity": 2.0,
+      "ts": 1768394833.2915,
+      "tx_hash": "tx00000395"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-017",
+      "price": 99.625,
+      "quantity": 6.0,
+      "ts": 1768394833.291531,
+      "tx_hash": "tx00000396"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-021",
+      "price": 98.85,
+      "quantity": 1.0,
+      "ts": 1768394833.529092,
+      "tx_hash": "tx00000397"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-028",
+      "price": 99.28,
+      "quantity": 3.0,
+      "ts": 1768394833.9312909,
+      "tx_hash": "tx00000398"
+    },
+    {
+      "buy_agent": "agent-054",
+      "sell_agent": "agent-028",
+      "price": 99.16499999999999,
+      "quantity": 2.0,
+      "ts": 1768394833.931364,
+      "tx_hash": "tx00000399"
+    },
+    {
+      "buy_agent": "agent-029",
+      "sell_agent": "agent-030",
+      "price": 99.515,
+      "quantity": 1.0,
+      "ts": 1768394834.047464,
+      "tx_hash": "tx00000400"
+    },
+    {
+      "buy_agent": "agent-085",
+      "sell_agent": "agent-030",
+      "price": 99.11,
+      "quantity": 7.0,
+      "ts": 1768394834.047543,
+      "tx_hash": "tx00000401"
+    },
+    {
+      "buy_agent": "agent-032",
+      "sell_agent": "agent-033",
+      "price": 98.815,
+      "quantity": 1.0,
+      "ts": 1768394834.2343218,
+      "tx_hash": "tx00000402"
+    },
+    {
+      "buy_agent": "agent-034",
+      "sell_agent": "agent-031",
+      "price": 100.87,
+      "quantity": 2.0,
+      "ts": 1768394834.290991,
+      "tx_hash": "tx00000403"
+    },
+    {
+      "buy_agent": "agent-036",
+      "sell_agent": "agent-038",
+      "price": 100.08000000000001,
+      "quantity": 5.0,
+      "ts": 1768394834.528874,
+      "tx_hash": "tx00000404"
+    },
+    {
+      "buy_agent": "agent-037",
+      "sell_agent": "agent-039",
+      "price": 99.91,
+      "quantity": 4.0,
+      "ts": 1768394834.5883079,
+      "tx_hash": "tx00000405"
+    },
+    {
+      "buy_agent": "agent-037",
+      "sell_agent": "agent-040",
+      "price": 99.405,
+      "quantity": 1.0,
+      "ts": 1768394834.643323,
+      "tx_hash": "tx00000406"
+    },
+    {
+      "buy_agent": "agent-087",
+      "sell_agent": "agent-040",
+      "price": 99.15,
+      "quantity": 1.0,
+      "ts": 1768394834.643379,
+      "tx_hash": "tx00000407"
+    },
+    {
+      "buy_agent": "agent-087",
+      "sell_agent": "agent-043",
+      "price": 99.44,
+      "quantity": 1.0,
+      "ts": 1768394834.821444,
+      "tx_hash": "tx00000408"
+    },
+    {
+      "buy_agent": "agent-020",
+      "sell_agent": "agent-043",
+      "price": 99.37,
+      "quantity": 3.0,
+      "ts": 1768394834.8215098,
+      "tx_hash": "tx00000409"
+    },
+    {
+      "buy_agent": "agent-044",
+      "sell_agent": "agent-031",
+      "price": 100.80000000000001,
+      "quantity": 7.0,
+      "ts": 1768394834.881529,
+      "tx_hash": "tx00000410"
+    },
+    {
+      "buy_agent": "agent-044",
+      "sell_agent": "agent-033",
+      "price": 100.905,
+      "quantity": 1.0,
+      "ts": 1768394834.881592,
+      "tx_hash": "tx00000411"
+    },
+    {
+      "buy_agent": "agent-045",
+      "sell_agent": "agent-033",
+      "price": 101.0,
+      "quantity": 2.0,
+      "ts": 1768394834.937577,
+      "tx_hash": "tx00000412"
+    },
+    {
+      "buy_agent": "agent-020",
+      "sell_agent": "agent-047",
+      "price": 98.91499999999999,
+      "quantity": 3.0,
+      "ts": 1768394835.054931,
+      "tx_hash": "tx00000413"
+    },
+    {
+      "buy_agent": "agent-050",
+      "sell_agent": "agent-046",
+      "price": 101.77000000000001,
+      "quantity": 1.0,
+      "ts": 1768394835.24144,
+      "tx_hash": "tx00000414"
+    },
+    {
+      "buy_agent": "agent-050",
+      "sell_agent": "agent-033",
+      "price": 101.99000000000001,
+      "quantity": 2.0,
+      "ts": 1768394835.2415318,
+      "tx_hash": "tx00000415"
+    },
+    {
+      "buy_agent": "agent-050",
+      "sell_agent": "agent-002",
+      "price": 102.015,
+      "quantity": 1.0,
+      "ts": 1768394835.241566,
+      "tx_hash": "tx00000416"
+    },
+    {
+      "buy_agent": "agent-049",
+      "sell_agent": "agent-051",
+      "price": 99.77,
+      "quantity": 5.0,
+      "ts": 1768394835.2991328,
+      "tx_hash": "tx00000417"
+    },
+    {
+      "buy_agent": "agent-049",
+      "sell_agent": "agent-055",
+      "price": 99.13499999999999,
+      "quantity": 1.0,
+      "ts": 1768394835.535926,
+      "tx_hash": "tx00000418"
+    },
+    {
+      "buy_agent": "agent-048",
+      "sell_agent": "agent-058",
+      "price": 99.265,
+      "quantity": 1.0,
+      "ts": 1768394835.7091231,
+      "tx_hash": "tx00000419"
+    },
+    {
+      "buy_agent": "agent-020",
+      "sell_agent": "agent-058",
+      "price": 99.125,
+      "quantity": 1.0,
+      "ts": 1768394835.7091892,
+      "tx_hash": "tx00000420"
+    },
+    {
+      "buy_agent": "agent-060",
+      "sell_agent": "agent-057",
+      "price": 100.435,
+      "quantity": 4.0,
+      "ts": 1768394835.82206,
+      "tx_hash": "tx00000421"
+    },
+    {
+      "buy_agent": "agent-060",
+      "sell_agent": "agent-053",
+      "price": 100.625,
+      "quantity": 4.0,
+      "ts": 1768394835.822127,
+      "tx_hash": "tx00000422"
+    },
+    {
+      "buy_agent": "agent-060",
+      "sell_agent": "agent-064",
+      "price": 100.325,
+      "quantity": 1.0,
+      "ts": 1768394836.061928,
+      "tx_hash": "tx00000423"
+    },
+    {
+      "buy_agent": "agent-067",
+      "sell_agent": "agent-064",
+      "price": 100.465,
+      "quantity": 5.0,
+      "ts": 1768394836.244587,
+      "tx_hash": "tx00000424"
+    },
+    {
+      "buy_agent": "agent-072",
+      "sell_agent": "agent-070",
+      "price": 100.33500000000001,
+      "quantity": 3.0,
+      "ts": 1768394836.5429509,
+      "tx_hash": "tx00000425"
+    },
+    {
+      "buy_agent": "agent-072",
+      "sell_agent": "agent-064",
+      "price": 100.34,
+      "quantity": 2.0,
+      "ts": 1768394836.543,
+      "tx_hash": "tx00000426"
+    },
+    {
+      "buy_agent": "agent-063",
+      "sell_agent": "agent-074",
+      "price": 98.405,
+      "quantity": 3.0,
+      "ts": 1768394836.65445,
+      "tx_hash": "tx00000427"
+    },
+    {
+      "buy_agent": "agent-077",
+      "sell_agent": "agent-073",
+      "price": 100.96000000000001,
+      "quantity": 2.0,
+      "ts": 1768394836.824409,
+      "tx_hash": "tx00000428"
+    },
+    {
+      "buy_agent": "agent-077",
+      "sell_agent": "agent-056",
+      "price": 101.135,
+      "quantity": 5.0,
+      "ts": 1768394836.824481,
+      "tx_hash": "tx00000429"
+    },
+    {
+      "buy_agent": "agent-077",
+      "sell_agent": "agent-054",
+      "price": 101.16499999999999,
+      "quantity": 1.0,
+      "ts": 1768394836.824506,
+      "tx_hash": "tx00000430"
+    },
+    {
+      "buy_agent": "agent-063",
+      "sell_agent": "agent-081",
+      "price": 98.05,
+      "quantity": 2.0,
+      "ts": 1768394837.062627,
+      "tx_hash": "tx00000431"
+    },
+    {
+      "buy_agent": "agent-082",
+      "sell_agent": "agent-085",
+      "price": 99.665,
+      "quantity": 1.0,
+      "ts": 1768394837.3043652,
+      "tx_hash": "tx00000432"
+    },
+    {
+      "buy_agent": "agent-082",
+      "sell_agent": "agent-095",
+      "price": 99.80000000000001,
+      "quantity": 1.0,
+      "ts": 1768394837.881622,
+      "tx_hash": "tx00000433"
+    },
+    {
+      "buy_agent": "agent-094",
+      "sell_agent": "agent-095",
+      "price": 99.725,
+      "quantity": 5.0,
+      "ts": 1768394837.8816798,
+      "tx_hash": "tx00000434"
+    },
+    {
+      "buy_agent": "agent-094",
+      "sell_agent": "agent-097",
+      "price": 100.155,
+      "quantity": 4.0,
+      "ts": 1768394837.999,
+      "tx_hash": "tx00000435"
+    },
+    {
+      "buy_agent": "agent-099",
+      "sell_agent": "agent-097",
+      "price": 100.89,
+      "quantity": 2.0,
+      "ts": 1768394838.1157482,
+      "tx_hash": "tx00000436"
+    },
+    {
+      "buy_agent": "agent-099",
+      "sell_agent": "agent-088",
+      "price": 101.18,
+      "quantity": 4.0,
+      "ts": 1768394838.115773,
+      "tx_hash": "tx00000437"
+    },
+    {
+      "buy_agent": "agent-020",
+      "sell_agent": "agent-003",
+      "price": 99.515,
+      "quantity": 1.0,
+      "ts": 1768394838.346143,
+      "tx_hash": "tx00000438"
+    },
+    {
+      "buy_agent": "agent-096",
+      "sell_agent": "agent-007",
+      "price": 99.265,
+      "quantity": 7.0,
+      "ts": 1768394838.58724,
+      "tx_hash": "tx00000439"
+    },
+    {
+      "buy_agent": "agent-096",
+      "sell_agent": "agent-008",
+      "price": 98.78,
+      "quantity": 3.0,
+      "ts": 1768394838.6461198,
+      "tx_hash": "tx00000440"
+    },
+    {
+      "buy_agent": "agent-086",
+      "sell_agent": "agent-008",
+      "price": 98.77000000000001,
+      "quantity": 4.0,
+      "ts": 1768394838.646198,
+      "tx_hash": "tx00000441"
+    },
+    {
+      "buy_agent": "agent-009",
+      "sell_agent": "agent-003",
+      "price": 100.53,
+      "quantity": 6.0,
+      "ts": 1768394838.703228,
+      "tx_hash": "tx00000442"
+    },
+    {
+      "buy_agent": "agent-010",
+      "sell_agent": "agent-003",
+      "price": 101.005,
+      "quantity": 1.0,
+      "ts": 1768394838.7597198,
+      "tx_hash": "tx00000443"
+    },
+    {
+      "buy_agent": "agent-010",
+      "sell_agent": "agent-004",
+      "price": 101.13,
+      "quantity": 2.0,
+      "ts": 1768394838.759783,
+      "tx_hash": "tx00000444"
+    },
+    {
+      "buy_agent": "agent-011",
+      "sell_agent": "agent-004",
+      "price": 100.61,
+      "quantity": 2.0,
+      "ts": 1768394838.8206248,
+      "tx_hash": "tx00000445"
+    },
+    {
+      "buy_agent": "agent-011",
+      "sell_agent": "agent-100",
+      "price": 100.74000000000001,
+      "quantity": 7.0,
+      "ts": 1768394838.820693,
+      "tx_hash": "tx00000446"
+    },
+    {
+      "buy_agent": "agent-013",
+      "sell_agent": "agent-012",
+      "price": 100.47,
+      "quantity": 3.0,
+      "ts": 1768394838.937423,
+      "tx_hash": "tx00000447"
+    },
+    {
+      "buy_agent": "agent-014",
+      "sell_agent": "agent-012",
+      "price": 101.17,
+      "quantity": 4.0,
+      "ts": 1768394838.995636,
+      "tx_hash": "tx00000448"
+    },
+    {
+      "buy_agent": "agent-016",
+      "sell_agent": "agent-019",
+      "price": 99.38,
+      "quantity": 1.0,
+      "ts": 1768394839.299042,
+      "tx_hash": "tx00000449"
+    },
+    {
+      "buy_agent": "agent-079",
+      "sell_agent": "agent-019",
+      "price": 99.28999999999999,
+      "quantity": 6.0,
+      "ts": 1768394839.299121,
+      "tx_hash": "tx00000450"
+    },
+    {
+      "buy_agent": "agent-021",
+      "sell_agent": "agent-018",
+      "price": 100.82,
+      "quantity": 2.0,
+      "ts": 1768394839.41626,
+      "tx_hash": "tx00000451"
+    },
+    {
+      "buy_agent": "agent-021",
+      "sell_agent": "agent-015",
+      "price": 100.86,
+      "quantity": 5.0,
+      "ts": 1768394839.416306,
+      "tx_hash": "tx00000452"
+    },
+    {
+      "buy_agent": "agent-086",
+      "sell_agent": "agent-022",
+      "price": 97.92500000000001,
+      "quantity": 3.0,
+      "ts": 1768394839.4739761,
+      "tx_hash": "tx00000453"
+    },
+    {
+      "buy_agent": "agent-079",
+      "sell_agent": "agent-022",
+      "price": 97.92500000000001,
+      "quantity": 2.0,
+      "ts": 1768394839.4740522,
+      "tx_hash": "tx00000454"
+    },
+    {
+      "buy_agent": "agent-024",
+      "sell_agent": "agent-015",
+      "price": 100.25999999999999,
+      "quantity": 2.0,
+      "ts": 1768394839.59066,
+      "tx_hash": "tx00000455"
+    },
+    {
+      "buy_agent": "agent-024",
+      "sell_agent": "agent-100",
+      "price": 100.285,
+      "quantity": 3.0,
+      "ts": 1768394839.590742,
+      "tx_hash": "tx00000456"
+    },
+    {
+      "buy_agent": "agent-024",
+      "sell_agent": "agent-020",
+      "price": 100.44,
+      "quantity": 5.0,
+      "ts": 1768394839.590764,
+      "tx_hash": "tx00000457"
+    },
+    {
+      "buy_agent": "agent-079",
+      "sell_agent": "agent-025",
+      "price": 99.34,
+      "quantity": 1.0,
+      "ts": 1768394839.646601,
+      "tx_hash": "tx00000458"
+    },
+    {
+      "buy_agent": "agent-079",
+      "sell_agent": "agent-026",
+      "price": 97.75,
+      "quantity": 1.0,
+      "ts": 1768394839.7016351,
+      "tx_hash": "tx00000459"
+    },
+    {
+      "buy_agent": "agent-001",
+      "sell_agent": "agent-026",
+      "price": 97.725,
+      "quantity": 1.0,
+      "ts": 1768394839.7017379,
+      "tx_hash": "tx00000460"
+    },
+    {
+      "buy_agent": "agent-001",
+      "sell_agent": "agent-028",
+      "price": 98.965,
+      "quantity": 2.0,
+      "ts": 1768394839.822099,
+      "tx_hash": "tx00000461"
+    },
+    {
+      "buy_agent": "agent-080",
+      "sell_agent": "agent-028",
+      "price": 98.96000000000001,
+      "quantity": 1.0,
+      "ts": 1768394839.822186,
+      "tx_hash": "tx00000462"
+    },
+    {
+      "buy_agent": "agent-080",
+      "sell_agent": "agent-028",
+      "price": 98.935,
+      "quantity": 1.0,
+      "ts": 1768394839.8222148,
+      "tx_hash": "tx00000463"
+    },
+    {
+      "buy_agent": "agent-080",
+      "sell_agent": "agent-029",
+      "price": 98.385,
+      "quantity": 2.0,
+      "ts": 1768394839.8791301,
+      "tx_hash": "tx00000464"
+    },
+    {
+      "buy_agent": "agent-035",
+      "sell_agent": "agent-029",
+      "price": 98.38,
+      "quantity": 1.0,
+      "ts": 1768394839.8791978,
+      "tx_hash": "tx00000465"
+    },
+    {
+      "buy_agent": "agent-012",
+      "sell_agent": "agent-029",
+      "price": 98.38,
+      "quantity": 1.0,
+      "ts": 1768394839.8792279,
+      "tx_hash": "tx00000466"
+    },
+    {
+      "buy_agent": "agent-012",
+      "sell_agent": "agent-036",
+      "price": 99.275,
+      "quantity": 1.0,
+      "ts": 1768394840.299149,
+      "tx_hash": "tx00000467"
+    },
+    {
+      "buy_agent": "agent-035",
+      "sell_agent": "agent-036",
+      "price": 99.27,
+      "quantity": 8.0,
+      "ts": 1768394840.299252,
+      "tx_hash": "tx00000468"
+    },
+    {
+      "buy_agent": "agent-035",
+      "sell_agent": "agent-040",
+      "price": 99.07,
+      "quantity": 2.0,
+      "ts": 1768394840.524755,
+      "tx_hash": "tx00000469"
+    },
+    {
+      "buy_agent": "agent-069",
+      "sell_agent": "agent-041",
+      "price": 99.305,
+      "quantity": 1.0,
+      "ts": 1768394840.584859,
+      "tx_hash": "tx00000470"
+    },
+    {
+      "buy_agent": "agent-043",
+      "sell_agent": "agent-033",
+      "price": 100.63,
+      "quantity": 1.0,
+      "ts": 1768394840.6988611,
+      "tx_hash": "tx00000471"
+    },
+    {
+      "buy_agent": "agent-043",
+      "sell_agent": "agent-038",
+      "price": 100.83500000000001,
+      "quantity": 3.0,
+      "ts": 1768394840.698921,
+      "tx_hash": "tx00000472"
+    },
+    {
+      "buy_agent": "agent-044",
+      "sell_agent": "agent-034",
+      "price": 100.405,
+      "quantity": 8.0,
+      "ts": 1768394840.7580001,
+      "tx_hash": "tx00000473"
+    },
+    {
+      "buy_agent": "agent-044",
+      "sell_agent": "agent-020",
+      "price": 100.55,
+      "quantity": 1.0,
+      "ts": 1768394840.75806,
+      "tx_hash": "tx00000474"
+    },
+    {
+      "buy_agent": "agent-069",
+      "sell_agent": "agent-045",
+      "price": 98.245,
+      "quantity": 5.0,
+      "ts": 1768394840.81678,
+      "tx_hash": "tx00000475"
+    },
+    {
+      "buy_agent": "agent-078",
+      "sell_agent": "agent-045",
+      "price": 98.23500000000001,
+      "quantity": 2.0,
+      "ts": 1768394840.81686,
+      "tx_hash": "tx00000476"
+    },
+    {
+      "buy_agent": "agent-027",
+      "sell_agent": "agent-045",
+      "price": 98.23500000000001,
+      "quantity": 3.0,
+      "ts": 1768394840.816882,
+      "tx_hash": "tx00000477"
+    },
+    {
+      "buy_agent": "agent-048",
+      "sell_agent": "agent-047",
+      "price": 100.31,
+      "quantity": 9.0,
+      "ts": 1768394840.997199,
+      "tx_hash": "tx00000478"
+    },
+    {
+      "buy_agent": "agent-049",
+      "sell_agent": "agent-047",
+      "price": 99.575,
+      "quantity": 1.0,
+      "ts": 1768394841.0588312,
+      "tx_hash": "tx00000479"
+    },
+    {
+      "buy_agent": "agent-051",
+      "sell_agent": "agent-020",
+      "price": 100.85,
+      "quantity": 1.0,
+      "ts": 1768394841.1739662,
+      "tx_hash": "tx00000480"
+    },
+    {
+      "buy_agent": "agent-051",
+      "sell_agent": "agent-030",
+      "price": 100.935,
+      "quantity": 8.0,
+      "ts": 1768394841.1740448,
+      "tx_hash": "tx00000481"
+    },
+    {
+      "buy_agent": "agent-053",
+      "sell_agent": "agent-055",
+      "price": 99.345,
+      "quantity": 1.0,
+      "ts": 1768394841.4211001,
+      "tx_hash": "tx00000482"
+    },
+    {
+      "buy_agent": "agent-057",
+      "sell_agent": "agent-052",
+      "price": 100.97999999999999,
+      "quantity": 3.0,
+      "ts": 1768394841.541953,
+      "tx_hash": "tx00000483"
+    },
+    {
+      "buy_agent": "agent-057",
+      "sell_agent": "agent-030",
+      "price": 101.12,
+      "quantity": 1.0,
+      "ts": 1768394841.542046,
+      "tx_hash": "tx00000484"
+    },
+    {
+      "buy_agent": "agent-057",
+      "sell_agent": "agent-042",
+      "price": 101.14500000000001,
+      "quantity": 4.0,
+      "ts": 1768394841.5420759,
+      "tx_hash": "tx00000485"
+    },
+    {
+      "buy_agent": "agent-053",
+      "sell_agent": "agent-058",
+      "price": 99.425,
+      "quantity": 2.0,
+      "ts": 1768394841.603094,
+      "tx_hash": "tx00000486"
+    },
+    {
+      "buy_agent": "agent-059",
+      "sell_agent": "agent-088",
+      "price": 101.035,
+      "quantity": 1.0,
+      "ts": 1768394841.6604311,
+      "tx_hash": "tx00000487"
+    },
+    {
+      "buy_agent": "agent-061",
+      "sell_agent": "agent-060",
+      "price": 100.455,
+      "quantity": 6.0,
+      "ts": 1768394841.7801259,
+      "tx_hash": "tx00000488"
+    },
+    {
+      "buy_agent": "agent-053",
+      "sell_agent": "agent-063",
+      "price": 99.435,
+      "quantity": 4.0,
+      "ts": 1768394841.903706,
+      "tx_hash": "tx00000489"
+    },
+    {
+      "buy_agent": "agent-062",
+      "sell_agent": "agent-063",
+      "price": 99.335,
+      "quantity": 1.0,
+      "ts": 1768394841.903786,
+      "tx_hash": "tx00000490"
+    },
+    {
+      "buy_agent": "agent-068",
+      "sell_agent": "agent-067",
+      "price": 100.41,
+      "quantity": 3.0,
+      "ts": 1768394842.1993861,
+      "tx_hash": "tx00000491"
+    },
+    {
+      "buy_agent": "agent-068",
+      "sell_agent": "agent-060",
+      "price": 100.455,
+      "quantity": 3.0,
+      "ts": 1768394842.1994612,
+      "tx_hash": "tx00000492"
+    },
+    {
+      "buy_agent": "agent-068",
+      "sell_agent": "agent-017",
+      "price": 100.66499999999999,
+      "quantity": 1.0,
+      "ts": 1768394842.199487,
+      "tx_hash": "tx00000493"
+    },
+    {
+      "buy_agent": "agent-062",
+      "sell_agent": "agent-070",
+      "price": 99.66,
+      "quantity": 4.0,
+      "ts": 1768394842.323638,
+      "tx_hash": "tx00000494"
+    },
+    {
+      "buy_agent": "agent-049",
+      "sell_agent": "agent-070",
+      "price": 99.545,
+      "quantity": 1.0,
+      "ts": 1768394842.323679,
+      "tx_hash": "tx00000495"
+    },
+    {
+      "buy_agent": "agent-066",
+      "sell_agent": "agent-070",
+      "price": 99.515,
+      "quantity": 5.0,
+      "ts": 1768394842.3236961,
+      "tx_hash": "tx00000496"
+    },
+    {
+      "buy_agent": "agent-072",
+      "sell_agent": "agent-017",
+      "price": 100.765,
+      "quantity": 9.0,
+      "ts": 1768394842.442178,
+      "tx_hash": "tx00000497"
+    },
+    {
+      "buy_agent": "agent-073",
+      "sell_agent": "agent-059",
+      "price": 100.97999999999999,
+      "quantity": 6.0,
+      "ts": 1768394842.5008068,
+      "tx_hash": "tx00000498"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-054",
+      "price": 101.04499999999999,
+      "quantity": 7.0,
+      "ts": 1768394842.680823,
+      "tx_hash": "tx00000499"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-059",
+      "price": 101.04499999999999,
+      "quantity": 1.0,
+      "ts": 1768394842.68089,
+      "tx_hash": "tx00000500"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-090",
+      "price": 101.06,
+      "quantity": 2.0,
+      "ts": 1768394842.680911,
+      "tx_hash": "tx00000501"
+    },
+    {
+      "buy_agent": "agent-071",
+      "sell_agent": "agent-077",
+      "price": 99.72999999999999,
+      "quantity": 8.0,
+      "ts": 1768394842.7392251,
+      "tx_hash": "tx00000502"
+    },
+    {
+      "buy_agent": "agent-071",
+      "sell_agent": "agent-080",
+      "price": 99.495,
+      "quantity": 1.0,
+      "ts": 1768394842.917359,
+      "tx_hash": "tx00000503"
+    },
+    {
+      "buy_agent": "agent-066",
+      "sell_agent": "agent-080",
+      "price": 99.03999999999999,
+      "quantity": 5.0,
+      "ts": 1768394842.917438,
+      "tx_hash": "tx00000504"
+    },
+    {
+      "buy_agent": "agent-027",
+      "sell_agent": "agent-080",
+      "price": 98.905,
+      "quantity": 1.0,
+      "ts": 1768394842.9174578,
+      "tx_hash": "tx00000505"
+    },
+    {
+      "buy_agent": "agent-087",
+      "sell_agent": "agent-080",
+      "price": 98.9,
+      "quantity": 2.0,
+      "ts": 1768394842.917488,
+      "tx_hash": "tx00000506"
+    },
+    {
+      "buy_agent": "agent-087",
+      "sell_agent": "agent-081",
+      "price": 99.03,
+      "quantity": 2.0,
+      "ts": 1768394842.976222,
+      "tx_hash": "tx00000507"
+    },
+    {
+      "buy_agent": "agent-082",
+      "sell_agent": "agent-083",
+      "price": 99.925,
+      "quantity": 2.0,
+      "ts": 1768394843.0926661,
+      "tx_hash": "tx00000508"
+    },
+    {
+      "buy_agent": "agent-082",
+      "sell_agent": "agent-084",
+      "price": 99.325,
+      "quantity": 3.0,
+      "ts": 1768394843.150093,
+      "tx_hash": "tx00000509"
+    },
+    {
+      "buy_agent": "agent-087",
+      "sell_agent": "agent-084",
+      "price": 98.825,
+      "quantity": 2.0,
+      "ts": 1768394843.150126,
+      "tx_hash": "tx00000510"
+    },
+    {
+      "buy_agent": "agent-038",
+      "sell_agent": "agent-084",
+      "price": 98.81,
+      "quantity": 3.0,
+      "ts": 1768394843.150136,
+      "tx_hash": "tx00000511"
+    },
+    {
+      "buy_agent": "agent-085",
+      "sell_agent": "agent-078",
+      "price": 101.76,
+      "quantity": 3.0,
+      "ts": 1768394843.2023711,
+      "tx_hash": "tx00000512"
+    },
+    {
+      "buy_agent": "agent-093",
+      "sell_agent": "agent-086",
+      "price": 101.13,
+      "quantity": 5.0,
+      "ts": 1768394843.6880372,
+      "tx_hash": "tx00000513"
+    },
+    {
+      "buy_agent": "agent-091",
+      "sell_agent": "agent-094",
+      "price": 99.25999999999999,
+      "quantity": 5.0,
+      "ts": 1768394843.747066,
+      "tx_hash": "tx00000514"
+    },
+    {
+      "buy_agent": "agent-087",
+      "sell_agent": "agent-096",
+      "price": 99.06,
+      "quantity": 1.0,
+      "ts": 1768394843.865359,
+      "tx_hash": "tx00000515"
+    },
+    {
+      "buy_agent": "agent-097",
+      "sell_agent": "agent-078",
+      "price": 101.97,
+      "quantity": 2.0,
+      "ts": 1768394843.926653,
+      "tx_hash": "tx00000516"
+    },
+    {
+      "buy_agent": "agent-097",
+      "sell_agent": "agent-089",
+      "price": 102.075,
+      "quantity": 2.0,
+      "ts": 1768394843.926738,
+      "tx_hash": "tx00000517"
+    },
+    {
+      "buy_agent": "agent-087",
+      "sell_agent": "agent-100",
+      "price": 98.13499999999999,
+      "quantity": 4.0,
+      "ts": 1768394844.106878,
+      "tx_hash": "tx00000518"
+    },
+    {
+      "buy_agent": "agent-088",
+      "sell_agent": "agent-100",
+      "price": 98.06,
+      "quantity": 4.0,
+      "ts": 1768394844.106983,
+      "tx_hash": "tx00000519"
+    },
+    {
+      "buy_agent": "agent-001",
+      "sell_agent": "agent-002",
+      "price": 99.07,
+      "quantity": 1.0,
+      "ts": 1768394844.227864,
+      "tx_hash": "tx00000520"
+    },
+    {
+      "buy_agent": "agent-088",
+      "sell_agent": "agent-002",
+      "price": 98.98500000000001,
+      "quantity": 2.0,
+      "ts": 1768394844.227923,
+      "tx_hash": "tx00000521"
+    },
+    {
+      "buy_agent": "agent-038",
+      "sell_agent": "agent-002",
+      "price": 98.965,
+      "quantity": 2.0,
+      "ts": 1768394844.227947,
+      "tx_hash": "tx00000522"
+    },
+    {
+      "buy_agent": "agent-003",
+      "sell_agent": "agent-098",
+      "price": 100.57,
+      "quantity": 3.0,
+      "ts": 1768394844.286276,
+      "tx_hash": "tx00000523"
+    },
+    {
+      "buy_agent": "agent-003",
+      "sell_agent": "agent-099",
+      "price": 100.58500000000001,
+      "quantity": 2.0,
+      "ts": 1768394844.286328,
+      "tx_hash": "tx00000524"
+    },
+    {
+      "buy_agent": "agent-038",
+      "sell_agent": "agent-004",
+      "price": 99.235,
+      "quantity": 1.0,
+      "ts": 1768394844.354499,
+      "tx_hash": "tx00000525"
+    },
+    {
+      "buy_agent": "agent-065",
+      "sell_agent": "agent-004",
+      "price": 99.225,
+      "quantity": 1.0,
+      "ts": 1768394844.3545961,
+      "tx_hash": "tx00000526"
+    },
+    {
+      "buy_agent": "agent-065",
+      "sell_agent": "agent-005",
+      "price": 98.39,
+      "quantity": 1.0,
+      "ts": 1768394844.4151418,
+      "tx_hash": "tx00000527"
+    },
+    {
+      "buy_agent": "agent-002",
+      "sell_agent": "agent-005",
+      "price": 98.375,
+      "quantity": 3.0,
+      "ts": 1768394844.41519,
+      "tx_hash": "tx00000528"
+    },
+    {
+      "buy_agent": "agent-004",
+      "sell_agent": "agent-005",
+      "price": 98.37,
+      "quantity": 6.0,
+      "ts": 1768394844.41521,
+      "tx_hash": "tx00000529"
+    },
+    {
+      "buy_agent": "agent-007",
+      "sell_agent": "agent-090",
+      "price": 101.66,
+      "quantity": 2.0,
+      "ts": 1768394844.5327628,
+      "tx_hash": "tx00000530"
+    },
+    {
+      "buy_agent": "agent-007",
+      "sell_agent": "agent-002",
+      "price": 101.705,
+      "quantity": 1.0,
+      "ts": 1768394844.5328472,
+      "tx_hash": "tx00000531"
+    },
+    {
+      "buy_agent": "agent-004",
+      "sell_agent": "agent-008",
+      "price": 98.43,
+      "quantity": 4.0,
+      "ts": 1768394844.5948002,
+      "tx_hash": "tx00000532"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-008",
+      "price": 98.42,
+      "quantity": 2.0,
+      "ts": 1768394844.5948532,
+      "tx_hash": "tx00000533"
+    },
+    {
+      "buy_agent": "agent-013",
+      "sell_agent": "agent-012",
+      "price": 100.89,
+      "quantity": 7.0,
+      "ts": 1768394844.8795068,
+      "tx_hash": "tx00000534"
+    },
+    {
+      "buy_agent": "agent-018",
+      "sell_agent": "agent-014",
+      "price": 100.555,
+      "quantity": 1.0,
+      "ts": 1768394845.177931,
+      "tx_hash": "tx00000535"
+    },
+    {
+      "buy_agent": "agent-021",
+      "sell_agent": "agent-014",
+      "price": 100.64,
+      "quantity": 6.0,
+      "ts": 1768394845.360841,
+      "tx_hash": "tx00000536"
+    },
+    {
+      "buy_agent": "agent-021",
+      "sell_agent": "agent-012",
+      "price": 100.83,
+      "quantity": 1.0,
+      "ts": 1768394845.360905,
+      "tx_hash": "tx00000537"
+    },
+    {
+      "buy_agent": "agent-015",
+      "sell_agent": "agent-025",
+      "price": 99.38,
+      "quantity": 2.0,
+      "ts": 1768394845.596014,
+      "tx_hash": "tx00000538"
+    },
+    {
+      "buy_agent": "agent-022",
+      "sell_agent": "agent-025",
+      "price": 99.245,
+      "quantity": 6.0,
+      "ts": 1768394845.59609,
+      "tx_hash": "tx00000539"
+    },
+    {
+      "buy_agent": "agent-019",
+      "sell_agent": "agent-025",
+      "price": 99.13,
+      "quantity": 2.0,
+      "ts": 1768394845.596116,
+      "tx_hash": "tx00000540"
+    },
+    {
+      "buy_agent": "agent-019",
+      "sell_agent": "agent-031",
+      "price": 98.87,
+      "quantity": 2.0,
+      "ts": 1768394845.948284,
+      "tx_hash": "tx00000541"
+    },
+    {
+      "buy_agent": "agent-028",
+      "sell_agent": "agent-031",
+      "price": 98.86,
+      "quantity": 1.0,
+      "ts": 1768394845.9483562,
+      "tx_hash": "tx00000542"
+    },
+    {
+      "buy_agent": "agent-028",
+      "sell_agent": "agent-032",
+      "price": 99.26,
+      "quantity": 4.0,
+      "ts": 1768394846.0127392,
+      "tx_hash": "tx00000543"
+    },
+    {
+      "buy_agent": "agent-009",
+      "sell_agent": "agent-032",
+      "price": 99.17,
+      "quantity": 1.0,
+      "ts": 1768394846.012815,
+      "tx_hash": "tx00000544"
+    },
+    {
+      "buy_agent": "agent-030",
+      "sell_agent": "agent-037",
+      "price": 99.175,
+      "quantity": 6.0,
+      "ts": 1768394846.316961,
+      "tx_hash": "tx00000545"
+    },
+    {
+      "buy_agent": "agent-009",
+      "sell_agent": "agent-037",
+      "price": 99.175,
+      "quantity": 4.0,
+      "ts": 1768394846.317056,
+      "tx_hash": "tx00000546"
+    },
+    {
+      "buy_agent": "agent-038",
+      "sell_agent": "agent-039",
+      "price": 98.17,
+      "quantity": 6.0,
+      "ts": 1768394846.441629,
+      "tx_hash": "tx00000547"
+    },
+    {
+      "buy_agent": "agent-040",
+      "sell_agent": "agent-041",
+      "price": 100.03,
+      "quantity": 3.0,
+      "ts": 1768394846.5597131,
+      "tx_hash": "tx00000548"
+    },
+    {
+      "buy_agent": "agent-038",
+      "sell_agent": "agent-041",
+      "price": 99.65,
+      "quantity": 1.0,
+      "ts": 1768394846.559788,
+      "tx_hash": "tx00000549"
+    },
+    {
+      "buy_agent": "agent-042",
+      "sell_agent": "agent-041",
+      "price": 100.63499999999999,
+      "quantity": 6.0,
+      "ts": 1768394846.618871,
+      "tx_hash": "tx00000550"
+    },
+    {
+      "buy_agent": "agent-042",
+      "sell_agent": "agent-016",
+      "price": 101.25999999999999,
+      "quantity": 2.0,
+      "ts": 1768394846.6189911,
+      "tx_hash": "tx00000551"
+    },
+    {
+      "buy_agent": "agent-009",
+      "sell_agent": "agent-044",
+      "price": 98.75,
+      "quantity": 3.0,
+      "ts": 1768394846.73771,
+      "tx_hash": "tx00000552"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-044",
+      "price": 98.61500000000001,
+      "quantity": 6.0,
+      "ts": 1768394846.73777,
+      "tx_hash": "tx00000553"
+    },
+    {
+      "buy_agent": "agent-047",
+      "sell_agent": "agent-046",
+      "price": 100.815,
+      "quantity": 8.0,
+      "ts": 1768394846.912247,
+      "tx_hash": "tx00000554"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-050",
+      "price": 98.46000000000001,
+      "quantity": 2.0,
+      "ts": 1768394847.088644,
+      "tx_hash": "tx00000555"
+    },
+    {
+      "buy_agent": "agent-039",
+      "sell_agent": "agent-050",
+      "price": 98.455,
+      "quantity": 3.0,
+      "ts": 1768394847.0887208,
+      "tx_hash": "tx00000556"
+    },
+    {
+      "buy_agent": "agent-051",
+      "sell_agent": "agent-046",
+      "price": 101.37,
+      "quantity": 1.0,
+      "ts": 1768394847.145563,
+      "tx_hash": "tx00000557"
+    },
+    {
+      "buy_agent": "agent-051",
+      "sell_agent": "agent-043",
+      "price": 101.42500000000001,
+      "quantity": 6.0,
+      "ts": 1768394847.1456268,
+      "tx_hash": "tx00000558"
+    },
+    {
+      "buy_agent": "agent-052",
+      "sell_agent": "agent-016",
+      "price": 101.595,
+      "quantity": 4.0,
+      "ts": 1768394847.202516,
+      "tx_hash": "tx00000559"
+    },
+    {
+      "buy_agent": "agent-053",
+      "sell_agent": "agent-016",
+      "price": 100.84,
+      "quantity": 2.0,
+      "ts": 1768394847.262312,
+      "tx_hash": "tx00000560"
+    },
+    {
+      "buy_agent": "agent-053",
+      "sell_agent": "agent-020",
+      "price": 100.845,
+      "quantity": 6.0,
+      "ts": 1768394847.2623832,
+      "tx_hash": "tx00000561"
+    },
+    {
+      "buy_agent": "agent-055",
+      "sell_agent": "agent-020",
+      "price": 101.445,
+      "quantity": 4.0,
+      "ts": 1768394847.3874078,
+      "tx_hash": "tx00000562"
+    },
+    {
+      "buy_agent": "agent-055",
+      "sell_agent": "agent-034",
+      "price": 101.44999999999999,
+      "quantity": 2.0,
+      "ts": 1768394847.38747,
+      "tx_hash": "tx00000563"
+    },
+    {
+      "buy_agent": "agent-055",
+      "sell_agent": "agent-045",
+      "price": 101.44999999999999,
+      "quantity": 4.0,
+      "ts": 1768394847.3874931,
+      "tx_hash": "tx00000564"
+    },
+    {
+      "buy_agent": "agent-039",
+      "sell_agent": "agent-064",
+      "price": 98.21000000000001,
+      "quantity": 2.0,
+      "ts": 1768394847.911198,
+      "tx_hash": "tx00000565"
+    },
+    {
+      "buy_agent": "agent-083",
+      "sell_agent": "agent-064",
+      "price": 98.20500000000001,
+      "quantity": 2.0,
+      "ts": 1768394847.911285,
+      "tx_hash": "tx00000566"
+    },
+    {
+      "buy_agent": "agent-091",
+      "sell_agent": "agent-064",
+      "price": 98.20500000000001,
+      "quantity": 3.0,
+      "ts": 1768394847.911333,
+      "tx_hash": "tx00000567"
+    },
+    {
+      "buy_agent": "agent-095",
+      "sell_agent": "agent-064",
+      "price": 98.195,
+      "quantity": 1.0,
+      "ts": 1768394847.9113579,
+      "tx_hash": "tx00000568"
+    },
+    {
+      "buy_agent": "agent-066",
+      "sell_agent": "agent-057",
+      "price": 101.145,
+      "quantity": 2.0,
+      "ts": 1768394848.025953,
+      "tx_hash": "tx00000569"
+    },
+    {
+      "buy_agent": "agent-066",
+      "sell_agent": "agent-061",
+      "price": 101.175,
+      "quantity": 3.0,
+      "ts": 1768394848.026027,
+      "tx_hash": "tx00000570"
+    },
+    {
+      "buy_agent": "agent-067",
+      "sell_agent": "agent-061",
+      "price": 100.75,
+      "quantity": 5.0,
+      "ts": 1768394848.07969,
+      "tx_hash": "tx00000571"
+    },
+    {
+      "buy_agent": "agent-070",
+      "sell_agent": "agent-068",
+      "price": 100.44999999999999,
+      "quantity": 4.0,
+      "ts": 1768394848.2420611,
+      "tx_hash": "tx00000572"
+    },
+    {
+      "buy_agent": "agent-070",
+      "sell_agent": "agent-045",
+      "price": 101.07499999999999,
+      "quantity": 1.0,
+      "ts": 1768394848.242086,
+      "tx_hash": "tx00000573"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-072",
+      "price": 99.245,
+      "quantity": 5.0,
+      "ts": 1768394848.601231,
+      "tx_hash": "tx00000574"
+    },
+    {
+      "buy_agent": "agent-079",
+      "sell_agent": "agent-074",
+      "price": 100.42,
+      "quantity": 2.0,
+      "ts": 1768394848.78043,
+      "tx_hash": "tx00000575"
+    },
+    {
+      "buy_agent": "agent-079",
+      "sell_agent": "agent-075",
+      "price": 100.485,
+      "quantity": 5.0,
+      "ts": 1768394848.780457,
+      "tx_hash": "tx00000576"
+    },
+    {
+      "buy_agent": "agent-081",
+      "sell_agent": "agent-075",
+      "price": 99.82,
+      "quantity": 4.0,
+      "ts": 1768394848.891299,
+      "tx_hash": "tx00000577"
+    },
+    {
+      "buy_agent": "agent-082",
+      "sell_agent": "agent-071",
+      "price": 101.16499999999999,
+      "quantity": 3.0,
+      "ts": 1768394848.948492,
+      "tx_hash": "tx00000578"
+    },
+    {
+      "buy_agent": "agent-081",
+      "sell_agent": "agent-083",
+      "price": 100.0,
+      "quantity": 1.0,
+      "ts": 1768394849.005854,
+      "tx_hash": "tx00000579"
+    },
+    {
+      "buy_agent": "agent-084",
+      "sell_agent": "agent-085",
+      "price": 97.905,
+      "quantity": 2.0,
+      "ts": 1768394849.122168,
+      "tx_hash": "tx00000580"
+    },
+    {
+      "buy_agent": "agent-086",
+      "sell_agent": "agent-083",
+      "price": 100.35,
+      "quantity": 1.0,
+      "ts": 1768394849.17946,
+      "tx_hash": "tx00000581"
+    },
+    {
+      "buy_agent": "agent-087",
+      "sell_agent": "agent-083",
+      "price": 100.625,
+      "quantity": 1.0,
+      "ts": 1768394849.23594,
+      "tx_hash": "tx00000582"
+    },
+    {
+      "buy_agent": "agent-087",
+      "sell_agent": "agent-045",
+      "price": 101.015,
+      "quantity": 1.0,
+      "ts": 1768394849.2359622,
+      "tx_hash": "tx00000583"
+    },
+    {
+      "buy_agent": "agent-087",
+      "sell_agent": "agent-065",
+      "price": 101.035,
+      "quantity": 6.0,
+      "ts": 1768394849.23597,
+      "tx_hash": "tx00000584"
+    },
+    {
+      "buy_agent": "agent-087",
+      "sell_agent": "agent-011",
+      "price": 101.075,
+      "quantity": 2.0,
+      "ts": 1768394849.235979,
+      "tx_hash": "tx00000585"
+    },
+    {
+      "buy_agent": "agent-090",
+      "sell_agent": "agent-011",
+      "price": 100.965,
+      "quantity": 1.0,
+      "ts": 1768394849.413544,
+      "tx_hash": "tx00000586"
+    },
+    {
+      "buy_agent": "agent-084",
+      "sell_agent": "agent-094",
+      "price": 98.965,
+      "quantity": 7.0,
+      "ts": 1768394849.6607559,
+      "tx_hash": "tx00000587"
+    },
+    {
+      "buy_agent": "agent-095",
+      "sell_agent": "agent-011",
+      "price": 101.31,
+      "quantity": 5.0,
+      "ts": 1768394849.716228,
+      "tx_hash": "tx00000588"
+    },
+    {
+      "buy_agent": "agent-095",
+      "sell_agent": "agent-092",
+      "price": 101.35,
+      "quantity": 3.0,
+      "ts": 1768394849.7162938,
+      "tx_hash": "tx00000589"
+    },
+    {
+      "buy_agent": "agent-096",
+      "sell_agent": "agent-097",
+      "price": 99.215,
+      "quantity": 9.0,
+      "ts": 1768394849.835069,
+      "tx_hash": "tx00000590"
+    },
+    {
+      "buy_agent": "agent-080",
+      "sell_agent": "agent-098",
+      "price": 98.86,
+      "quantity": 3.0,
+      "ts": 1768394849.89535,
+      "tx_hash": "tx00000591"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-098",
+      "price": 98.82499999999999,
+      "quantity": 3.0,
+      "ts": 1768394849.8954308,
+      "tx_hash": "tx00000592"
+    },
+    {
+      "buy_agent": "agent-095",
+      "sell_agent": "agent-098",
+      "price": 98.74,
+      "quantity": 3.0,
+      "ts": 1768394849.895474,
+      "tx_hash": "tx00000593"
+    },
+    {
+      "buy_agent": "agent-099",
+      "sell_agent": "agent-001",
+      "price": 99.02000000000001,
+      "quantity": 2.0,
+      "ts": 1768394850.0797,
+      "tx_hash": "tx00000594"
+    },
+    {
+      "buy_agent": "agent-099",
+      "sell_agent": "agent-002",
+      "price": 100.12,
+      "quantity": 6.0,
+      "ts": 1768394850.1365602,
+      "tx_hash": "tx00000595"
+    },
+    {
+      "buy_agent": "agent-100",
+      "sell_agent": "agent-002",
+      "price": 99.85,
+      "quantity": 3.0,
+      "ts": 1768394850.136619,
+      "tx_hash": "tx00000596"
+    },
+    {
+      "buy_agent": "agent-095",
+      "sell_agent": "agent-005",
+      "price": 98.84,
+      "quantity": 2.0,
+      "ts": 1768394850.3196049,
+      "tx_hash": "tx00000597"
+    },
+    {
+      "buy_agent": "agent-006",
+      "sell_agent": "agent-003",
+      "price": 100.88499999999999,
+      "quantity": 3.0,
+      "ts": 1768394850.380288,
+      "tx_hash": "tx00000598"
+    },
+    {
+      "buy_agent": "agent-014",
+      "sell_agent": "agent-007",
+      "price": 99.71000000000001,
+      "quantity": 3.0,
+      "ts": 1768394850.8541088,
+      "tx_hash": "tx00000599"
+    },
+    {
+      "buy_agent": "agent-011",
+      "sell_agent": "agent-016",
+      "price": 98.935,
+      "quantity": 7.0,
+      "ts": 1768394850.9681659,
+      "tx_hash": "tx00000600"
+    },
+    {
+      "buy_agent": "agent-017",
+      "sell_agent": "agent-007",
+      "price": 100.255,
+      "quantity": 6.0,
+      "ts": 1768394851.026145,
+      "tx_hash": "tx00000601"
+    },
+    {
+      "buy_agent": "agent-018",
+      "sell_agent": "agent-007",
+      "price": 100.85499999999999,
+      "quantity": 1.0,
+      "ts": 1768394851.086348,
+      "tx_hash": "tx00000602"
+    },
+    {
+      "buy_agent": "agent-018",
+      "sell_agent": "agent-008",
+      "price": 100.895,
+      "quantity": 3.0,
+      "ts": 1768394851.086391,
+      "tx_hash": "tx00000603"
+    },
+    {
+      "buy_agent": "agent-018",
+      "sell_agent": "agent-003",
+      "price": 101.095,
+      "quantity": 1.0,
+      "ts": 1768394851.086401,
+      "tx_hash": "tx00000604"
+    },
+    {
+      "buy_agent": "agent-011",
+      "sell_agent": "agent-021",
+      "price": 99.14,
+      "quantity": 3.0,
+      "ts": 1768394851.263118,
+      "tx_hash": "tx00000605"
+    },
+    {
+      "buy_agent": "agent-015",
+      "sell_agent": "agent-021",
+      "price": 99.04499999999999,
+      "quantity": 1.0,
+      "ts": 1768394851.263201,
+      "tx_hash": "tx00000606"
+    },
+    {
+      "buy_agent": "agent-022",
+      "sell_agent": "agent-010",
+      "price": 100.785,
+      "quantity": 3.0,
+      "ts": 1768394851.321168,
+      "tx_hash": "tx00000607"
+    },
+    {
+      "buy_agent": "agent-023",
+      "sell_agent": "agent-010",
+      "price": 100.75,
+      "quantity": 1.0,
+      "ts": 1768394851.379096,
+      "tx_hash": "tx00000608"
+    },
+    {
+      "buy_agent": "agent-023",
+      "sell_agent": "agent-020",
+      "price": 101.10499999999999,
+      "quantity": 3.0,
+      "ts": 1768394851.3791711,
+      "tx_hash": "tx00000609"
+    },
+    {
+      "buy_agent": "agent-026",
+      "sell_agent": "agent-025",
+      "price": 100.625,
+      "quantity": 1.0,
+      "ts": 1768394851.569079,
+      "tx_hash": "tx00000610"
+    },
+    {
+      "buy_agent": "agent-015",
+      "sell_agent": "agent-027",
+      "price": 99.425,
+      "quantity": 3.0,
+      "ts": 1768394851.6290188,
+      "tx_hash": "tx00000611"
+    },
+    {
+      "buy_agent": "agent-034",
+      "sell_agent": "agent-028",
+      "price": 100.215,
+      "quantity": 1.0,
+      "ts": 1768394852.042969,
+      "tx_hash": "tx00000612"
+    },
+    {
+      "buy_agent": "agent-034",
+      "sell_agent": "agent-025",
+      "price": 100.25,
+      "quantity": 4.0,
+      "ts": 1768394852.043045,
+      "tx_hash": "tx00000613"
+    },
+    {
+      "buy_agent": "agent-034",
+      "sell_agent": "agent-037",
+      "price": 99.0,
+      "quantity": 4.0,
+      "ts": 1768394852.2275681,
+      "tx_hash": "tx00000614"
+    },
+    {
+      "buy_agent": "agent-031",
+      "sell_agent": "agent-038",
+      "price": 99.47999999999999,
+      "quantity": 5.0,
+      "ts": 1768394852.287879,
+      "tx_hash": "tx00000615"
+    },
+    {
+      "buy_agent": "agent-036",
+      "sell_agent": "agent-038",
+      "price": 99.39,
+      "quantity": 1.0,
+      "ts": 1768394852.287976,
+      "tx_hash": "tx00000616"
+    },
+    {
+      "buy_agent": "agent-015",
+      "sell_agent": "agent-038",
+      "price": 99.16999999999999,
+      "quantity": 1.0,
+      "ts": 1768394852.288,
+      "tx_hash": "tx00000617"
+    },
+    {
+      "buy_agent": "agent-039",
+      "sell_agent": "agent-040",
+      "price": 99.19,
+      "quantity": 2.0,
+      "ts": 1768394852.406741,
+      "tx_hash": "tx00000618"
+    },
+    {
+      "buy_agent": "agent-095",
+      "sell_agent": "agent-040",
+      "price": 98.97,
+      "quantity": 1.0,
+      "ts": 1768394852.406831,
+      "tx_hash": "tx00000619"
+    },
+    {
+      "buy_agent": "agent-050",
+      "sell_agent": "agent-040",
+      "price": 98.96000000000001,
+      "quantity": 2.0,
+      "ts": 1768394852.406859,
+      "tx_hash": "tx00000620"
+    },
+    {
+      "buy_agent": "agent-050",
+      "sell_agent": "agent-053",
+      "price": 97.595,
+      "quantity": 3.0,
+      "ts": 1768394853.15986,
+      "tx_hash": "tx00000621"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-053",
+      "price": 97.59,
+      "quantity": 3.0,
+      "ts": 1768394853.159926,
+      "tx_hash": "tx00000622"
+    },
+    {
+      "buy_agent": "agent-054",
+      "sell_agent": "agent-050",
+      "price": 100.55000000000001,
+      "quantity": 5.0,
+      "ts": 1768394853.216793,
+      "tx_hash": "tx00000623"
+    },
+    {
+      "buy_agent": "agent-079",
+      "sell_agent": "agent-056",
+      "price": 99.08,
+      "quantity": 7.0,
+      "ts": 1768394853.3371031,
+      "tx_hash": "tx00000624"
+    },
+    {
+      "buy_agent": "agent-057",
+      "sell_agent": "agent-050",
+      "price": 99.305,
+      "quantity": 3.0,
+      "ts": 1768394853.399339,
+      "tx_hash": "tx00000625"
+    },
+    {
+      "buy_agent": "agent-057",
+      "sell_agent": "agent-058",
+      "price": 98.63,
+      "quantity": 1.0,
+      "ts": 1768394853.459733,
+      "tx_hash": "tx00000626"
+    },
+    {
+      "buy_agent": "agent-076",
+      "sell_agent": "agent-058",
+      "price": 98.475,
+      "quantity": 1.0,
+      "ts": 1768394853.4597812,
+      "tx_hash": "tx00000627"
+    },
+    {
+      "buy_agent": "agent-056",
+      "sell_agent": "agent-058",
+      "price": 98.44,
+      "quantity": 1.0,
+      "ts": 1768394853.4598,
+      "tx_hash": "tx00000628"
+    },
+    {
+      "buy_agent": "agent-074",
+      "sell_agent": "agent-058",
+      "price": 98.435,
+      "quantity": 2.0,
+      "ts": 1768394853.459819,
+      "tx_hash": "tx00000629"
+    },
+    {
+      "buy_agent": "agent-059",
+      "sell_agent": "agent-045",
+      "price": 101.63499999999999,
+      "quantity": 6.0,
+      "ts": 1768394853.5161679,
+      "tx_hash": "tx00000630"
+    },
+    {
+      "buy_agent": "agent-061",
+      "sell_agent": "agent-045",
+      "price": 101.195,
+      "quantity": 4.0,
+      "ts": 1768394853.6337159,
+      "tx_hash": "tx00000631"
+    },
+    {
+      "buy_agent": "agent-063",
+      "sell_agent": "agent-062",
+      "price": 99.965,
+      "quantity": 7.0,
+      "ts": 1768394853.751693,
+      "tx_hash": "tx00000632"
+    },
+    {
+      "buy_agent": "agent-074",
+      "sell_agent": "agent-064",
+      "price": 98.805,
+      "quantity": 7.0,
+      "ts": 1768394853.8064692,
+      "tx_hash": "tx00000633"
+    },
+    {
+      "buy_agent": "agent-067",
+      "sell_agent": "agent-062",
+      "price": 99.81,
+      "quantity": 1.0,
+      "ts": 1768394853.983274,
+      "tx_hash": "tx00000634"
+    },
+    {
+      "buy_agent": "agent-067",
+      "sell_agent": "agent-047",
+      "price": 100.06,
+      "quantity": 4.0,
+      "ts": 1768394853.983364,
+      "tx_hash": "tx00000635"
+    },
+    {
+      "buy_agent": "agent-067",
+      "sell_agent": "agent-042",
+      "price": 100.08500000000001,
+      "quantity": 1.0,
+      "ts": 1768394853.983497,
+      "tx_hash": "tx00000636"
+    },
+    {
+      "buy_agent": "agent-077",
+      "sell_agent": "agent-068",
+      "price": 98.6,
+      "quantity": 3.0,
+      "ts": 1768394854.043651,
+      "tx_hash": "tx00000637"
+    },
+    {
+      "buy_agent": "agent-017",
+      "sell_agent": "agent-068",
+      "price": 98.595,
+      "quantity": 5.0,
+      "ts": 1768394854.043774,
+      "tx_hash": "tx00000638"
+    },
+    {
+      "buy_agent": "agent-077",
+      "sell_agent": "agent-042",
+      "price": 99.935,
+      "quantity": 1.0,
+      "ts": 1768394854.570086,
+      "tx_hash": "tx00000639"
+    },
+    {
+      "buy_agent": "agent-077",
+      "sell_agent": "agent-041",
+      "price": 100.05,
+      "quantity": 4.0,
+      "ts": 1768394854.570135,
+      "tx_hash": "tx00000640"
+    },
+    {
+      "buy_agent": "agent-078",
+      "sell_agent": "agent-041",
+      "price": 100.31,
+      "quantity": 1.0,
+      "ts": 1768394854.636513,
+      "tx_hash": "tx00000641"
+    },
+    {
+      "buy_agent": "agent-078",
+      "sell_agent": "agent-043",
+      "price": 100.35,
+      "quantity": 3.0,
+      "ts": 1768394854.6366131,
+      "tx_hash": "tx00000642"
+    },
+    {
+      "buy_agent": "agent-078",
+      "sell_agent": "agent-044",
+      "price": 100.38,
+      "quantity": 4.0,
+      "ts": 1768394854.636638,
+      "tx_hash": "tx00000643"
+    },
+    {
+      "buy_agent": "agent-078",
+      "sell_agent": "agent-046",
+      "price": 100.395,
+      "quantity": 2.0,
+      "ts": 1768394854.636658,
+      "tx_hash": "tx00000644"
+    },
+    {
+      "buy_agent": "agent-080",
+      "sell_agent": "agent-079",
+      "price": 100.91,
+      "quantity": 6.0,
+      "ts": 1768394854.758583,
+      "tx_hash": "tx00000645"
+    },
+    {
+      "buy_agent": "agent-080",
+      "sell_agent": "agent-046",
+      "price": 100.995,
+      "quantity": 1.0,
+      "ts": 1768394854.758656,
+      "tx_hash": "tx00000646"
+    },
+    {
+      "buy_agent": "agent-084",
+      "sell_agent": "agent-083",
+      "price": 100.765,
+      "quantity": 3.0,
+      "ts": 1768394854.99022,
+      "tx_hash": "tx00000647"
+    },
+    {
+      "buy_agent": "agent-087",
+      "sell_agent": "agent-083",
+      "price": 100.28999999999999,
+      "quantity": 6.0,
+      "ts": 1768394855.17027,
+      "tx_hash": "tx00000648"
+    },
+    {
+      "buy_agent": "agent-086",
+      "sell_agent": "agent-088",
+      "price": 99.14,
+      "quantity": 3.0,
+      "ts": 1768394855.229399,
+      "tx_hash": "tx00000649"
+    },
+    {
+      "buy_agent": "agent-086",
+      "sell_agent": "agent-093",
+      "price": 98.715,
+      "quantity": 1.0,
+      "ts": 1768394855.517075,
+      "tx_hash": "tx00000650"
+    },
+    {
+      "buy_agent": "agent-071",
+      "sell_agent": "agent-093",
+      "price": 98.63499999999999,
+      "quantity": 2.0,
+      "ts": 1768394855.517162,
+      "tx_hash": "tx00000651"
+    },
+    {
+      "buy_agent": "agent-095",
+      "sell_agent": "agent-094",
+      "price": 100.73500000000001,
+      "quantity": 1.0,
+      "ts": 1768394855.6417,
+      "tx_hash": "tx00000652"
+    },
+    {
+      "buy_agent": "agent-097",
+      "sell_agent": "agent-094",
+      "price": 101.495,
+      "quantity": 1.0,
+      "ts": 1768394855.75443,
+      "tx_hash": "tx00000653"
+    },
+    {
+      "buy_agent": "agent-099",
+      "sell_agent": "agent-094",
+      "price": 100.415,
+      "quantity": 6.0,
+      "ts": 1768394855.8657012,
+      "tx_hash": "tx00000654"
+    },
+    {
+      "buy_agent": "agent-099",
+      "sell_agent": "agent-076",
+      "price": 100.42500000000001,
+      "quantity": 3.0,
+      "ts": 1768394855.865809,
+      "tx_hash": "tx00000655"
+    },
+    {
+      "buy_agent": "agent-002",
+      "sell_agent": "agent-100",
+      "price": 100.13,
+      "quantity": 7.0,
+      "ts": 1768394856.040489,
+      "tx_hash": "tx00000656"
+    },
+    {
+      "buy_agent": "agent-003",
+      "sell_agent": "agent-100",
+      "price": 101.435,
+      "quantity": 1.0,
+      "ts": 1768394856.097731,
+      "tx_hash": "tx00000657"
+    },
+    {
+      "buy_agent": "agent-004",
+      "sell_agent": "agent-005",
+      "price": 98.595,
+      "quantity": 2.0,
+      "ts": 1768394856.2127051,
+      "tx_hash": "tx00000658"
+    },
+    {
+      "buy_agent": "agent-004",
+      "sell_agent": "agent-006",
+      "price": 99.31,
+      "quantity": 7.0,
+      "ts": 1768394856.272588,
+      "tx_hash": "tx00000659"
+    },
+    {
+      "buy_agent": "agent-071",
+      "sell_agent": "agent-014",
+      "price": 99.28999999999999,
+      "quantity": 3.0,
+      "ts": 1768394856.742146,
+      "tx_hash": "tx00000660"
+    },
+    {
+      "buy_agent": "agent-092",
+      "sell_agent": "agent-014",
+      "price": 99.12,
+      "quantity": 2.0,
+      "ts": 1768394856.7422101,
+      "tx_hash": "tx00000661"
+    },
+    {
+      "buy_agent": "agent-092",
+      "sell_agent": "agent-017",
+      "price": 97.11,
+      "quantity": 7.0,
+      "ts": 1768394856.922524,
+      "tx_hash": "tx00000662"
+    },
+    {
+      "buy_agent": "agent-032",
+      "sell_agent": "agent-017",
+      "price": 97.01499999999999,
+      "quantity": 1.0,
+      "ts": 1768394856.922606,
+      "tx_hash": "tx00000663"
+    },
+    {
+      "buy_agent": "agent-020",
+      "sell_agent": "agent-008",
+      "price": 99.68,
+      "quantity": 3.0,
+      "ts": 1768394857.096031,
+      "tx_hash": "tx00000664"
+    }
+  ]
+}

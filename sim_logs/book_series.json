@@ -1,0 +1,4992 @@
+{
+  "book_series": [
+    {
+      "ts": 1768394797.129161,
+      "bids": [],
+      "asks": [
+        {
+          "price": 101.18,
+          "quantity": 6.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394798.089173,
+      "bids": [
+        {
+          "price": 99.93,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.08,
+          "quantity": 8.0
+        },
+        {
+          "price": 98.51,
+          "quantity": 7.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.6,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.68,
+          "quantity": 10.0
+        },
+        {
+          "price": 101.04,
+          "quantity": 10.0
+        },
+        {
+          "price": 101.18,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.4,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.44,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.56,
+          "quantity": 8.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394799.173569,
+      "bids": [
+        {
+          "price": 100.16,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.13,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.01,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.93,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.92,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.9,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.08,
+          "quantity": 8.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.68,
+          "quantity": 3.0
+        },
+        {
+          "price": 101.04,
+          "quantity": 10.0
+        },
+        {
+          "price": 101.18,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.33,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.4,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.44,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.56,
+          "quantity": 8.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394800.177839,
+      "bids": [
+        {
+          "price": 100.9,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.47,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.45,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.41,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.16,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.13,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.01,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.99,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.93,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.92,
+          "quantity": 5.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 101.18,
+          "quantity": 5.0
+        },
+        {
+          "price": 101.33,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.4,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.44,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 102.9,
+          "quantity": 4.0
+        },
+        {
+          "price": 103.22,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394801.089199,
+      "bids": [
+        {
+          "price": 100.54,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.99,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.93,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.92,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.9,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.86,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.8,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.78,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.57,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 4.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 101.33,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.4,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.44,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.69,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.83,
+          "quantity": 8.0
+        },
+        {
+          "price": 102.9,
+          "quantity": 4.0
+        },
+        {
+          "price": 103.22,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394802.15643,
+      "bids": [
+        {
+          "price": 100.01,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.92,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.9,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.86,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.8,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.78,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.57,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 1.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.66,
+          "quantity": 5.0
+        },
+        {
+          "price": 101.2,
+          "quantity": 9.0
+        },
+        {
+          "price": 101.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.4,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.44,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.48,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.69,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.83,
+          "quantity": 8.0
+        },
+        {
+          "price": 102.27,
+          "quantity": 6.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394803.148863,
+      "bids": [
+        {
+          "price": 99.86,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.8,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.78,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.57,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.08,
+          "quantity": 8.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.78,
+          "quantity": 3.0
+        },
+        {
+          "price": 101.2,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.34,
+          "quantity": 9.0
+        },
+        {
+          "price": 101.4,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.44,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.48,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.69,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.75,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394804.154523,
+      "bids": [
+        {
+          "price": 100.71,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.24,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.1,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.85,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.64,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.57,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 1.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.78,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.19,
+          "quantity": 5.0
+        },
+        {
+          "price": 101.2,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.34,
+          "quantity": 9.0
+        },
+        {
+          "price": 101.4,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.44,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.48,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.69,
+          "quantity": 6.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394804.9267762,
+      "bids": [
+        {
+          "price": 100.23,
+          "quantity": 10.0
+        },
+        {
+          "price": 100.1,
+          "quantity": 9.0
+        },
+        {
+          "price": 99.85,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.65,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.64,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.57,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 1.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 101.34,
+          "quantity": 9.0
+        },
+        {
+          "price": 101.4,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.44,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.48,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.58,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.69,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.75,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.82,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.83,
+          "quantity": 8.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394806.055538,
+      "bids": [
+        {
+          "price": 99.85,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.84,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.65,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.64,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.57,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 1.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.88,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.89,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.17,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.66,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.34,
+          "quantity": 9.0
+        },
+        {
+          "price": 101.4,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.4,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.44,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.48,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394807.1780689,
+      "bids": [
+        {
+          "price": 101.31,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.65,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.64,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.57,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.52,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.5,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 1.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 101.34,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.4,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.4,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.44,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.48,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.58,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.62,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.69,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.75,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394808.345289,
+      "bids": [
+        {
+          "price": 99.65,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.64,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.57,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.52,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.5,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 1.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 101.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.58,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.62,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.69,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.75,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.82,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.83,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.9,
+          "quantity": 7.0
+        },
+        {
+          "price": 102.03,
+          "quantity": 10.0
+        },
+        {
+          "price": 102.06,
+          "quantity": 3.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394809.3566651,
+      "bids": [
+        {
+          "price": 99.56,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.52,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.5,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.31,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.3,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.29,
+          "quantity": 9.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.57,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.79,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.58,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.62,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.69,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.75,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.82,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.83,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.9,
+          "quantity": 7.0
+        },
+        {
+          "price": 102.03,
+          "quantity": 10.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394810.366868,
+      "bids": [
+        {
+          "price": 100.3,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.91,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.5,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.31,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.3,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.29,
+          "quantity": 9.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.79,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.83,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.39,
+          "quantity": 5.0
+        },
+        {
+          "price": 101.58,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.62,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.69,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.75,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.82,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.83,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.9,
+          "quantity": 7.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394811.299656,
+      "bids": [
+        {
+          "price": 100.26,
+          "quantity": 9.0
+        },
+        {
+          "price": 99.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.91,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.84,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.66,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.52,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.5,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 1.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.83,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.39,
+          "quantity": 5.0
+        },
+        {
+          "price": 101.58,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.62,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.69,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.75,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.82,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.83,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.9,
+          "quantity": 7.0
+        },
+        {
+          "price": 102.01,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394812.45167,
+      "bids": [
+        {
+          "price": 99.84,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.66,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.52,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.5,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.36,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.31,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.3,
+          "quantity": 10.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.32,
+          "quantity": 10.0
+        },
+        {
+          "price": 101.16,
+          "quantity": 5.0
+        },
+        {
+          "price": 101.39,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.58,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.62,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.68,
+          "quantity": 9.0
+        },
+        {
+          "price": 101.69,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.75,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.82,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.83,
+          "quantity": 8.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394813.443169,
+      "bids": [
+        {
+          "price": 99.29,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.29,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.27,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.08,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.05,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.95,
+          "quantity": 6.0
+        },
+        {
+          "price": 98.93,
+          "quantity": 7.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 10.0
+        },
+        {
+          "price": 98.91,
+          "quantity": 2.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.47,
+          "quantity": 9.0
+        },
+        {
+          "price": 99.92,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.67,
+          "quantity": 7.0
+        },
+        {
+          "price": 101.16,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.39,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.58,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.62,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.68,
+          "quantity": 9.0
+        },
+        {
+          "price": 101.69,
+          "quantity": 6.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394814.558604,
+      "bids": [
+        {
+          "price": 99.08,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.05,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.95,
+          "quantity": 6.0
+        },
+        {
+          "price": 98.93,
+          "quantity": 7.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 10.0
+        },
+        {
+          "price": 98.91,
+          "quantity": 2.0
+        },
+        {
+          "price": 98.9,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.88,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.87,
+          "quantity": 6.0
+        },
+        {
+          "price": 98.82,
+          "quantity": 8.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.92,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.04,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.12,
+          "quantity": 10.0
+        },
+        {
+          "price": 100.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.67,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.09,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.16,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.39,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.46,
+          "quantity": 10.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394815.4367192,
+      "bids": [
+        {
+          "price": 99.08,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.05,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.95,
+          "quantity": 6.0
+        },
+        {
+          "price": 98.93,
+          "quantity": 7.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 10.0
+        },
+        {
+          "price": 98.91,
+          "quantity": 2.0
+        },
+        {
+          "price": 98.9,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.88,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.87,
+          "quantity": 6.0
+        },
+        {
+          "price": 98.82,
+          "quantity": 8.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.2,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.4,
+          "quantity": 6.0
+        },
+        {
+          "price": 100.45,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.6,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.67,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.09,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.16,
+          "quantity": 1.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394816.623065,
+      "bids": [
+        {
+          "price": 98.93,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 10.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 8.0
+        },
+        {
+          "price": 98.91,
+          "quantity": 2.0
+        },
+        {
+          "price": 98.9,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.88,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.87,
+          "quantity": 6.0
+        },
+        {
+          "price": 98.82,
+          "quantity": 8.0
+        },
+        {
+          "price": 98.8,
+          "quantity": 6.0
+        },
+        {
+          "price": 98.77,
+          "quantity": 7.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.6,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.16,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.2,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.4,
+          "quantity": 6.0
+        },
+        {
+          "price": 100.45,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.6,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.67,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.77,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.78,
+          "quantity": 9.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394817.612191,
+      "bids": [
+        {
+          "price": 99.41,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.93,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 10.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 8.0
+        },
+        {
+          "price": 98.91,
+          "quantity": 2.0
+        },
+        {
+          "price": 98.9,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.88,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.87,
+          "quantity": 6.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.73,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.11,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.4,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.45,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.6,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.67,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.77,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.78,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394818.611378,
+      "bids": [
+        {
+          "price": 99.85,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.63,
+          "quantity": 9.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.93,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 10.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 8.0
+        },
+        {
+          "price": 98.91,
+          "quantity": 2.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.28,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.6,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.67,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.77,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.78,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.09,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394819.447382,
+      "bids": [
+        {
+          "price": 99.79,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.63,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.93,
+          "quantity": 5.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.39,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.6,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.67,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.77,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.78,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.09,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394820.701987,
+      "bids": [
+        {
+          "price": 100.11,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.06,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.05,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.48,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 2.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.61,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.67,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.77,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.78,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.9,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.09,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394821.754634,
+      "bids": [
+        {
+          "price": 100.38,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.93,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.69,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.48,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.31,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 2.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.94,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.06,
+          "quantity": 3.0
+        },
+        {
+          "price": 101.09,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.11,
+          "quantity": 9.0
+        },
+        {
+          "price": 101.16,
+          "quantity": 1.0
+        },
+        {
+          "price": 101.38,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.39,
+          "quantity": 1.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394822.645262,
+      "bids": [
+        {
+          "price": 99.61,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.97,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.93,
+          "quantity": 5.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.57,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.06,
+          "quantity": 3.0
+        },
+        {
+          "price": 101.09,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.09,
+          "quantity": 10.0
+        },
+        {
+          "price": 101.11,
+          "quantity": 9.0
+        },
+        {
+          "price": 101.16,
+          "quantity": 1.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394823.696233,
+      "bids": [
+        {
+          "price": 99.39,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.38,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.16,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.98,
+          "quantity": 3.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.64,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.2,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.33,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.66,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.03,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.06,
+          "quantity": 3.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394824.758593,
+      "bids": [
+        {
+          "price": 100.3,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.38,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.16,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.94,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.03,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.06,
+          "quantity": 3.0
+        },
+        {
+          "price": 101.07,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.09,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.09,
+          "quantity": 10.0
+        },
+        {
+          "price": 101.11,
+          "quantity": 9.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394825.8076138,
+      "bids": [
+        {
+          "price": 100.12,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.8,
+          "quantity": 9.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.38,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.16,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 3.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.94,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.03,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.06,
+          "quantity": 3.0
+        },
+        {
+          "price": 101.07,
+          "quantity": 8.0
+        },
+        {
+          "price": 101.09,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.09,
+          "quantity": 10.0
+        },
+        {
+          "price": 101.11,
+          "quantity": 9.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394826.860397,
+      "bids": [
+        {
+          "price": 99.6,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.59,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.46,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.38,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.19,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.16,
+          "quantity": 5.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.39,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.6,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.78,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.03,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.06,
+          "quantity": 3.0
+        },
+        {
+          "price": 101.07,
+          "quantity": 8.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394827.972468,
+      "bids": [
+        {
+          "price": 99.38,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.38,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.19,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.16,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 3.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.23,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.37,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.42,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.56,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.6,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.65,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.78,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.89,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394828.9607282,
+      "bids": [
+        {
+          "price": 99.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.19,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.16,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 2.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.3,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.37,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.42,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.56,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.6,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.65,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.78,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.89,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.89,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394830.0320032,
+      "bids": [
+        {
+          "price": 100.14,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.72,
+          "quantity": 9.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.19,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.16,
+          "quantity": 5.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.37,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.42,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.56,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.6,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.65,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.68,
+          "quantity": 6.0
+        },
+        {
+          "price": 100.78,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.87,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.89,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.89,
+          "quantity": 9.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394830.985616,
+      "bids": [
+        {
+          "price": 99.95,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.72,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.19,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.16,
+          "quantity": 5.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.56,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.6,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.65,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.68,
+          "quantity": 6.0
+        },
+        {
+          "price": 100.78,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.86,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.87,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.89,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.89,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394831.931689,
+      "bids": [
+        {
+          "price": 100.5,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.0,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.95,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.72,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.71,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.67,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.45,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.78,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.86,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.87,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.89,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.89,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394832.997416,
+      "bids": [
+        {
+          "price": 100.0,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.95,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.72,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.71,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.67,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.45,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.89,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.03,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.04,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.06,
+          "quantity": 3.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394834.047543,
+      "bids": [
+        {
+          "price": 99.67,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.45,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.19,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.68,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.89,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.03,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.04,
+          "quantity": 6.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394835.054931,
+      "bids": [
+        {
+          "price": 99.81,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.45,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.19,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.45,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.89,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.03,
+          "quantity": 6.0
+        },
+        {
+          "price": 101.04,
+          "quantity": 6.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394836.061928,
+      "bids": [
+        {
+          "price": 99.88,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.45,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.19,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.9,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.76,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.82,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.82,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394837.062627,
+      "bids": [
+        {
+          "price": 100.43,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.53,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.45,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.45,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.31,
+          "quantity": 6.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.82,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.82,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394838.115773,
+      "bids": [
+        {
+          "price": 99.53,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.47,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.45,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.45,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.4,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 10.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.01,
+          "quantity": 10.0
+        },
+        {
+          "price": 100.61,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.82,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.82,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.85,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394838.995636,
+      "bids": [
+        {
+          "price": 99.63,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.45,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.45,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.4,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.39,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.34,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.31,
+          "quantity": 6.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.88,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.96,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.01,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.61,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.64,
+          "quantity": 10.0
+        },
+        {
+          "price": 100.82,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.82,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.85,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 3.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394839.8792279,
+      "bids": [
+        {
+          "price": 99.33,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.32,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.31,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.29,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.29,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.28,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.2,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.19,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.38,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.03,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.32,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.49,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.61,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.64,
+          "quantity": 10.0
+        },
+        {
+          "price": 100.82,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.82,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.85,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 1.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394841.1740448,
+      "bids": [
+        {
+          "price": 99.62,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.29,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.28,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.2,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.19,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.16,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 2.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.21,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.49,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.54,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.61,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.64,
+          "quantity": 10.0
+        },
+        {
+          "price": 100.82,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.82,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.85,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 3.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394842.199487,
+      "bids": [
+        {
+          "price": 99.85,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.62,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.56,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.29,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.28,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.25,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.23,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.2,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.19,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.64,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.82,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.82,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.85,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 1.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394843.2023711,
+      "bids": [
+        {
+          "price": 99.25,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.23,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.2,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.19,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.16,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 7.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.45,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.51,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.85,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 3.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394844.286328,
+      "bids": [
+        {
+          "price": 99.25,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.23,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.2,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.19,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 10.0
+        },
+        {
+          "price": 99.16,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.13,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.85,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394845.177931,
+      "bids": [
+        {
+          "price": 100.14,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.64,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.44,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.16,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.13,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 7.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.34,
+          "quantity": 6.0
+        },
+        {
+          "price": 100.72,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.72,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.73,
+          "quantity": 10.0
+        },
+        {
+          "price": 100.86,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 1.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394846.317056,
+      "bids": [
+        {
+          "price": 99.44,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.17,
+          "quantity": 8.0
+        },
+        {
+          "price": 99.16,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.13,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.02,
+          "quantity": 9.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.72,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.73,
+          "quantity": 10.0
+        },
+        {
+          "price": 100.74,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.86,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 3.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394847.2623832,
+      "bids": [
+        {
+          "price": 99.16,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.13,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.02,
+          "quantity": 9.0
+        },
+        {
+          "price": 98.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.97,
+          "quantity": 5.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.73,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.74,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.74,
+          "quantity": 6.0
+        },
+        {
+          "price": 100.86,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 3.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394848.242086,
+      "bids": [
+        {
+          "price": 99.13,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.03,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.02,
+          "quantity": 9.0
+        },
+        {
+          "price": 98.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.97,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.93,
+          "quantity": 5.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.19,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.49,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.74,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.78,
+          "quantity": 6.0
+        },
+        {
+          "price": 100.86,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 1.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394849.413544,
+      "bids": [
+        {
+          "price": 99.54,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.37,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.3,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.13,
+          "quantity": 6.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.03,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.02,
+          "quantity": 9.0
+        },
+        {
+          "price": 98.98,
+          "quantity": 3.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.86,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394850.380288,
+      "bids": [
+        {
+          "price": 99.13,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.03,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.02,
+          "quantity": 9.0
+        },
+        {
+          "price": 98.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.97,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.94,
+          "quantity": 5.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.69,
+          "quantity": 10.0
+        },
+        {
+          "price": 100.17,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394851.3791711,
+      "bids": [
+        {
+          "price": 99.49,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.13,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.11,
+          "quantity": 5.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.03,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.02,
+          "quantity": 9.0
+        },
+        {
+          "price": 98.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.97,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.96,
+          "quantity": 3.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.19,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394852.406859,
+      "bids": [
+        {
+          "price": 99.11,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 7.0
+        },
+        {
+          "price": 99.1,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.03,
+          "quantity": 1.0
+        },
+        {
+          "price": 99.02,
+          "quantity": 9.0
+        },
+        {
+          "price": 98.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.97,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.94,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.93,
+          "quantity": 5.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.73,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.96,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.96,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.97,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.99,
+          "quantity": 4.0
+        },
+        {
+          "price": 101.0,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394853.5161679,
+      "bids": [
+        {
+          "price": 99.02,
+          "quantity": 7.0
+        },
+        {
+          "price": 98.98,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.97,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.94,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.93,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 10.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 8.0
+        },
+        {
+          "price": 98.91,
+          "quantity": 2.0
+        },
+        {
+          "price": 98.9,
+          "quantity": 7.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.67,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.68,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.73,
+          "quantity": 2.0
+        },
+        {
+          "price": 99.96,
+          "quantity": 5.0
+        },
+        {
+          "price": 100.04,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.1,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.13,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.53,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.53,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.81,
+          "quantity": 7.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394854.570135,
+      "bids": [
+        {
+          "price": 99.49,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.94,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.93,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 10.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 8.0
+        },
+        {
+          "price": 98.91,
+          "quantity": 2.0
+        },
+        {
+          "price": 98.9,
+          "quantity": 7.0
+        },
+        {
+          "price": 98.9,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.88,
+          "quantity": 9.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.96,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.04,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.1,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.13,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.31,
+          "quantity": 6.0
+        },
+        {
+          "price": 100.53,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.53,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.66,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.81,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.85,
+          "quantity": 2.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394855.517162,
+      "bids": [
+        {
+          "price": 99.49,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 9.0
+        },
+        {
+          "price": 98.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.94,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.93,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 10.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 8.0
+        },
+        {
+          "price": 98.91,
+          "quantity": 2.0
+        },
+        {
+          "price": 98.9,
+          "quantity": 7.0
+        },
+        {
+          "price": 98.9,
+          "quantity": 5.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 100.29,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.31,
+          "quantity": 6.0
+        },
+        {
+          "price": 100.43,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.53,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.53,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.66,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.81,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.85,
+          "quantity": 2.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 7.0
+        },
+        {
+          "price": 100.94,
+          "quantity": 10.0
+        }
+      ]
+    },
+    {
+      "ts": 1768394856.272588,
+      "bids": [
+        {
+          "price": 99.49,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.15,
+          "quantity": 9.0
+        },
+        {
+          "price": 98.96,
+          "quantity": 3.0
+        },
+        {
+          "price": 98.94,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.93,
+          "quantity": 5.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 10.0
+        },
+        {
+          "price": 98.92,
+          "quantity": 8.0
+        },
+        {
+          "price": 98.91,
+          "quantity": 2.0
+        },
+        {
+          "price": 98.9,
+          "quantity": 7.0
+        },
+        {
+          "price": 98.9,
+          "quantity": 5.0
+        }
+      ],
+      "asks": [
+        {
+          "price": 99.61,
+          "quantity": 3.0
+        },
+        {
+          "price": 99.9,
+          "quantity": 4.0
+        },
+        {
+          "price": 99.98,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.0,
+          "quantity": 1.0
+        },
+        {
+          "price": 100.31,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.43,
+          "quantity": 8.0
+        },
+        {
+          "price": 100.53,
+          "quantity": 4.0
+        },
+        {
+          "price": 100.53,
+          "quantity": 9.0
+        },
+        {
+          "price": 100.6,
+          "quantity": 3.0
+        },
+        {
+          "price": 100.66,
+          "quantity": 9.0
+        }
+      ]
+    }
+  ]
+}

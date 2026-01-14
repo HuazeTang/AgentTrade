@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentTrade - 盘口 & 账户概览</title>
+    <style>
+      :root {
+        --bg: #0b1221;
+        --card: rgba(18, 25, 42, 0.9);
+        --border: rgba(255, 255, 255, 0.08);
+        --accent: #5be7c4;
+        --accent-2: #7cb7ff;
+        --text: #e8edf7;
+        --muted: #a2acc3;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      header {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      main {
+        padding: 20px;
+        max-width: 1300px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+      .grid-2 {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+      }
+      h2 {
+        margin: 0 0 8px 0;
+        font-size: 18px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 8px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+      }
+      th {
+        color: var(--muted);
+        text-align: left;
+      }
+      .pill {
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .buy {
+        background: rgba(91, 231, 196, 0.14);
+        color: var(--accent);
+      }
+      .sell {
+        background: rgba(255, 129, 143, 0.15);
+        color: #ff8190;
+      }
+      canvas {
+        width: 100%;
+        height: 240px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+      }
+      .stat {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .stat .label {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .stat .value {
+        font-size: 16px;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <strong>AgentTrade 观测面板</strong>
+        <div style="color: var(--muted); font-size: 13px;">盘口 Top5 · 账户极值 · 分布</div>
+      </div>
+      <div style="color: var(--muted); font-size: 13px;">数据源：/book /agents</div>
+    </header>
+
+    <main>
+      <div class="grid grid-2">
+        <div class="card">
+          <h2>买盘 (1-5)</h2>
+          <div id="bids"></div>
+        </div>
+        <div class="card">
+          <h2>卖盘 (1-5)</h2>
+          <div id="asks"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>账户极值</h2>
+        <div class="stats">
+          <div class="stat">
+            <div class="label">最高持仓 Agent</div>
+            <div class="value" id="top-pos-agent">-</div>
+            <div class="label" id="top-pos-stats">-</div>
+          </div>
+          <div class="stat">
+            <div class="label">最高余额 Agent</div>
+            <div class="value" id="top-cash-agent">-</div>
+            <div class="label" id="top-cash-stats">-</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <h2>持仓分布</h2>
+          <canvas id="pos-chart"></canvas>
+        </div>
+        <div class="card">
+          <h2>余额分布</h2>
+          <canvas id="cash-chart"></canvas>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      async function fetchJSON(path, params = {}) {
+        const url = new URL(path, window.location.origin);
+        Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+      }
+
+      async function refresh() {
+        try {
+          const [book, agentsData] = await Promise.all([
+            fetchJSON("/book", { depth: 5 }),
+            fetchJSON("/agents"),
+          ]);
+          renderBook(book);
+          renderStats(agentsData.agents || []);
+          renderHists(agentsData.agents || []);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      function renderBook(book) {
+        const bids = (book.bids || [])
+          .map((b) => `<tr><td>${b.price.toFixed(2)}</td><td>${b.quantity}</td><td><span class="pill buy">买</span></td></tr>`)
+          .join("");
+        const asks = (book.asks || [])
+          .map((a) => `<tr><td>${a.price.toFixed(2)}</td><td>${a.quantity}</td><td><span class="pill sell">卖</span></td></tr>`)
+          .join("");
+        document.getElementById("bids").innerHTML = `
+          <table>
+            <tr><th>价格</th><th>数量</th><th></th></tr>
+            ${bids || "<tr><td colspan='3'>暂无买盘</td></tr>"}
+          </table>`;
+        document.getElementById("asks").innerHTML = `
+          <table>
+            <tr><th>价格</th><th>数量</th><th></th></tr>
+            ${asks || "<tr><td colspan='3'>暂无卖盘</td></tr>"}
+          </table>`;
+      }
+
+      function renderStats(agents) {
+        if (!agents.length) {
+          document.getElementById("top-pos-agent").textContent = "-";
+          document.getElementById("top-pos-stats").textContent = "无数据";
+          document.getElementById("top-cash-agent").textContent = "-";
+          document.getElementById("top-cash-stats").textContent = "无数据";
+          return;
+        }
+        const topPos = [...agents].sort((a, b) => b.position - a.position)[0];
+        const topCash = [...agents].sort((a, b) => b.cash - a.cash)[0];
+        document.getElementById("top-pos-agent").textContent = topPos.agent;
+        document.getElementById("top-pos-stats").textContent = `持仓 ${topPos.position}, 余额 ${topPos.cash.toFixed(2)}`;
+        document.getElementById("top-cash-agent").textContent = topCash.agent;
+        document.getElementById("top-cash-stats").textContent = `余额 ${topCash.cash.toFixed(2)}, 持仓 ${topCash.position}`;
+      }
+
+      function renderHists(agents) {
+        const posVals = agents.map((a) => a.position);
+        const cashVals = agents.map((a) => a.cash);
+        drawHist("pos-chart", posVals, "#7cb7ff");
+        drawHist("cash-chart", cashVals, "#5be7c4");
+      }
+
+      function drawHist(canvasId, values, color) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext("2d");
+        const dpr = window.devicePixelRatio || 1;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, width, height);
+
+        if (!values.length) {
+          ctx.fillStyle = "#a2acc3";
+          ctx.fillText("暂无数据", 10, 20);
+          return;
+        }
+
+        const minV = Math.min(...values);
+        const maxV = Math.max(...values);
+        const bins = 10;
+        const binSize = (maxV - minV || 1) / bins;
+        const counts = new Array(bins).fill(0);
+        values.forEach((v) => {
+          let idx = Math.floor((v - minV) / binSize);
+          if (idx >= bins) idx = bins - 1;
+          counts[idx] += 1;
+        });
+
+        const barWidth = width / bins;
+        const maxCount = Math.max(...counts) || 1;
+        counts.forEach((c, i) => {
+          const barHeight = (c / maxCount) * (height - 30);
+          ctx.fillStyle = color;
+          ctx.fillRect(i * barWidth + 2, height - barHeight - 10, barWidth - 4, barHeight);
+        });
+
+        ctx.fillStyle = "#a2acc3";
+        ctx.font = "12px sans-serif";
+        ctx.fillText(`min ${minV.toFixed(2)} | max ${maxV.toFixed(2)}`, 8, 16);
+      }
+
+      setInterval(refresh, 2000);
+      refresh();
+    </script>
+  </body>
+</html>
+

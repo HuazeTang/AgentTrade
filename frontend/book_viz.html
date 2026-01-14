@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgentTrade 盘口可视化</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #0b1221;
+        color: #e8edf7;
+      }
+      header {
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      main {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
+      }
+      .card {
+        background: rgba(18, 25, 42, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 14px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 13px;
+      }
+      th {
+        color: #a2acc3;
+        text-align: left;
+      }
+      .pill {
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .buy {
+        background: rgba(91, 231, 196, 0.14);
+        color: #5be7c4;
+      }
+      .sell {
+        background: rgba(255, 129, 143, 0.15);
+        color: #ff8190;
+      }
+      .info {
+        color: #a2acc3;
+        font-size: 13px;
+      }
+      .controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      input,
+      select,
+      button {
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
+        color: #e8edf7;
+      }
+      button {
+        background: linear-gradient(120deg, #5be7c4, #7cb7ff);
+        color: #0b1221;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+      }
+      canvas {
+        width: 100%;
+        height: 300px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <strong>AgentTrade 盘口可视化</strong>
+        <div class="info">实时买/卖盘、最新成交列表</div>
+      </div>
+      <div class="controls">
+        <label class="info">API:
+          <input id="api-base" value="http://127.0.0.1:8000" style="width:180px;" />
+        </label>
+        <label class="info">深度:
+          <input id="depth" type="number" value="8" min="1" max="50" style="width:70px;" />
+        </label>
+        <button id="refresh-btn">刷新</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="grid">
+        <div class="card">
+          <h3>买盘</h3>
+          <div id="bids"></div>
+        </div>
+        <div class="card">
+          <h3>卖盘</h3>
+          <div id="asks"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <h3>成交（最近 100 条）</h3>
+        <div id="trades"></div>
+      </div>
+    </main>
+
+    <script>
+      async function fetchJSON(base, path, params = {}) {
+        const url = new URL(path, base);
+        Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+        const res = await fetch(url.toString());
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+      }
+
+      async function refresh() {
+        const base = document.getElementById("api-base").value;
+        const depth = Number(document.getElementById("depth").value) || 8;
+        try {
+          const [book, trades] = await Promise.all([
+            fetchJSON(base, "/book", { depth }),
+            fetchJSON(base, "/trades", { limit: 100 }),
+          ]);
+          renderBook(book);
+          renderTrades(trades);
+        } catch (err) {
+          alert("刷新失败: " + err.message);
+        }
+      }
+
+      function renderBook(book) {
+        const bids = book.bids
+          .map((b) => `<tr><td>${b.price.toFixed(2)}</td><td>${b.quantity}</td><td><span class="pill buy">买</span></td></tr>`)
+          .join("");
+        const asks = book.asks
+          .map((a) => `<tr><td>${a.price.toFixed(2)}</td><td>${a.quantity}</td><td><span class="pill sell">卖</span></td></tr>`)
+          .join("");
+        document.getElementById("bids").innerHTML = `
+          <table>
+            <tr><th>价格</th><th>数量</th><th></th></tr>
+            ${bids || "<tr><td colspan='3'>暂无买盘</td></tr>"}
+          </table>
+        `;
+        document.getElementById("asks").innerHTML = `
+          <table>
+            <tr><th>价格</th><th>数量</th><th></th></tr>
+            ${asks || "<tr><td colspan='3'>暂无卖盘</td></tr>"}
+          </table>
+        `;
+      }
+
+      function renderTrades(data) {
+        const rows = data.trades
+          .slice()
+          .reverse()
+          .map(
+            (t) =>
+              `<tr>
+                <td>${new Date(t.ts * 1000).toLocaleTimeString()}</td>
+                <td>${t.price.toFixed(2)}</td>
+                <td>${t.quantity}</td>
+                <td>${t.buy_agent}</td>
+                <td>${t.sell_agent}</td>
+                <td>${t.tx_hash}</td>
+              </tr>`
+          )
+          .join("");
+        document.getElementById("trades").innerHTML = `
+          <table>
+            <tr><th>时间</th><th>价格</th><th>数量</th><th>买方</th><th>卖方</th><th>tx</th></tr>
+            ${rows || "<tr><td colspan='6'>暂无成交</td></tr>"}
+          </table>
+        `;
+      }
+
+      document.getElementById("refresh-btn").addEventListener("click", refresh);
+      setInterval(refresh, 2000);
+      refresh();
+    </script>
+  </body>
+</html>
+
