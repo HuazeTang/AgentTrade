@@ -14,16 +14,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import random
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 import requests
 
 API = "http://127.0.0.1:8000"
-LLM_API_KEY = ""  # Placeholder for Tongyi/Qwen; left empty for fallback heuristic
+LLM_API_KEY = os.environ["API_KEY"]  # Placeholder for Tongyi/Qwen; left empty for fallback heuristic
 
 
 @dataclass
@@ -45,6 +46,73 @@ def llm_or_heuristic_decision(agent: str, mid: float = 100.0) -> OrderDecision:
     price = max(0.1, price)
     qty = random.randint(1, 10)
     return OrderDecision(side=side, price=price, quantity=qty)
+
+
+def llm_decision_qwen(
+    agent: str,
+    book: dict,
+    trades: dict,
+    me: dict,
+    model: str = "qwen-plus",
+    fallback_mid: float = 100.0,
+) -> Optional[OrderDecision]:
+    """
+    Call Qwen for a structured trading decision.
+    Falls back to heuristic if API key is missing or call fails.
+    """
+    api_key = os.getenv("QWEN_API_KEY")
+    if not api_key:
+        return None
+
+    buy1 = book.get("bids", [{}])[0] if book.get("bids") else {}
+    sell1 = book.get("asks", [{}])[0] if book.get("asks") else {}
+    recent = trades.get("trades", [])[-5:]
+    prompt = f"""
+你是一个简化的限价交易 Agent，需要输出一个 JSON 决策，不要多余文字。
+字段: side(buy/sell), price(数字), quantity(整数>=1)。
+约束:
+- 买单价格不高于卖1价过多（可小幅跨1-2跳），卖单价格不低于买1价过多。
+- 数量必须在持仓/余额允许范围内，整数手。
+当前盘口:
+买1={buy1.get('price')} 数量={buy1.get('quantity')}；卖1={sell1.get('price')} 数量={sell1.get('quantity')}
+最近成交(价,量): {[ (t.get('price'), t.get('quantity')) for t in recent ]}
+我的余额={me.get('cash')}, 持仓={me.get('position')}
+仅输出 JSON，例如: {{"side":"buy","price":100.12,"quantity":3}}
+"""
+    try:
+        resp = requests.post(
+            "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+            },
+            json={
+                "model": model,
+                "input": {"prompt": prompt},
+                "parameters": {"result_format": "json"},
+            },
+            timeout=10,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        # Depending on dashscope response shape
+        text = (
+            data.get("output", {}).get("text")
+            or data.get("choices", [{}])[0].get("message", {}).get("content")
+        )
+        if not text:
+            return None
+        import json as pyjson
+
+        parsed = pyjson.loads(text)
+        side = parsed.get("side")
+        price = float(parsed.get("price"))
+        qty = int(parsed.get("quantity"))
+        if side not in ("buy", "sell") or qty < 1 or price <= 0:
+            return None
+        return OrderDecision(side=side, price=price, quantity=qty)
+    except Exception:
+        return None
 
 
 def register_agent(agent: str, cash: float, position: float) -> None:
@@ -98,12 +166,16 @@ def run_simulation(
     log_dir: str = "sim_logs",
     sample_agent: str = "agent-001",
     snapshot_interval: float = 0.0,  # 0 表示每次下单后都抓快照
+    use_llm: bool = False,
 ):
     print(f"Registering {agent_count} agents...")
     for i in range(agent_count):
         aid = f"agent-{i+1:03d}"
         register_agent(aid, initial_cash, initial_position)
     print("Registration done.")
+
+    if use_llm:
+        print("Using LLM models")
 
     orders_log: List[dict] = []
     gap = 1.0 / orders_per_sec if orders_per_sec > 0 else 0.0
@@ -117,7 +189,16 @@ def run_simulation(
     n = 0
     while time.time() - start < duration_sec:
         aid = f"agent-{(n % agent_count) + 1:03d}"
-        decision = llm_or_heuristic_decision(aid, mid=target_mid)
+        if use_llm:
+            # Fetch context for LLM decision
+            book_ctx = fetch_book(depth=5)
+            trades_ctx = fetch_trades(limit=50)
+            me_ctx = fetch_agent(aid)
+            decision = llm_decision_qwen(aid, book_ctx, trades_ctx, me_ctx, fallback_mid=target_mid)
+            if decision is None:
+                decision = llm_or_heuristic_decision(aid, mid=target_mid)
+        else:
+            decision = llm_or_heuristic_decision(aid, mid=target_mid)
         trade_ts = None
         try:
             res = place_order(aid, decision)
@@ -196,6 +277,7 @@ def parse_args():
     p.add_argument("--mid", type=float, default=100.0, help="Target mid price to trade around")
     p.add_argument("--log-dir", type=str, default="sim_logs", help="Directory to store logs")
     p.add_argument("--sample-agent", type=str, default="agent-001", help="Agent id to sample state")
+    p.add_argument("--use-llm", action="store_true", help="Use Qwen decision; fallback to heuristic if unavailable")
     return p.parse_args()
 
 
@@ -210,6 +292,7 @@ def main():
         orders_per_sec=args.ops,
         log_dir=args.log_dir,
         sample_agent=args.sample_agent,
+        use_llm=args.use_llm,
     )
 
 

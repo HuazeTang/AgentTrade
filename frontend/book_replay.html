@@ -264,18 +264,27 @@
         if (!file) return;
         try {
           const json = JSON.parse(await file.text());
-          const series = json.agents_series || json;
+          const series =
+            json.agents_series ||
+            json.agentsSeries ||
+            (Array.isArray(json) ? json : null);
           if (Array.isArray(series) && series.length && series[0]?.ts !== undefined) {
-            agentsSeries = series.sort((a, b) => a.ts - b.ts);
+            agentsSeries = series.slice().sort((a, b) => (a.ts || 0) - (b.ts || 0));
             agentsData = null;
           } else {
-            agentsData = json.agents || json; // old format
+            agentsData = json.agents || json; // old format fallback
             agentsSeries = null;
           }
+          console.log("agents.json loaded", {
+            series: !!agentsSeries,
+            series_len: agentsSeries ? agentsSeries.length : 0,
+            data_len: Array.isArray(agentsData) ? agentsData.length : 0,
+          });
           renderAgents();
           renderHists();
         } catch (err) {
-          alert("agents.json 解析失败");
+          console.error("agents.json parse failed", err);
+          alert("agents.json 解析失败: " + err);
         }
       });
 
@@ -460,7 +469,8 @@
 
       function renderAgents() {
         const container = document.getElementById("agents-ext");
-        const snap = pickAgentsSnapshot();
+        const picked = pickAgentsSnapshot();
+        const snap = picked?.snap;
         if (!snap || !snap.length) {
           container.textContent = "未加载 agents.json";
           return;
@@ -470,6 +480,7 @@
         container.innerHTML = `
           <div>最高持仓: <strong>${topPos.agent}</strong> | 持仓 ${topPos.position} | 余额 ${topPos.cash.toFixed(2)}</div>
           <div style="margin-top:6px;">最高余额: <strong>${topCash.agent}</strong> | 余额 ${topCash.cash.toFixed(2)} | 持仓 ${topCash.position}</div>
+          <div class="info" style="margin-top:6px;">快照 ts: ${picked?.ts ?? "-"}</div>
         `;
       }
 
@@ -477,7 +488,8 @@
         const posCanvas = document.getElementById("pos-chart");
         const cashCanvas = document.getElementById("cash-chart");
         if (!posCanvas || !cashCanvas) return;
-        const snap = pickAgentsSnapshot();
+        const picked = pickAgentsSnapshot();
+        const snap = picked?.snap;
         if (!snap || !snap.length) {
           drawHist(posCanvas, [], "#7cb7ff");
           drawHist(cashCanvas, [], "#5be7c4");
