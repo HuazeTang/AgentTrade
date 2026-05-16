@@ -1,0 +1,212 @@
+[
+  {
+    "ts": 1768583165.443369,
+    "status": "ok",
+    "latency_ms": 970.2309160056757,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"62d20b78-c480-4838-b8a1-9bc1fd98d6f0\"}"
+  },
+  {
+    "ts": 1768583165.461876,
+    "status": "ok",
+    "latency_ms": 988.6434580112109,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"d2d483e4-4245-4ac4-9f0b-39af0c4c8f7a\"}"
+  },
+  {
+    "ts": 1768583165.465893,
+    "status": "ok",
+    "latency_ms": 993.0195000051754,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"762f1fd1-23a9-47a4-8c01-2c10d9129e02\"}"
+  },
+  {
+    "ts": 1768583165.4831622,
+    "status": "ok",
+    "latency_ms": 1009.7514999943087,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"b645f310-aee3-4d8f-85a3-2d0070a526d2\"}"
+  },
+  {
+    "ts": 1768583165.490056,
+    "status": "ok",
+    "latency_ms": 1017.0896249910584,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"ff66477d-508c-4586-b16f-61f3374a0006\"}"
+  },
+  {
+    "ts": 1768583166.235308,
+    "status": "ok",
+    "latency_ms": 773.4191669878783,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"afebf897-2652-42d7-a97b-0b3c0b892d39\"}"
+  },
+  {
+    "ts": 1768583166.3406851,
+    "status": "ok",
+    "latency_ms": 857.5126250070753,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"0c9c4c9e-6f48-4177-bcf9-8497b9e8a27a\"}"
+  },
+  {
+    "ts": 1768583166.361459,
+    "status": "ok",
+    "latency_ms": 895.5546659999527,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 1000.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":253,\"output_tokens\":25,\"input_tokens\":228,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"6461b985-4a41-4c12-8bbe-f0077b1dae9d\"}"
+  },
+  {
+    "ts": 1768583166.361807,
+    "status": "ok",
+    "latency_ms": 871.7405829956988,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"690e1b70-7144-4d91-b184-dba866d41ed3\"}"
+  },
+  {
+    "ts": 1768583166.727357,
+    "status": "ok",
+    "latency_ms": 1283.9727090031374,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"1a493823-60c3-4968-a009-a2313ae04ed1\"}"
+  },
+  {
+    "ts": 1768583167.0809941,
+    "status": "ok",
+    "latency_ms": 740.2977500023553,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"b05e3629-e34a-4ec4-9efd-ea1e03464a06\"}"
+  },
+  {
+    "ts": 1768583167.095541,
+    "status": "ok",
+    "latency_ms": 734.0722910012119,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"f3e3aa9c-14fc-4ff8-a906-64c9b85b82f2\"}"
+  },
+  {
+    "ts": 1768583167.172089,
+    "status": "ok",
+    "latency_ms": 810.2744169882499,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"e97e9081-56e5-43dc-b0ce-d4bf08f5d3cd\"}"
+  },
+  {
+    "ts": 1768583167.335763,
+    "status": "ok",
+    "latency_ms": 1100.4428749874933,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"d2f348da-2359-46d2-a08d-98be41af6d1e\"}"
+  },
+  {
+    "ts": 1768583167.670023,
+    "status": "ok",
+    "latency_ms": 942.6417500071693,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"6f0ef64e-b50c-4991-bde5-dfcf4b6bc916\"}"
+  },
+  {
+    "ts": 1768583167.881002,
+    "status": "ok",
+    "latency_ms": 785.4525000002468,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"3910475b-6171-461f-bcea-a6f426d70dba\"}"
+  },
+  {
+    "ts": 1768583167.945483,
+    "status": "ok",
+    "latency_ms": 864.4782909977948,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"fb7e17ae-185f-4683-b558-07a853cf4dab\"}"
+  },
+  {
+    "ts": 1768583167.982582,
+    "status": "ok",
+    "latency_ms": 810.4847919894382,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"5220e3d3-aaf1-4260-8f35-0c24df40bcd0\"}"
+  },
+  {
+    "ts": 1768583168.509481,
+    "status": "ok",
+    "latency_ms": 839.4358750083484,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"df205a19-5d04-4413-a38a-0609be8df018\"}"
+  },
+  {
+    "ts": 1768583168.707893,
+    "status": "ok",
+    "latency_ms": 762.3992909939261,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"d1ef9303-6dd5-4a11-81c1-f99b8cd11090\"}"
+  },
+  {
+    "ts": 1768583168.720683,
+    "status": "ok",
+    "latency_ms": 1384.9061660002917,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"dc0139be-a0b8-4f6a-be13-a9906d7354cb\"}"
+  },
+  {
+    "ts": 1768583168.808766,
+    "status": "ok",
+    "latency_ms": 927.7477080031531,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"cc8990d6-fc0e-4247-acde-2ee7d6fac096\"}"
+  },
+  {
+    "ts": 1768583168.915833,
+    "status": "ok",
+    "latency_ms": 933.2413749943953,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"e7efa15e-0bad-468a-bc40-70a455eac816\"}"
+  },
+  {
+    "ts": 1768583169.253113,
+    "status": "ok",
+    "latency_ms": 743.6064590001479,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"7a5bee4b-4507-4d4c-9a73-67a61d51a0a1\"}"
+  },
+  {
+    "ts": 1768583169.459392,
+    "status": "ok",
+    "latency_ms": 751.4787500113016,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"23c8f638-a29f-49cf-b298-759b37c9b27a\"}"
+  },
+  {
+    "ts": 1768583169.587486,
+    "status": "ok",
+    "latency_ms": 866.7914169927826,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"6441850c-5acb-4b62-80c1-65a05cde9836\"}"
+  },
+  {
+    "ts": 1768583170.0684228,
+    "status": "ok",
+    "latency_ms": 815.2861249982379,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"b6a39f52-ac18-4334-92d9-9453531900b0\"}"
+  },
+  {
+    "ts": 1768583170.2232451,
+    "status": "ok",
+    "latency_ms": 1414.4666670035804,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"915cdb45-f2b8-4ea1-a97c-9bc26a87dab0\"}"
+  },
+  {
+    "ts": 1768583170.26634,
+    "status": "ok",
+    "latency_ms": 1350.4952500079526,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"1ffce598-d62a-48d3-8a1e-11610a588acd\"}"
+  },
+  {
+    "ts": 1768583170.357586,
+    "status": "ok",
+    "latency_ms": 898.1703330064192,
+    "prompt": "你是一个交易 Agent，需输出交易决策 JSON，不要多余解释。\n输入字段（已填充真实仿真数据）：\n- recent_prices: [ ]\n- recent_prices 顺序：从旧到新（recent_prices[0] 最早，末尾为最新）\n- current_price: 100.0\n- order_book: bids=[], asks=[]\n- my_account: {'cash': 100000.0, 'position': 0.0}\n- risk_limit: 5000.0\n要求：\n- 根据趋势与盘口做出买入或卖出决策\n- JSON 字段: side (buy/sell/hold), price (float), quantity (int>=1), reason (string，简述当前交易/不交易的理由)\n- 不要超出 risk_limit 和可用现金/持仓\n- 若不交易，返回 {\"side\": \"hold\", \"price\": 0, \"quantity\": 0, \"reason\": \"no-op\"}\n示例输入已在上方提供，请仅输出 JSON。",
+    "response": "{\"output\":{\"finish_reason\":\"stop\",\"text\":\"{\\\"side\\\": \\\"hold\\\", \\\"price\\\": 0, \\\"quantity\\\": 0, \\\"reason\\\": \\\"no-op\\\"}\"},\"usage\":{\"total_tokens\":250,\"output_tokens\":25,\"input_tokens\":225,\"prompt_tokens_details\":{\"cached_tokens\":0}},\"request_id\":\"f1837f9d-e9de-42da-b850-624c5c696f49\"}"
+  }
+]

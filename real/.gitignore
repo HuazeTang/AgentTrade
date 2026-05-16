@@ -1,0 +1,20 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# Data (large files)
+data/cache/
+data/results/
+data/simulations/
+
+# OS
+.DS_Store
