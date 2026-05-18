@@ -1,0 +1,27 @@
+{
+  "gp_factors": [
+    {
+      "name": "gp_ts_std20_ts_delay120_ts_delay120_volume_b3d89845",
+      "category": "volume",
+      "expression": {
+        "type": "rolling",
+        "op": "ts_std",
+        "window": 20,
+        "child": {
+          "type": "rolling",
+          "op": "ts_delay",
+          "window": 120,
+          "child": {
+            "type": "rolling",
+            "op": "ts_delay",
+            "window": 120,
+            "child": {
+              "type": "var",
+              "name": "volume"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

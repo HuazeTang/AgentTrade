@@ -13,6 +13,7 @@ env/
 
 # Simulation outputs
 real/data/results/
+!real/data/results/gp_factors.json
 simulation/data/results/
 sim_logs/
 
