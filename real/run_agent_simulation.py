@@ -69,7 +69,7 @@ INITIAL_CASH     = 10_000.0
 MAX_POSITIONS    = 1
 MAX_POSITION_PCT = 0.95
 SELL_RANK_LIMIT  = 5     # sell only if rank drops below this (vs MAX_POSITIONS=1 for buys)
-SYMBOL_COUNT     = 500       # same as report stock pool
+SYMBOL_COUNT     = 800       # expanded from 500 to capture more medium-cap names
 JOURNAL_DIR      = Path(__file__).resolve().parent / "data" / "results"
 
 # Market drawdown circuit breaker: skip new buys when market is falling
@@ -893,7 +893,9 @@ class AgentSimulation:
         if REBALANCE_FREQ == "daily":
             return True
         if REBALANCE_FREQ == "weekly":
-            return day_index % 5 == 0
+            if day_index >= len(self._trading_days):
+                return True
+            return self._trading_days[day_index].dayofweek == 2  # Wednesday
         if REBALANCE_FREQ == "monthly":
             return day_index % 20 == 0
         return True
@@ -901,7 +903,7 @@ class AgentSimulation:
     # ── Stock Pool ──────────────────────────────────────────────────────────
 
     def _generate_stock_pool(self, all_syms: list[str]) -> list[str]:
-        """Industry-stratified 500-stock pool, using cache metadata (no live API call)."""
+        """Industry-stratified pool, using cache metadata (no live API call)."""
         from data.industry import build_industry_map
 
         # Derive ST status and board from cache (per-symbol, use last available day)
