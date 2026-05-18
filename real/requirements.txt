@@ -1,0 +1,14 @@
+pandas==3.0.2
+numpy==2.4.4
+matplotlib==3.10.8
+seaborn==0.12.2
+scipy==1.17.1
+scikit-learn==1.8.0
+statsmodels==0.13.5
+baostock==0.9.1
+pyarrow==24.0.0
+openpyxl==3.0.10
+tqdm==4.67.3
+requests==2.33.1
+Pillow==9.4.0
+tabulate==0.10.0

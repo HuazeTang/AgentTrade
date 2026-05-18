@@ -151,5 +151,23 @@ python download_all_main.py
   config/chart_style.py    图表样式 (中文字体 + 颜色)
 """
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# 环境要求
+# ═══════════════════════════════════════════════════════════════════════════════
+"""
+Python: 3.11.3 (建议 3.10+)
+
+核心依赖:
+  pip install pandas==3.0.2 numpy==2.4.4 matplotlib==3.10.8 seaborn==0.12.2 \
+              scipy==1.17.1 scikit-learn==1.8.0 statsmodels==0.13.5 \
+              baostock==0.9.1 pyarrow==24.0.0 openpyxl==3.0.10
+
+一键安装 (版本锁定):
+  pip install -r requirements.txt
+
+最低兼容版本:
+  pandas>=1.5  numpy>=1.24  matplotlib>=3.5  baostock>=0.8.8  pyarrow>=10
+"""
+
 if __name__ == "__main__":
     print(__doc__)
