@@ -11,6 +11,9 @@ env/
 .eggs/
 *.egg-info/
 
+# Data cache
+real/data/cache/
+
 # Simulation outputs
 real/data/results/
 !real/data/results/gp_factors.json
