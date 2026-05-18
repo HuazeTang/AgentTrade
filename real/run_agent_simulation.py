@@ -43,6 +43,8 @@ from core.types import Fill, Order, OrderType, Side
 from data.cache import read_daily
 from data.calendar import get_trading_days
 from data.sources.baostock import _infer_board
+from factor.registry import registry as factor_registry
+from utils.git import git_commit, git_dirty
 import factor.factors as _  # register all factors
 from factor.engine import FactorEngine
 from factor.validation import compute_rank_ic
@@ -80,11 +82,16 @@ TAKE_PROFIT_PCT  = 0.25   # sell if position profit > 25%
 BASELINE_FACTORS = [
     # Momentum — multi-timeframe (1m through 12m)
     "momentum_1m", "momentum_3m", "momentum_6m", "momentum_12m1m",
+    "momentum_accel_20d",      # price acceleration (2nd derivative)
     # Reversal — entry timing
     "reversal_5d", "reversal_10d",
-    # Volatility — risk sizing
-    "volatility_20d", "volatility_60d",
+    # Volatility — risk sizing + regime
+    "volatility_20d", "volatility_60d", "vol_ratio_20_60",
+    "daily_amplitude_20d",     # intraday range intensity
     "beta_60d",
+    # Overnight — A-share call auction signals
+    "overnight_gap_5d",        # persistent gap-up/down openings
+    "gap_strength_5d",         # consistency of upward openings
     # Liquidity
     "turnover_20d",
     # Trend-following (主升浪 identification)
@@ -114,6 +121,9 @@ BASELINE_FACTORS = [
 # Set factors you want to temporarily exclude here
 DISABLED_FACTORS: set[str] = {
     "downside_vol_20d", "max_dd_20d", "risk_adj_mom_20d", "dd_recovery_5d",
+    # New factors — all degrade baseline (+23.49%) in ablation tests (2026-05-17)
+    "daily_amplitude_20d", "vol_ratio_20_60", "momentum_accel_20d",
+    "overnight_gap_5d", "gap_strength_5d",
 }
 REBALANCE_FREQ   = "weekly"  # "daily", "weekly", "monthly"
 
@@ -201,6 +211,7 @@ class AgentSimulation:
         # LLM
         self.use_llm = (mode == "llm")
         self.use_gp = use_gp
+        self.load_gp = False  # set via --load-gp flag
         self.gp_population = gp_population
         self.gp_generations = gp_generations
         self.gp_early_stop = gp_early_stop
@@ -223,7 +234,7 @@ class AgentSimulation:
     # ── Main Entry Point ────────────────────────────────────────────────────
 
     def run(self) -> dict:
-        """Execute the full simulation with unified, realistic constraints."""
+        """Execute the full simulation with ablation backtest for GP evaluation."""
         self._trading_days = get_trading_days(self.start, self.end)
         logger.info("Simulation: %s → %s, %d trading days",
                      self.start, self.end, len(self._trading_days))
@@ -252,65 +263,533 @@ class AgentSimulation:
         # 3. Add derived features (needed for GP terminals)
         self._daily_cache = self._add_derived_features(self._daily_cache)
 
-        # 4. Determine factor list: baseline + optionally GP-discovered
-        active_factors = [f for f in BASELINE_FACTORS if f not in DISABLED_FACTORS]
-
-        if self.use_gp:
-            gp_factors = self._run_gp_discovery(self._daily_cache)
-            if gp_factors:
-                active_factors.extend(gp_factors)
-                logger.info("GP discovered %d new factors. Total: %d",
-                             len(gp_factors), len(active_factors))
-        else:
-            gp_factors = []
-
-        # 5. Compute all factors via FactorEngine
-        engine = FactorEngine()
-        self._factor_df = engine.compute(active_factors, self._daily_cache)
-        logger.info("FactorEngine computed %d factors: %d rows",
-                     len(active_factors), len(self._factor_df))
-
-        # 5.5 Shift factors by 1 day: D's factor uses D-1's close data.
-        # Sells at D open use D-1 info = correct. Buys at D close also use D-1 info
-        # (1-day conservative lag, but avoids look-ahead).
-        shifted = self._factor_df.unstack().shift(1).stack()
-        self._factor_df = shifted.reorder_levels(["trade_date", "symbol"]).sort_index()
-
-        # 6. Calibrate factor weights on training period (IC_IR-weighted)
-        train_dates = get_trading_days(TRAIN_PERIOD[0], TRAIN_PERIOD[1])
-        self._factor_weights = self._calibrate_factor_weights(self._factor_df, train_dates)
-        logger.info("Calibrated factor weights: %s",
-                     {k: f"{v:.3f}" for k, v in self._factor_weights.items()})
-
-        # 6.5 Compute market drawdown for circuit breaker
+        # 4. Compute market drawdown (shared across all backtests)
         self._market_dd = self._compute_market_drawdown()
         logger.info("Market drawdown computed: %d days", len(self._market_dd))
 
-        # 7. Day-by-day loop with weekly rebalancing
+        # 5. Baseline factors + backtest
+        baseline_factors = [f for f in BASELINE_FACTORS if f not in DISABLED_FACTORS]
+        self._baseline_equity = None
+        self._baseline_metrics = None
+
+        baseline_df, baseline_weights = self._compute_factor_set(baseline_factors)
+        self._baseline_equity = self._run_backtest_loop(
+            baseline_df, baseline_weights, symbols, "baseline",
+        )
+
+        # 6. GP discovery (if enabled) or load persisted GP factors
+        gp_factors: list[str] = []
+        if self.use_gp:
+            gp_factors = self._run_gp_discovery(self._daily_cache, baseline_factors)
+        elif self.load_gp:
+            gp_factors = self._load_persisted_gp_factors()
+
+        # 7. Combined backtest (baseline + GP) — only if GP found factors
+        if gp_factors:
+            combined_factors = baseline_factors + gp_factors
+            logger.info("GP discovered %d new factors. Total: %d",
+                         len(gp_factors), len(combined_factors))
+            combined_df, combined_weights = self._compute_factor_set(combined_factors)
+            self._gp_equity = self._run_backtest_loop(
+                combined_df, combined_weights, symbols, "combined",
+            )
+            # Use combined results for the final report
+            self._factor_df = combined_df
+            self._factor_weights = combined_weights
+        else:
+            self._gp_equity = None
+            self._factor_df = baseline_df
+            self._factor_weights = baseline_weights
+
+        return self._finalize()
+
+    def _compute_factor_set(
+        self, factor_names: list[str],
+    ) -> tuple[pd.DataFrame, dict[str, float]]:
+        """Compute factor values and calibrate IC_IR weights for a factor set."""
+        engine = FactorEngine()
+        factor_df = engine.compute(factor_names, self._daily_cache)
+        logger.info("FactorEngine computed %d factors: %d rows",
+                     len(factor_names), len(factor_df))
+
+        # Shift factors by 1 day: D's factor uses D-1's close data
+        shifted = factor_df.unstack().shift(1).stack()
+        factor_df = shifted.reorder_levels(["trade_date", "symbol"]).sort_index()
+
+        train_dates = get_trading_days(TRAIN_PERIOD[0], TRAIN_PERIOD[1])
+        factor_weights = self._calibrate_factor_weights(factor_df, train_dates)
+        logger.info("Calibrated %d factor weights", len(factor_weights))
+
+        return factor_df, factor_weights
+
+    def _run_backtest_loop(
+        self,
+        factor_df: pd.DataFrame,
+        factor_weights: dict[str, float],
+        symbols: list[str],
+        label: str,
+    ) -> pd.Series:
+        """Run day-by-day simulation loop and return equity series.
+
+        Uses the given factor_df and factor_weights for _process_day lookups.
+        Caller is responsible for setting self._factor_df / self._factor_weights
+        afterwards if this run should be the 'final' state.
+        """
+        self._factor_df = factor_df
+        self._factor_weights = factor_weights
+        self._journal = []
+        self._decisions = []
+        self._fill_count = 0
+        self.accountant = PortfolioAccountant(initial_cash=self.initial_cash)
+
         trading_day_index = 0
         for i, today in enumerate(self._trading_days):
             td = today.date()
             is_rebalance = self._is_rebalance_day(trading_day_index)
 
             if i % 20 == 0:
-                logger.info("Day %d/%d: %s %s",
-                             i + 1, len(self._trading_days), td,
+                logger.info("[%s] Day %d/%d: %s %s",
+                             label, i + 1, len(self._trading_days), td,
                              "[rebalance]" if is_rebalance else "")
 
             try:
                 self._process_day(today, symbols, trading_day_index, is_rebalance)
                 trading_day_index += 1
             except Exception as e:
-                logger.error("Error on %s: %s", td, e, exc_info=True)
+                logger.error("[%s] Error on %s: %s", label, td, e, exc_info=True)
                 self._journal.append({
                     "date": td.isoformat(),
                     "error": str(e),
                     "cash": self.accountant.cash,
                     "equity": self._equity,
-                    "positions": [{"symbol": s, "shares": q, "avg_cost": 0} for s, q in self.accountant.positions.items() if q > 0],
+                    "positions": [{"symbol": s, "shares": q, "avg_cost": 0}
+                                  for s, q in self.accountant.positions.items() if q > 0],
                 })
 
-        return self._finalize()
+        equity = self.accountant.to_equity_series()
+
+        # Store baseline results for ablation
+        if label == "baseline":
+            self._baseline_journal = self._journal
+            self._baseline_decisions = self._decisions
+
+        return equity
+
+    def recommend(self, cash: float, top_n: int = 3) -> dict:
+        """Recommend tomorrow's trade based on latest data (assumes empty position).
+
+        Follows the same initialization pipeline as run() but stops at the
+        latest trading day and outputs top-N buy candidates.
+        """
+        self._trading_days = get_trading_days(self.start, self.end)
+        latest_td = self._trading_days[-1].date()
+        logger.info("Recommendation mode: latest trading day = %s, cash = ¥%.0f", latest_td, cash)
+
+        # 1. Load data
+        load_start = TRAIN_PERIOD[0]
+        load_end = self.end
+        self._daily_cache = read_daily(load_start, load_end)
+        all_syms = sorted(
+            self._daily_cache.index.get_level_values("symbol").unique().tolist()
+        )
+        logger.info("Loaded %d rows, %d symbols", len(self._daily_cache), len(all_syms))
+
+        # 2. Stock pool
+        symbols = self._generate_stock_pool(all_syms)
+        if len(symbols) < 50:
+            logger.error("Stock pool too small (%d stocks)", len(symbols))
+            return {"error": "stock pool too small"}
+        pool_mask = self._daily_cache.index.get_level_values("symbol").isin(symbols)
+        self._daily_cache = self._daily_cache[pool_mask]
+
+        # 3. Derived features + factors (baseline + any persisted GP factors)
+        self._daily_cache = self._add_derived_features(self._daily_cache)
+        active_factors = [f for f in BASELINE_FACTORS if f not in DISABLED_FACTORS]
+
+        # Load and register persisted GP factors from prior discovery runs
+        gp_file = self.output_dir / "gp_factors.json"
+        gp_factor_names: list[str] = []
+        if gp_file.exists():
+            import json as _json
+            from discovery.expr import Expr
+            from discovery.compiler import compile_expr
+            with open(gp_file, "r", encoding="utf-8") as _f:
+                gp_data = _json.load(_f)
+            for entry in gp_data.get("gp_factors", []):
+                try:
+                    tree = Expr.from_dict(entry["expression"])
+                    compile_expr(tree, factor_name=entry["name"],
+                                 category=entry.get("category", "gp"),
+                                 register=True)
+                    gp_factor_names.append(entry["name"])
+                    logger.info("Loaded GP factor: %s", entry["name"])
+                except Exception as e:
+                    logger.warning("Failed to load GP factor %s: %s", entry.get("name"), e)
+            if gp_factor_names:
+                active_factors.extend(gp_factor_names)
+                logger.info("Including %d GP factors in recommendation", len(gp_factor_names))
+
+        engine = FactorEngine()
+        self._factor_df = engine.compute(active_factors, self._daily_cache)
+
+        # Shift: D's factor uses D-1 close
+        shifted = self._factor_df.unstack().shift(1).stack()
+        self._factor_df = shifted.reorder_levels(["trade_date", "symbol"]).sort_index()
+
+        # 4. Calibrate weights
+        train_dates = get_trading_days(TRAIN_PERIOD[0], TRAIN_PERIOD[1])
+        self._factor_weights = self._calibrate_factor_weights(self._factor_df, train_dates)
+        logger.info("Factor weights: %s",
+                     {k: f"{v:.3f}" for k, v in self._factor_weights.items()})
+
+        # 5. Compute composite for latest trading day
+        composite = self._compute_day_composite(latest_td)
+        if composite.empty:
+            # Try one day back
+            composite = self._compute_day_composite(latest_td - timedelta(days=1))
+        if composite.empty:
+            return {"error": f"no factor data available near {latest_td}"}
+
+        # 6. Get latest close prices for ranking
+        latest_data = self._get_data(pd.Timestamp(latest_td))
+        if latest_data.empty:
+            return {"error": f"no price data for {latest_td}"}
+
+        # 7. Rank and build top-N recommendations
+        ranked = composite.loc[composite.index.intersection(latest_data.index)].nlargest(top_n * 5)
+
+        recommendations = []
+        seen = 0
+        for sym, score in ranked.items():
+            if seen >= top_n:
+                break
+            sym_data = latest_data[latest_data.index == sym]
+            if sym_data.empty:
+                continue
+            close_price = float(sym_data["close"].iloc[0])
+            if close_price <= 0:
+                continue
+
+            # Suggested shares: full cash allocation to each pick
+            # (single-position strategy; user picks one)
+            alloc_cash = cash * 0.85
+            shares = int(alloc_cash / close_price)
+            shares = (shares // LOT_SIZE) * LOT_SIZE
+            if shares <= 0:
+                continue  # stock too expensive for available cash
+
+            pre_close = float(sym_data["pre_close"].iloc[0]) if "pre_close" in sym_data.columns else close_price
+            chg_pct = (close_price - pre_close) / pre_close * 100 if pre_close > 0 else 0.0
+
+            entry = {
+                "rank": seen + 1,
+                "symbol": sym,
+                "composite_score": round(float(score), 4),
+                "close": round(close_price, 2),
+                "change_pct": round(chg_pct, 2),
+                "suggested_shares": shares,
+                "estimated_cost": round(shares * close_price, 0),
+            }
+            # Enrich with individual factor contributions
+            try:
+                day_factors = self._factor_df.xs(pd.Timestamp(latest_td), level="trade_date")
+                if sym in day_factors.index:
+                    top_factors = []
+                    for fname in self._factor_weights:
+                        if fname in day_factors.columns:
+                            fval = day_factors.loc[sym, fname]
+                            if pd.notna(fval):
+                                top_factors.append((fname, round(float(fval), 4)))
+                    top_factors.sort(key=lambda x: abs(x[1]), reverse=True)
+                    entry["top_factors"] = top_factors[:5]
+            except (KeyError, ValueError):
+                pass
+
+            recommendations.append(entry)
+            seen += 1
+
+        return {
+            "date": latest_td.isoformat(),
+            "cash": cash,
+            "top_n": top_n,
+            "recommendations": recommendations,
+        }
+
+    def analyze_stock(self, symbol: str) -> dict:
+        """Deep-dive analysis for a single stock.
+
+        Produces a multi-panel chart (price+MAs+volume, composite score,
+        top factor contributions) and key statistics for the target symbol.
+        """
+        import matplotlib.dates as mdates
+
+        self._trading_days = get_trading_days(self.start, self.end)
+        latest_td = self._trading_days[-1].date()
+        logger.info("Analyze: symbol=%s, period=%s→%s, latest=%s",
+                     symbol, self.start, self.end, latest_td)
+
+        # 1. Load data
+        load_start = TRAIN_PERIOD[0]
+        load_end = self.end
+        self._daily_cache = read_daily(load_start, load_end)
+        all_syms = sorted(
+            self._daily_cache.index.get_level_values("symbol").unique().tolist()
+        )
+        logger.info("Loaded %d rows, %d symbols", len(self._daily_cache), len(all_syms))
+
+        if symbol not in all_syms:
+            return {"error": f"symbol {symbol} not in data cache ({load_start}→{load_end})"}
+
+        # 2. Stock pool (ensure target symbol is included)
+        symbols_pool = self._generate_stock_pool(all_syms)
+        # Keep target symbol data before pool filtering
+        target_mask = self._daily_cache.index.get_level_values("symbol") == symbol
+        target_rows = self._daily_cache[target_mask]
+        pool_mask = self._daily_cache.index.get_level_values("symbol").isin(symbols_pool)
+        self._daily_cache = self._daily_cache[pool_mask]
+        if symbol not in symbols_pool:
+            self._daily_cache = pd.concat([self._daily_cache, target_rows]).sort_index()
+
+        # 3. Derived features + factors
+        self._daily_cache = self._add_derived_features(self._daily_cache)
+        active_factors = [f for f in BASELINE_FACTORS if f not in DISABLED_FACTORS]
+
+        # Load GP factors
+        gp_file = self.output_dir / "gp_factors.json"
+        gp_factor_names: list[str] = []
+        if gp_file.exists():
+            import json as _json
+            from discovery.expr import Expr
+            from discovery.compiler import compile_expr
+            with open(gp_file, "r", encoding="utf-8") as _f:
+                gp_data = _json.load(_f)
+            for entry in gp_data.get("gp_factors", []):
+                try:
+                    tree = Expr.from_dict(entry["expression"])
+                    compile_expr(tree, factor_name=entry["name"],
+                                 category=entry.get("category", "gp"),
+                                 register=True)
+                    gp_factor_names.append(entry["name"])
+                    logger.info("Loaded GP factor: %s", entry["name"])
+                except Exception as e:
+                    logger.warning("Failed to load GP factor %s: %s", entry.get("name"), e)
+        if gp_factor_names:
+            active_factors.extend(gp_factor_names)
+
+        engine = FactorEngine()
+        self._factor_df = engine.compute(active_factors, self._daily_cache)
+        shifted = self._factor_df.unstack().shift(1).stack()
+        self._factor_df = shifted.reorder_levels(["trade_date", "symbol"]).sort_index()
+
+        # 4. Calibrate weights
+        train_dates = get_trading_days(TRAIN_PERIOD[0], TRAIN_PERIOD[1])
+        self._factor_weights = self._calibrate_factor_weights(self._factor_df, train_dates)
+        logger.info("Factor weights: %d factors", len(self._factor_weights))
+
+        # 5. Extract symbol price history
+        try:
+            sym_data = self._daily_cache.xs(symbol, level="symbol").sort_index()
+        except KeyError:
+            return {"error": f"no price data for {symbol}"}
+
+        chart_start = pd.Timestamp(self.start) - pd.Timedelta(days=60)
+        sym_data = sym_data.loc[(sym_data.index >= chart_start)
+                                & (sym_data.index <= pd.Timestamp(self.end))]
+        if sym_data.empty:
+            return {"error": f"no price data in period for {symbol}"}
+
+        # 6. Extract factor history for this symbol
+        try:
+            sym_factors = self._factor_df.xs(symbol, level="symbol").sort_index()
+        except KeyError:
+            sym_factors = pd.DataFrame()
+
+        # 7. Compute composite score per day (rank-normalized cross-sectionally)
+        composite_series = pd.Series(dtype=float)
+        factor_day_ranks: dict[str, list] = {}  # factor_name -> ranked values over time
+        comp_dates = []
+
+        all_tds = [td for td in self._trading_days
+                   if td >= pd.Timestamp(self.start) and td <= pd.Timestamp(self.end)]
+
+        for td in all_tds:
+            try:
+                day_factors = self._factor_df.xs(td, level="trade_date")
+            except KeyError:
+                continue
+            if symbol not in day_factors.index:
+                continue
+            score = 0.0
+            for fname, weight in self._factor_weights.items():
+                if fname not in day_factors.columns:
+                    continue
+                col = day_factors[fname].dropna()
+                if len(col) < 5:
+                    continue
+                fval = col.loc[symbol] if symbol in col.index else np.nan
+                if pd.isna(fval):
+                    continue
+                rank_pct = col.rank(pct=True).loc[symbol]
+                score += rank_pct * weight
+                factor_day_ranks.setdefault(fname, []).append((td, float(rank_pct), float(fval)))
+            composite_series[td] = score
+            comp_dates.append(td)
+
+        if composite_series.empty:
+            return {"error": f"no factor data computed for {symbol}"}
+
+        # 8. Compute key statistics
+        close = sym_data["close"]
+        period_close = close.loc[close.index.isin(all_tds)]
+        if len(period_close) < 2:
+            return {"error": f"not enough price points for {symbol}"}
+
+        start_price = float(period_close.iloc[0])
+        end_price = float(period_close.iloc[-1])
+        period_return = (end_price / start_price - 1)
+        daily_rets = period_close.pct_change().dropna()
+        ann_vol = float(daily_rets.std() * np.sqrt(252)) if len(daily_rets) > 1 else 0
+        ann_return = float((1 + period_return) ** (252 / max(len(daily_rets), 1)) - 1)
+        sharpe = ann_return / ann_vol if ann_vol > 0 else 0
+        peak = period_close.expanding().max()
+        dd = (period_close / peak - 1)
+        max_dd = float(dd.min())
+        avg_composite = float(composite_series.mean())
+        latest_composite = float(composite_series.iloc[-1]) if len(composite_series) > 0 else 0
+        high = float(period_close.max())
+        low = float(period_close.min())
+        avg_volume = float(sym_data["volume"].mean()) if "volume" in sym_data.columns else 0
+
+        # Sector info
+        from data.industry import build_industry_map
+        ind_map = build_industry_map()
+        sector = ind_map.get(symbol, "未知")
+        board = _infer_board(symbol)
+
+        stats = {
+            "symbol": symbol,
+            "sector": sector,
+            "board": board,
+            "start_price": round(start_price, 2),
+            "end_price": round(end_price, 2),
+            "period_return": round(period_return, 4),
+            "high": round(high, 2),
+            "low": round(low, 2),
+            "ann_return": round(ann_return, 4),
+            "ann_vol": round(ann_vol, 4),
+            "sharpe": round(sharpe, 3),
+            "max_drawdown": round(max_dd, 4),
+            "avg_composite": round(avg_composite, 4),
+            "latest_composite": round(latest_composite, 4),
+            "avg_volume": int(avg_volume),
+            "trading_days": len(daily_rets),
+        }
+
+        # 9. Generate multi-panel chart
+        cjk_font = get_cjk_font_name()
+        font_props = {"fontfamily": "sans-serif"}
+        if cjk_font:
+            font_props["fontfamily"] = cjk_font
+
+        fig = plt.figure(figsize=(16, 14))
+        gs = fig.add_gridspec(3, 1, height_ratios=[3, 1, 1], hspace=0.08)
+
+        # ── Panel 1: Price + MAs + Volume ──
+        ax1 = fig.add_subplot(gs[0])
+        ax1.set_title(f"{symbol}  ({sector})  —  Price & Volume Analysis",
+                      fontsize=14, fontweight="bold", **font_props)
+
+        price_idx = sym_data.index
+        close_p = sym_data["close"]
+
+        # Price line
+        ax1.plot(price_idx, close_p, color="#2c3e50", linewidth=1.2, label="Close", zorder=3)
+
+        # Moving averages
+        for ma_days, color, lw in [(5, "#e74c3c", 0.8), (20, "#3498db", 1.0), (60, "#95a5a6", 0.8)]:
+            ma = close_p.rolling(ma_days, min_periods=1).mean()
+            ax1.plot(price_idx, ma, color=color, linewidth=lw, alpha=0.8,
+                     label=f"MA{ma_days}")
+
+        # Highlight period
+        if len(all_tds) > 0:
+            ax1.axvspan(all_tds[0], all_tds[-1], alpha=0.05, color="blue", label="分析区间")
+
+        ax1.legend(loc="upper left", fontsize=9, ncol=4)
+        ax1.set_ylabel("Price (¥)", fontsize=10, **font_props)
+        ax1.grid(True, alpha=0.3, linestyle="--")
+
+        # Volume on twin axis
+        ax1v = ax1.twinx()
+        if "volume" in sym_data.columns:
+            vol = sym_data["volume"] / 1e6  # millions of shares
+            colors_vol = ["#cc0000" if close_p.iloc[i] >= close_p.iloc[i-1] else "#00aa00"
+                          for i in range(1, len(vol))]
+            colors_vol.insert(0, colors_vol[0])
+            ax1v.bar(price_idx, vol, width=0.8, color=colors_vol, alpha=0.35, label="Volume")
+            ax1v.set_ylabel("Volume (M shares)", fontsize=9, color="#7f8c8d", **font_props)
+            ax1v.tick_params(axis="y", colors="#7f8c8d")
+
+        # ── Panel 2: Composite Score ──
+        ax2 = fig.add_subplot(gs[1], sharex=ax1)
+        comp_idx = composite_series.index
+        comp_vals = composite_series.values
+        colors_comp = [CHART_COLORS["up"] if v >= 0 else CHART_COLORS["down"] for v in comp_vals]
+        ax2.bar(comp_idx, comp_vals, width=1.0, color=colors_comp, alpha=0.8)
+        ax2.axhline(y=0, color="black", linewidth=0.5)
+        ax2.axhline(y=avg_composite, color="#2c3e50", linewidth=0.8, linestyle="--",
+                    label=f"均值={avg_composite:.3f}")
+        ax2.legend(loc="upper left", fontsize=9)
+        ax2.set_ylabel("Composite Score", fontsize=10, **font_props)
+        ax2.set_title("Factor Composite Score  (weighted cross-sectional rank)", fontsize=11, **font_props)
+        ax2.grid(True, alpha=0.3, linestyle="--")
+
+        # ── Panel 3: Top Factor Contributions ──
+        ax3 = fig.add_subplot(gs[2], sharex=ax1)
+
+        # Sort factors by weight, take top 5
+        top_factors = sorted(self._factor_weights.items(), key=lambda x: abs(x[1]), reverse=True)[:5]
+        top_fnames = [f for f, _ in top_factors]
+
+        # Use a consistent color palette
+        factor_colors = ["#e74c3c", "#3498db", "#27ae60", "#f39c12", "#9b59b6"]
+        for fi, fname in enumerate(top_fnames):
+            if fname not in factor_day_ranks:
+                continue
+            dates_vals = sorted(factor_day_ranks[fname], key=lambda x: x[0])
+            f_dates = [x[0] for x in dates_vals]
+            f_ranks = [x[1] for x in dates_vals]  # rank percentile (0-1)
+            color = factor_colors[fi % len(factor_colors)]
+            wt = self._factor_weights.get(fname, 0)
+            ax3.plot(f_dates, f_ranks, color=color, linewidth=1.0, alpha=0.85,
+                     label=f"{fname} (w={wt:.3f})")
+
+        ax3.axhline(y=0.5, color="black", linewidth=0.5, linestyle="--", alpha=0.3)
+        ax3.set_ylim(-0.05, 1.05)
+        ax3.legend(loc="upper left", fontsize=8, ncol=2)
+        ax3.set_ylabel("Cross-Sectional Rank", fontsize=10, **font_props)
+        ax3.set_xlabel("Date", fontsize=10, **font_props)
+        ax3.set_title("Top Factor Contributions  (cross-sectional percentile rank)", fontsize=11, **font_props)
+        ax3.grid(True, alpha=0.3, linestyle="--")
+
+        # Format x-axis dates
+        for ax in [ax1, ax2, ax3]:
+            ax.xaxis.set_major_formatter(mdates.DateFormatter("%m/%d"))
+            ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+
+        fig.autofmt_xdate()
+        fig.subplots_adjust(left=0.07, right=0.93, top=0.96, bottom=0.06)
+
+        # Save
+        analysis_dir = self.output_dir / "analysis"
+        analysis_dir.mkdir(parents=True, exist_ok=True)
+        chart_path = analysis_dir / f"{symbol}.png"
+        fig.savefig(chart_path, dpi=200, bbox_inches="tight")
+        plt.close(fig)
+        logger.info("Analysis chart saved to %s", chart_path)
+        stats["chart_path"] = str(chart_path)
+
+        return stats
 
     # ── Daily Processing ────────────────────────────────────────────────────
 
@@ -619,7 +1098,36 @@ class AgentSimulation:
 
     # ── GP Factor Discovery ─────────────────────────────────────────────────
 
-    def _run_gp_discovery(self, data: pd.DataFrame) -> list[str]:
+    def _load_persisted_gp_factors(self) -> list[str]:
+        """Load and register GP factors from persisted gp_factors.json."""
+        import json as _json
+        from discovery.expr import Expr
+        from discovery.compiler import compile_expr
+
+        gp_file = self.output_dir / "gp_factors.json"
+        if not gp_file.exists():
+            logger.warning("No persisted GP factors found at %s", gp_file)
+            return []
+
+        with open(gp_file, "r", encoding="utf-8") as _f:
+            gp_data = _json.load(_f)
+
+        names: list[str] = []
+        for entry in gp_data.get("gp_factors", []):
+            try:
+                tree = Expr.from_dict(entry["expression"])
+                compile_expr(tree, factor_name=entry["name"],
+                             category=entry.get("category", "gp"),
+                             register=True)
+                names.append(entry["name"])
+                logger.info("Loaded persisted GP factor: %s", entry["name"])
+            except Exception as e:
+                logger.warning("Failed to load GP factor %s: %s", entry.get("name"), e)
+
+        logger.info("Loaded %d persisted GP factors", len(names))
+        return names
+
+    def _run_gp_discovery(self, data: pd.DataFrame, active_factors: list[str]) -> list[str]:
         """Run GP evolution on training data, return validated new factor names."""
         from discovery.gp import GPEngine, GPConfig
         from discovery.validate import FactorValidator, orthogonal_filter
@@ -642,12 +1150,36 @@ class AgentSimulation:
         fwd_ret = close.pct_change(periods=FORWARD_PERIODS).shift(-FORWARD_PERIODS).stack()
         fwd_ret.name = "fwd_ret"
 
-        # Compute baseline factor values on training data for GP
+        # Compute active factor values on training data for GP
         engine = FactorEngine()
-        existing_df = engine.compute(BASELINE_FACTORS, gp_data)
+        existing_df = engine.compute(active_factors, gp_data)
+
+        # Robust NaN handling: keep factors with >= 50% coverage, fill remaining NaN with 0
+        coverage = existing_df.notna().mean()
+        usable = coverage[coverage >= 0.5].index.tolist()
+        if len(usable) < 5:
+            logger.warning("Too few usable factors for GP (%d), skipping", len(usable))
+            return []
+        existing_df = existing_df[usable].fillna(0.0)
+        logger.info("GP: %d/%d factors usable (>=50%% coverage)", len(usable), len(active_factors))
+
+        # Inject factor values as data columns so GP can reference them as terminals.
+        # Deduplicate against raw fields and pre-derived terminals.
+        from discovery.expr import TERMINAL_FIELDS
+        raw_field_set = set(gp_data.columns) | set(TERMINAL_FIELDS)
+        factor_terminals = [f for f in usable if f not in raw_field_set]
+        if factor_terminals:
+            gp_data = gp_data.join(existing_df[factor_terminals], how="left")
+            logger.info("GP: injected %d factor columns as terminals: %s",
+                         len(factor_terminals), factor_terminals)
+        else:
+            logger.info("GP: no new factor terminals (all overlap with raw fields)")
+
+        # Build extended terminal list: raw fields + active factor names
+        extended_terminals = list(TERMINAL_FIELDS) + factor_terminals
 
         # Align
-        common_idx = existing_df.dropna().index.intersection(fwd_ret.dropna().index)
+        common_idx = existing_df.index.intersection(fwd_ret.dropna().index)
         gp_fwd = fwd_ret.loc[common_idx]
         gp_existing = existing_df.loc[common_idx]
 
@@ -655,7 +1187,9 @@ class AgentSimulation:
             logger.warning("Too few GP training samples (%d), skipping", len(gp_fwd))
             return []
 
-        # GP config
+        # GP config — tuned for factor combination search:
+        # max_depth=7 gives room for nested raw×factor combos
+        # parsimony=0.0003 reduces penalty so compound trees aren't crowded out
         gp_config = GPConfig(
             population_size=self.gp_population,
             max_generations=self.gp_generations,
@@ -663,14 +1197,15 @@ class AgentSimulation:
             crossover_prob=0.7,
             mutation_prob=0.5,
             elite_count=10,
-            max_depth=6,
-            max_complexity=30,
+            max_depth=7,
+            max_complexity=40,
             early_stop_generations=self.gp_early_stop,
-            parsimony_penalty=0.001,
+            parsimony_penalty=0.0003,
             ic_mean_weight=0.25,
             ic_ir_weight=0.35,
             stability_weight=0.25,
             hit_rate_weight=0.15,
+            terminals=extended_terminals,
         )
         gp = GPEngine(config=gp_config)
 
@@ -744,6 +1279,7 @@ class AgentSimulation:
 
         # Register selected GP factors in global registry for FactorEngine
         from factor.registry import registry
+        gp_meta_for_persistence: list[dict] = []
         for ind in hall:
             if ind.factor_name in selected and ind.factor_cls is not None:
                 try:
@@ -751,6 +1287,21 @@ class AgentSimulation:
                     logger.debug("Registered GP factor: %s", ind.factor_name)
                 except ValueError:
                     logger.debug("GP factor already registered: %s", ind.factor_name)
+                # Persist expression tree for later reuse (e.g. recommend mode)
+                gp_meta_for_persistence.append({
+                    "name": ind.factor_name,
+                    "category": ind.factor_cls.meta.category,
+                    "expression": ind.tree.to_dict(),
+                })
+
+        # Save GP factor definitions for cross-session reuse
+        if gp_meta_for_persistence:
+            gp_file = self.output_dir / "gp_factors.json"
+            gp_file.parent.mkdir(parents=True, exist_ok=True)
+            import json as _json
+            with open(gp_file, "w", encoding="utf-8") as _f:
+                _json.dump({"gp_factors": gp_meta_for_persistence}, _f, ensure_ascii=False, indent=2)
+            logger.info("GP factor definitions saved to %s", gp_file)
 
         # Generate GP evolution report
         self._generate_gp_report(gp, selected)
@@ -1763,9 +2314,20 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
             self.mode, self.mode.upper())
 
         # ── Top: Equity Curve vs Benchmarks (normalized) ──────────────────
+        # Baseline equity (if ablation is enabled)
+        ablation_equity = getattr(self, "_baseline_equity", None)
+        if ablation_equity is not None and len(ablation_equity) > 1:
+            base_aligned = ablation_equity.reindex(norm_equity.index).dropna()
+            if len(base_aligned) > 1:
+                base_norm = base_aligned / self.initial_cash
+                ax1.plot(base_aligned.index, base_norm.values,
+                         color="#95a5a6", linewidth=1.2, linestyle=":",
+                         label="Baseline (仅基线因子)", alpha=0.7, zorder=8)
+
         # Strategy equity line
+        label_main = f"{mode_label}" + (" (+GP)" if ablation_equity is not None else "")
         ax1.plot(dates, norm_equity.values, color="#2c3e50", linewidth=2.5,
-                 label=f"{mode_label}", zorder=10)
+                 label=label_main, zorder=10)
         ax1.fill_between(dates, norm_equity.values, 1.0,
                          where=norm_equity.values >= 1.0, alpha=0.10, color="#27ae60")
         ax1.fill_between(dates, norm_equity.values, 1.0,
@@ -1790,6 +2352,12 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
         # Mark peak / final
         final_nav = norm_equity.values[-1]
         ax1.scatter(dates[-1], final_nav, color="#2c3e50", s=60, zorder=12)
+        # Also mark baseline final if available
+        if ablation_equity is not None and len(ablation_equity) > 1:
+            base_aligned2 = ablation_equity.reindex(norm_equity.index).dropna()
+            if len(base_aligned2) > 1:
+                base_final = base_aligned2.iloc[-1] / self.initial_cash
+                ax1.scatter(dates[-1], base_final, color="#95a5a6", s=40, zorder=11)
         ax1.annotate(
             f"策略 {final_nav:.3f}",
             xy=(dates[-1], final_nav),
@@ -1813,9 +2381,11 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
                 )
                 y_offset -= 18
 
+        title = f"{mode_label} — 权益曲线 vs 大盘指数  ({self.start} → {self.end})"
+        if ablation_equity is not None:
+            title += " [Ablation]"
         ax1.set_ylabel("净值 (1.0 = 初始资金)", fontsize=11)
-        ax1.set_title(f"{mode_label} — 权益曲线 vs 大盘指数  ({self.start} → {self.end})",
-                      fontsize=14, fontweight="bold")
+        ax1.set_title(title, fontsize=14, fontweight="bold")
         ax1.legend(loc="upper left", fontsize=8, framealpha=0.9, ncol=2)
         ax1.grid(True, linestyle="--", alpha=0.25)
 
@@ -1851,6 +2421,34 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
 
     # ── Finalize ────────────────────────────────────────────────────────────
 
+    @staticmethod
+    def _compute_metrics_from_equity(
+        equity_series: pd.Series,
+        initial_cash: float,
+    ) -> dict:
+        """Compute standard performance metrics from an equity series."""
+        ret = equity_series.pct_change().dropna()
+        if len(ret) < 2:
+            return {}
+        ann_return = float(ret.mean() * 252)
+        ann_vol = float(ret.std() * np.sqrt(252))
+        sharpe = ann_return / ann_vol if ann_vol > 0 else 0.0
+        cum_return = float(equity_series.iloc[-1] / equity_series.iloc[0] - 1)
+        peak = equity_series.expanding().max()
+        drawdown = (equity_series - peak) / peak
+        max_dd = float(drawdown.min())
+        win_rate = float((ret > 0).mean())
+        final_eq = float(equity_series.iloc[-1])
+        return {
+            "final_equity": round(final_eq, 2),
+            "cumulative_return": cum_return,
+            "annualized_return": ann_return,
+            "annualized_volatility": ann_vol,
+            "sharpe_ratio": round(sharpe, 3),
+            "max_drawdown": max_dd,
+            "win_rate": win_rate,
+        }
+
     def _finalize(self) -> dict:
         """Compute final metrics and save outputs."""
         equity_series = self.accountant.to_equity_series()
@@ -1860,18 +2458,14 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
             logger.warning("Insufficient data for metrics")
             return {"error": "insufficient data"}
 
-        # Compute metrics
-        ann_return = float(return_series.mean() * 252)
-        ann_vol = float(return_series.std() * np.sqrt(252))
-        sharpe = ann_return / ann_vol if ann_vol > 0 else 0.0
-        cum_return = float((1 + return_series).prod() - 1)
-
-        peak = equity_series.expanding().max()
-        drawdown = (equity_series - peak) / peak
-        max_dd = float(drawdown.min())
-
-        # Win rate
-        win_rate = float((return_series > 0).mean())
+        # Compute combined (main) metrics
+        m = self._compute_metrics_from_equity(equity_series, self.initial_cash)
+        cum_return = m["cumulative_return"]
+        ann_return = m["annualized_return"]
+        ann_vol = m["annualized_volatility"]
+        sharpe = m["sharpe_ratio"]
+        max_dd = m["max_drawdown"]
+        win_rate = m["win_rate"]
 
         # Trade stats
         total_trades = sum(len(e.get("fills", [])) for e in self._journal)
@@ -1897,7 +2491,53 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
             "buy_trades": buy_trades,
             "sell_trades": sell_trades,
             "llm_enabled": self.mode == "llm" and (self.llm and self.llm.configured),
+            "factor_count": len(self._factor_weights),
+            "factor_versions": factor_registry.list_versions(),
+            "factor_weights": {k: round(v, 4) for k, v in self._factor_weights.items()},
+            "git_commit": git_commit() or "unknown",
+            "git_dirty": git_dirty(),
         }
+
+        # Ablation: compare baseline-only vs baseline+GP
+        ablation = None
+        if self._baseline_equity is not None and self._gp_equity is not None:
+            bm = self._compute_metrics_from_equity(
+                self._baseline_equity, self.initial_cash,
+            )
+            gm = self._compute_metrics_from_equity(
+                self._gp_equity, self.initial_cash,
+            )
+            if bm and gm:
+                ablation = {
+                    "baseline": {k: self._fmt_metric(k, v) for k, v in bm.items()},
+                    "combined": {k: self._fmt_metric(k, v) for k, v in gm.items()},
+                    "delta": {},
+                }
+                for k in bm:
+                    if k in gm:
+                        ablation["delta"][k] = round(gm[k] - bm[k], 4)
+                # Decision: accept GP factors only if they improve Sharpe or reduce max DD
+                delta_sharpe = ablation["delta"].get("sharpe_ratio", 0)
+                delta_dd = ablation["delta"].get("max_drawdown", 0)
+                gp_accepted = delta_sharpe > 0 or delta_dd > 0
+                ablation["gp_accepted"] = gp_accepted
+                ablation["gp_factors"] = [
+                    f for f in self._factor_weights
+                    if f not in BASELINE_FACTORS
+                ]
+                if gp_accepted:
+                    logger.info(
+                        "Ablation: GP factors IMPROVE backtest "
+                        "(ΔSharpe=%+.3f, ΔMaxDD=%+.2f%%). Accepted.",
+                        delta_sharpe, delta_dd * 100,
+                    )
+                else:
+                    logger.warning(
+                        "Ablation: GP factors DEGRADE backtest "
+                        "(ΔSharpe=%+.3f, ΔMaxDD=%+.2f%%). Rejected.",
+                        delta_sharpe, delta_dd * 100,
+                    )
+            metrics["ablation"] = ablation
 
         ts = datetime.now().strftime("%Y%m%d_%H%M")
 
@@ -1929,13 +2569,26 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
         chart_dir = self._generate_trade_charts(charts_subdir)
         metrics["chart_dir"] = str(chart_dir)
 
-        # Generate equity + position chart into sim/
+        # Generate equity + position chart (with ablation overlay if available)
         eq_chart_path = self._generate_equity_position_chart(equity_series, sim_dir)
         metrics["equity_chart"] = str(eq_chart_path)
 
         logger.info("All outputs consolidated in %s", sim_dir)
         metrics["output_dir"] = str(sim_dir)
         return metrics
+
+    @staticmethod
+    def _fmt_metric(key: str, value: float) -> str:
+        """Format a metric value for display."""
+        if key == "sharpe_ratio":
+            return f"{value:.3f}"
+        if key in ("final_equity",):
+            return f"¥{value:,.2f}"
+        if key in ("cumulative_return", "max_drawdown", "win_rate"):
+            return f"{value * 100:.2f}%"
+        if key in ("annualized_return", "annualized_volatility"):
+            return f"{value * 100:.2f}%"
+        return str(value)
 
     def _write_markdown_report(
         self,
@@ -1950,7 +2603,42 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
         lines.append(f"\nGenerated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
         lines.append(f"\n## Summary\n")
         for k, v in metrics.items():
+            if k in ("factor_versions", "factor_weights"):
+                continue  # handled separately below
             lines.append(f"| {k} | {v} |")
+
+        lines.append(f"\n## Factor Versions\n")
+        lines.append(f"| Factor | Version | Weight |")
+        lines.append(f"|--------|---------|--------|")
+        fv = metrics.get("factor_versions", {})
+        fw = metrics.get("factor_weights", {})
+        for name in sorted(fv):
+            ver = fv[name]
+            wt = fw.get(name, 0)
+            if wt > 0:
+                lines.append(f"| {name} | {ver} | {wt:.3f} |")
+        lines.append(f"\n**Git commit:** `{metrics.get('git_commit', 'unknown')}`")
+        lines.append(f"  (dirty={metrics.get('git_dirty', False)})")
+
+        # Ablation section
+        ablation = metrics.get("ablation")
+        if ablation:
+            lines.append(f"\n## Ablation: Baseline vs Baseline+GP\n")
+            lines.append(f"| Metric | Baseline | Combined | Delta |")
+            lines.append(f"|--------|----------|----------|-------|")
+            for k in ["cumulative_return", "sharpe_ratio", "max_drawdown",
+                       "annualized_return", "annualized_volatility", "win_rate"]:
+                bv = ablation["baseline"].get(k, "-")
+                cv = ablation["combined"].get(k, "-")
+                dv = ablation["delta"].get(k, 0)
+                if isinstance(dv, float):
+                    sign = "+" if dv > 0 else ""
+                    dv_str = f"{sign}{dv:.4f}"
+                else:
+                    dv_str = str(dv)
+                lines.append(f"| {k} | {bv} | {cv} | {dv_str} |")
+            lines.append(f"\nGP factors: {ablation.get('gp_factors', [])}")
+            lines.append(f"Decision: {'ACCEPTED' if ablation.get('gp_accepted') else 'REJECTED'}")
 
         lines.append(f"\n## Equity Curve\n")
         lines.append(f"| Date | Equity | Daily Return |")
@@ -2005,10 +2693,20 @@ def main():
                         help="LLM model to use")
     parser.add_argument("--use-gp", action="store_true",
                         help="Run GP factor discovery and use all validated factors")
+    parser.add_argument("--load-gp", action="store_true",
+                        help="Load persisted GP factors from gp_factors.json (skip rediscovery)")
     parser.add_argument("--gp-population", type=int, default=200,
                         help="GP population size (default: 200)")
     parser.add_argument("--gp-generations", type=int, default=25,
                         help="GP max generations (default: 25)")
+    parser.add_argument("--recommend", action="store_true",
+                        help="Recommend tomorrow's trade based on latest data (assumes empty position)")
+    parser.add_argument("--recommend-cash", type=float, default=INITIAL_CASH,
+                        help="Cash available for recommendation (default: 10,000)")
+    parser.add_argument("--recommend-top", type=int, default=3,
+                        help="Show top N recommendations (default: 3)")
+    parser.add_argument("--analyze", type=str, default=None, metavar="SYMBOL",
+                        help="Deep-dive analysis for a single stock (e.g. 002384)")
     args = parser.parse_args()
 
     start = date.fromisoformat(args.start)
@@ -2027,6 +2725,13 @@ def main():
         start=start, end=end, initial_cash=args.cash,
         mode=args.mode, model=args.model, **gp_kwargs,
     )
+    sim.load_gp = args.load_gp
+
+    if args.recommend:
+        return _run_recommend(sim, args.recommend_cash, args.recommend_top)
+
+    if args.analyze:
+        return _run_analyze(sim, args.analyze)
 
     mode_labels = {"llm": "LLM Agent", "factor": "Factor-Driven", "heuristic": "Heuristic"}
     print("=" * 60)
@@ -2045,6 +2750,93 @@ def main():
         print(f"  {k}: {v}")
     print(f"\n  Elapsed: {time.time() - t0:.0f}s")
     print(f"  Output: {JOURNAL_DIR}")
+
+
+def _run_recommend(sim: AgentSimulation, cash: float, top_n: int) -> None:
+    """Run recommendation mode and print formatted output."""
+    print("=" * 60)
+    print("  Tomorrow Trade Recommendation (Buy)")
+    print(f"  Cash: ¥{cash:,.0f}  |  Top {top_n} picks  |  Empty position  |  Per-pick allocation")
+    print("=" * 60)
+
+    t0 = time.time()
+    result = sim.recommend(cash=cash, top_n=top_n)
+
+    if "error" in result:
+        print(f"\n  Error: {result['error']}")
+        return
+
+    print(f"\n  Latest trading day: {result['date']}")
+    print(f"  Factor weights used: {len(sim._factor_weights)} factors\n")
+
+    # Header
+    print(f"  {'Rank':<5} {'Symbol':<10} {'Score':>8} {'Close':>10} {'Chg%':>8} {'Shares':>8} {'Est.Cost':>10}")
+    print(f"  {'─'*5} {'─'*10} {'─'*8} {'─'*10} {'─'*8} {'─'*8} {'─'*10}")
+
+    for r in result.get("recommendations", []):
+        chg = f"{r['change_pct']:+.2f}%"
+        cost = f"¥{r['estimated_cost']:,.0f}"
+        print(f"  {r['rank']:<5} {r['symbol']:<10} {r['composite_score']:>8.4f} {r['close']:>10.2f} {chg:>8} {r['suggested_shares']:>8} {cost:>10}")
+
+    # Show factor contributions for each pick
+    for r in result.get("recommendations", []):
+        if "top_factors" in r:
+            print(f"\n  {r['symbol']} (rank #{r['rank']}) — key factor contributions:")
+            for fname, fval in r["top_factors"]:
+                wt = sim._factor_weights.get(fname, 0)
+                contrib_pct = wt
+                print(f"    {fname:30s}  weight={wt:.3f}  contrib={contrib_pct:+.4f}")
+
+    print(f"\n  Elapsed: {time.time() - t0:.1f}s")
+    print(f"\n  Note: Assumes price-limit accessibility at tomorrow's open.")
+    print(f"  Actual execution depends on limit-up/down status on the day.")
+
+
+def _run_analyze(sim: AgentSimulation, symbol: str) -> None:
+    """Run deep-dive stock analysis and print formatted output."""
+    print("=" * 60)
+    print(f"  Single-Stock Analysis: {symbol}")
+    print("=" * 60)
+
+    t0 = time.time()
+    result = sim.analyze_stock(symbol)
+
+    if "error" in result:
+        print(f"\n  Error: {result['error']}")
+        return
+
+    # Stats table
+    print(f"\n  Stock: {result['symbol']}")
+    print(f"  Sector: {result['sector']}  |  Board: {result['board']}")
+    print(f"  Period: {sim.start} → {sim.end}")
+    print(f"\n  {'─' * 45}")
+    print(f"  {'Price & Return':^45}")
+    print(f"  {'─' * 45}")
+    print(f"  Start Price:         ¥{result['start_price']:>10.2f}")
+    print(f"  End Price:           ¥{result['end_price']:>10.2f}")
+    print(f"  Period High:         ¥{result['high']:>10.2f}")
+    print(f"  Period Low:          ¥{result['low']:>10.2f}")
+    print(f"  Periodic Return:     {result['period_return'] * 100:>+11.2f}%")
+    print(f"  Ann Return:          {result['ann_return'] * 100:>+11.2f}%")
+    print(f"  Ann Volatility:      {result['ann_vol'] * 100:>11.2f}%")
+    print(f"  Sharpe Ratio:        {result['sharpe']:>11.3f}")
+    print(f"  Max Drawdown:        {result['max_drawdown'] * 100:>+11.2f}%")
+    print(f"  Avg Volume:          {result['avg_volume']:>11,d}")
+    print(f"\n  {'─' * 45}")
+    print(f"  {'Factor Signal':^45}")
+    print(f"  {'─' * 45}")
+    print(f"  Avg Composite:       {result['avg_composite']:>11.4f}")
+    print(f"  Latest Composite:    {result['latest_composite']:>11.4f}")
+    print(f"  Trading Days:        {result['trading_days']:>11}")
+
+    # Factor weights
+    print(f"\n  Top Factor Weights:")
+    sorted_wts = sorted(sim._factor_weights.items(), key=lambda x: abs(x[1]), reverse=True)
+    for i, (fname, wt) in enumerate(sorted_wts[:10]):
+        print(f"    {i+1:>2}. {fname:30s}  {wt:+.4f}")
+
+    print(f"\n  Chart saved to: {result.get('chart_path', 'N/A')}")
+    print(f"  Elapsed: {time.time() - t0:.1f}s")
 
 
 def _run_comparison(start: date, end: date, cash: float, model: str | None, gp_kwargs: dict | None = None) -> None:

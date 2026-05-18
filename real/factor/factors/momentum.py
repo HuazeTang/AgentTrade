@@ -71,3 +71,31 @@ class Momentum12M1M(Factor):
         mom_1 = close.pct_change(periods=21)
         result = mom_12 - mom_1
         return result.stack().sort_index()
+
+
+@register_factor
+class MomentumAccel20D(Factor):
+    """Price acceleration — second derivative of price trend.
+
+    Computes momentum of momentum: how fast is the 20-day return changing
+    vs 20 days ago. Positive = trend accelerating, negative = decelerating.
+    Captures inflection points before they show in price level.
+    """
+
+    meta = FactorMeta(
+        name="momentum_accel_20d",
+        category="momentum",
+        description="20-day momentum acceleration (2nd derivative of price)",
+        lookback_days=40,
+        version="1.0.0",
+    )
+
+    @property
+    def required_fields(self) -> list[str]:
+        return ["close"]
+
+    def compute(self, data: pd.DataFrame) -> pd.Series:
+        close = data["close"].unstack()
+        mom_20 = close.pct_change(periods=20)
+        result = mom_20 - mom_20.shift(20)
+        return result.stack().sort_index()

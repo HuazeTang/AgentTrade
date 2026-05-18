@@ -57,6 +57,33 @@ class Expr(ABC):
         """Return a new tree with `old` child replaced by `new`."""
         ...
 
+    @abstractmethod
+    def to_dict(self) -> dict:
+        """Serialize to a plain dict for JSON persistence."""
+        ...
+
+    @staticmethod
+    def from_dict(d: dict) -> Expr:
+        """Deserialize from a dict produced by to_dict()."""
+        t = d["type"]
+        if t == "var":
+            return VarExpr(d["name"])
+        if t == "const":
+            return ConstExpr(d["value"])
+        if t == "unary":
+            return UnaryOp(d["op"], Expr.from_dict(d["child"]))
+        if t == "binary":
+            return BinaryOp(d["op"], Expr.from_dict(d["left"]), Expr.from_dict(d["right"]))
+        if t == "rolling":
+            return RollingOp(d["op"], d["window"], Expr.from_dict(d["child"]))
+        if t == "cs":
+            return CrossSectionalOp(d["op"], Expr.from_dict(d["child"]))
+        if t == "cs_group":
+            return GroupedCrossSectionalOp(d["op"], d["group_field"], Expr.from_dict(d["child"]))
+        if t == "ts":
+            return TimeSeriesOp(d["op"], d["periods"], Expr.from_dict(d["child"]))
+        raise ValueError(f"Unknown expr type: {t}")
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Leaf nodes
@@ -94,6 +121,9 @@ class VarExpr(Expr):
     def __repr__(self) -> str:
         return f"Var({self.name})"
 
+    def to_dict(self) -> dict:
+        return {"type": "var", "name": self.name}
+
 
 @dataclass
 class ConstExpr(Expr):
@@ -126,6 +156,9 @@ class ConstExpr(Expr):
 
     def __repr__(self) -> str:
         return f"Const({self.value:g})"
+
+    def to_dict(self) -> dict:
+        return {"type": "const", "value": self.value}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -177,6 +210,9 @@ class UnaryOp(Expr):
 
     def __repr__(self) -> str:
         return f"{self.op}({self.child!r})"
+
+    def to_dict(self) -> dict:
+        return {"type": "unary", "op": self.op, "child": self.child.to_dict()}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -237,6 +273,9 @@ class BinaryOp(Expr):
     def __repr__(self) -> str:
         return f"({self.left!r} {self.op} {self.right!r})"
 
+    def to_dict(self) -> dict:
+        return {"type": "binary", "op": self.op, "left": self.left.to_dict(), "right": self.right.to_dict()}
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Rolling window operations (operate along time axis within each symbol)
@@ -295,6 +334,9 @@ class RollingOp(Expr):
     def __repr__(self) -> str:
         return f"{self.op}({self.window}, {self.child!r})"
 
+    def to_dict(self) -> dict:
+        return {"type": "rolling", "op": self.op, "window": self.window, "child": self.child.to_dict()}
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Cross-sectional operations (operate across symbols within each date)
@@ -345,6 +387,9 @@ class CrossSectionalOp(Expr):
 
     def __repr__(self) -> str:
         return f"{self.op}({self.child!r})"
+
+    def to_dict(self) -> dict:
+        return {"type": "cs", "op": self.op, "child": self.child.to_dict()}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -405,6 +450,9 @@ class GroupedCrossSectionalOp(Expr):
     def __repr__(self) -> str:
         return f"{self.op}({self.group_field}, {self.child!r})"
 
+    def to_dict(self) -> dict:
+        return {"type": "cs_group", "op": self.op, "group_field": self.group_field, "child": self.child.to_dict()}
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Time-series pointwise operations
@@ -456,6 +504,9 @@ class TimeSeriesOp(Expr):
 
     def __repr__(self) -> str:
         return f"{self.op}({self.periods}, {self.child!r})"
+
+    def to_dict(self) -> dict:
+        return {"type": "ts", "op": self.op, "periods": self.periods, "child": self.child.to_dict()}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

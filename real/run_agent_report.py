@@ -391,6 +391,7 @@ else:
 
 print(f"\n[6/8] GP 因子挖掘 (种群={GP_POPULATION}, 代数={GP_GENERATIONS}) ...")
 from discovery.gp import GPEngine, GPConfig
+from discovery.expr import TERMINAL_FIELDS
 from discovery.validate import FactorValidator
 
 existing_df = factor_clean[BASELINE_FACTORS].copy()
@@ -409,6 +410,11 @@ gp_data = merged.loc[gp_train_mask]
 gp_fwd = fwd_clean.loc[fwd_clean.index.intersection(gp_data.index)]
 gp_existing = existing_df.loc[existing_df.index.get_level_values("trade_date").isin(gp_train_dates)]
 
+# Build extended terminal set: raw/derived fields + existing factor names
+_factor_terminals = [f for f in BASELINE_FACTORS if f not in set(TERMINAL_FIELDS)]
+extended_terminals = list(TERMINAL_FIELDS) + _factor_terminals
+print(f"  GP 终端集: {len(TERMINAL_FIELDS)} raw + {len(_factor_terminals)} factors = {len(extended_terminals)} total")
+
 gp_config = GPConfig(
     population_size=GP_POPULATION,
     max_generations=GP_GENERATIONS,
@@ -424,6 +430,7 @@ gp_config = GPConfig(
     ic_ir_weight=0.35,
     stability_weight=0.25,
     hit_rate_weight=0.15,
+    terminals=extended_terminals,
 )
 gp = GPEngine(config=gp_config)
 

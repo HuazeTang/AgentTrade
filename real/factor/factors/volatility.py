@@ -60,3 +60,63 @@ class Beta60D(Factor):
         var = mkt_ret.rolling(window=60).var()
         beta = cov.div(var, axis=0)
         return beta.stack().sort_index()
+
+
+@register_factor
+class VolRatio20x60(Factor):
+    """Short-term vs mid-term volatility ratio — regime change detector.
+
+    > 1.0 = short-term vol exceeding mid-term (breakout/panic starting).
+    < 1.0 = vol contracting (consolidation / calm market).
+    A-shares often experience explosive vol expansion at trend starts.
+    """
+
+    meta = FactorMeta(
+        name="vol_ratio_20_60",
+        category="volatility",
+        description="20-day vol / 60-day vol — volatility regime change",
+        lookback_days=60,
+        version="1.0.0",
+    )
+
+    @property
+    def required_fields(self) -> list[str]:
+        return ["close"]
+
+    def compute(self, data: pd.DataFrame) -> pd.Series:
+        close = data["close"].unstack()
+        ret = close.pct_change()
+        vol_20 = ret.rolling(window=20).std()
+        vol_60 = ret.rolling(window=60).std()
+        result = vol_20 / (vol_60 + 1e-10)
+        return result.stack().sort_index()
+
+
+@register_factor
+class DailyAmplitude20D(Factor):
+    """Average intraday amplitude (high-low range) over 20 days.
+
+    A-shares have higher intraday volatility than US markets.
+    Stocks with consistently wide ranges tend to attract speculative capital.
+    Normalized by close to make cross-sectionally comparable.
+    """
+
+    meta = FactorMeta(
+        name="daily_amplitude_20d",
+        category="volatility",
+        description="20-day average (high-low)/close — intraday range intensity",
+        lookback_days=20,
+        version="1.0.0",
+    )
+
+    @property
+    def required_fields(self) -> list[str]:
+        return ["high", "low", "close"]
+
+    def compute(self, data: pd.DataFrame) -> pd.Series:
+        high = data["high"].unstack()
+        low = data["low"].unstack()
+        close = data["close"].unstack()
+        amplitude = (high - low) / close
+        result = amplitude.rolling(window=20).mean()
+        return result.stack().sort_index()

@@ -214,6 +214,11 @@ from discovery.validate import FactorValidator
 # Build existing factors DataFrame for novelty check
 existing_df = factor_clean[factor_names].copy()
 
+# Build extended terminal set: raw fields + factor names
+from discovery.expr import TERMINAL_FIELDS
+_factor_terminals = [f for f in factor_names if f not in set(TERMINAL_FIELDS)]
+_extended_terminals = list(TERMINAL_FIELDS) + _factor_terminals
+
 gp_config = GPConfig(
     population_size=GP_POPULATION,
     max_generations=GP_GENERATIONS,
@@ -224,6 +229,7 @@ gp_config = GPConfig(
     max_depth=5,
     max_complexity=20,
     early_stop_generations=4,
+    terminals=_extended_terminals,
 )
 gp = GPEngine(config=gp_config)
 

@@ -86,6 +86,11 @@ class GPConfig:
     parsimony_penalty: float = 0.001  # per node
     terminal_prob: float = 0.3  # probability of picking terminal during mutation
 
+    # Terminal set: data columns usable as leaf nodes.
+    # Defaults to TERMINAL_FIELDS (raw OHLCV + derived). Extend with factor names
+    # to let GP combine existing factors with raw fields.
+    terminals: list[str] | None = None  # None = use TERMINAL_FIELDS from expr.py
+
     # Mutation weights
     subtree_mutation_weight: float = 0.30
     window_mutation_weight: float = 0.20
@@ -251,15 +256,16 @@ class GPEngine:
     def _initialize_population(self) -> list[Expr]:
         """Generate initial population using ramped half-and-half."""
         cfg = self.config
+        terminals = cfg.terminals or TERMINAL_FIELDS
         population = []
         for i in range(cfg.population_size):
             depth = random.randint(2, min(cfg.max_depth, 4))
             method = "grow" if i % 3 != 0 else "full"
-            tree = random_expr(max_depth=depth, method=method)
+            tree = random_expr(max_depth=depth, method=method, terminals=terminals)
             if tree.node_count() <= cfg.max_complexity:
                 population.append(tree)
             else:
-                population.append(random_expr(max_depth=2, method="grow"))
+                population.append(random_expr(max_depth=2, method="grow", terminals=terminals))
 
         return population
 
@@ -341,6 +347,17 @@ class GPEngine:
                 complexity=complexity, depth=depth,
             )
 
+        # Reject near-constant signals (e.g. lt() comparisons with non-overlapping
+        # operand ranges).  IC_std ≈ 0 produces spuriously high IR.
+        _ic_std = getattr(result, "ic_std", np.nan)
+        if not np.isnan(_ic_std) and _ic_std < 0.005:
+            return Individual(
+                tree=tree, factor_name=factor_cls.meta.name, factor_cls=factor_cls,
+                fitness=-999, ic_mean=ic_mean, ic_ir=ic_ir,
+                hit_rate=hit_rate, auto_corr=auto_corr,
+                complexity=complexity, depth=depth,
+            )
+
         # Stability: min IC across sub-periods
         period_ics = [
             v.get("mean", 0) for v in result.ic_by_period.values()
@@ -349,10 +366,15 @@ class GPEngine:
         if np.isnan(min_period_ic):
             min_period_ic = 0.0
 
+        # Cap IR contribution to prevent degenerate near-constant signals
+        # (e.g. lt() comparisons where operands never overlap in range)
+        # from dominating fitness with IR → ∞.
+        _ir_capped = min(max(ic_ir, 0), 5.0)
+
         # Fitness components
         fitness = (
             cfg.ic_mean_weight * abs(ic_mean) +
-            cfg.ic_ir_weight * max(ic_ir, 0) +
+            cfg.ic_ir_weight * _ir_capped +
             cfg.stability_weight * min_period_ic +
             cfg.hit_rate_weight * hit_rate
         )
@@ -462,6 +484,7 @@ class GPEngine:
         new_subtree = random_expr(
             max_depth=random.randint(1, 3),
             method=random.choice(["grow", "full"]),
+            terminals=self.config.terminals or TERMINAL_FIELDS,
         )
         return tree.replace_child(target, new_subtree)
 

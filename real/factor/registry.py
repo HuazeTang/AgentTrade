@@ -44,6 +44,24 @@ class FactorRegistry:
         cats = {v.meta.category for v in self._factors.values()}
         return sorted(cats)
 
+    def list_versions(self) -> dict[str, str]:
+        """Return {factor_name: version} for all registered factors."""
+        return {name: cls.meta.version for name, cls in self._factors.items()}
+
+    def list_meta(self) -> dict[str, dict]:
+        """Return full metadata dict for all registered factors."""
+        return {
+            name: {
+                "name": cls.meta.name,
+                "category": cls.meta.category,
+                "version": cls.meta.version,
+                "description": cls.meta.description,
+                "lookback_days": cls.meta.lookback_days,
+                "params": cls.meta.params,
+            }
+            for name, cls in self._factors.items()
+        }
+
 
 # Singleton instance for use across the codebase
 registry = FactorRegistry()
