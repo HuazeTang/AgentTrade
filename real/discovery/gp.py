@@ -455,12 +455,21 @@ class GPEngine:
         if np.isnan(fitness):
             fitness = -999.0
 
-        # Penalties
+        # Hard-reject factors with excessive autocorrelation (near-constant).
+        # Soft penalties let degenerate factors dominate evolution when their
+        # IR is high enough to absorb the penalty (e.g. min(ret_60d, const)).
         if not np.isnan(auto_corr) and auto_corr > self._validator.max_auto_corr:
-            fitness -= 0.1 * (auto_corr - self._validator.max_auto_corr)
+            return Individual(
+                tree=tree, factor_name=factor_cls.meta.name, factor_cls=factor_cls,
+                fitness=-999, ic_mean=ic_mean, ic_ir=ic_ir,
+                hit_rate=hit_rate, auto_corr=auto_corr,
+                complexity=complexity, depth=depth, generation=generation,
+                strategy_gene=sg,
+            )
+
         fitness -= cfg.parsimony_penalty * complexity
         if not result.passed:
-            fitness -= 0.2  # penalty for not meeting all criteria
+            fitness -= 0.2
 
         return Individual(
             tree=tree,

@@ -196,19 +196,9 @@ class FactorValidator:
             ic, min_ic=self.wf_min_ic
         )
         if not result.wf_passed:
-            # Lenient fallback: if overall IC_IR is very strong (> 1.5),
-            # a marginal walk-forward failure is likely a data-sparsity issue
-            if result.ic_ir > 1.5 and abs(result.ic_mean) > 0.02:
-                logger.info(
-                    "Factor %s: walk-forward IC=%.4f but overall IR=%.2f — "
-                    "accepting (strong signal, walk-forward likely sparse)",
-                    factor_name, result.wf_ic_mean, result.ic_ir,
-                )
-                result.wf_passed = True
-            else:
-                failures.append(
-                    f"Walk-forward IC={result.wf_ic_mean:.4f} < {self.wf_min_ic}"
-                )
+            failures.append(
+                f"Walk-forward IC={result.wf_ic_mean:.4f} < {self.wf_min_ic}"
+            )
 
         result.failures = failures
         result.warnings = warnings
