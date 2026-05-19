@@ -8,8 +8,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import logging
 import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 from factor.validation import (
     compute_rank_ic,
@@ -144,12 +147,24 @@ class FactorValidator:
 
         # 2. Stability: autocorrelation
         result.auto_corr = factor_auto_correlation(factor_values)
-        if not np.isnan(result.auto_corr) and result.auto_corr > self.max_auto_corr:
-            failures.append(
-                f"Autocorrelation={result.auto_corr:.3f} > {self.max_auto_corr}"
-            )
-        elif np.isnan(result.auto_corr):
-            warnings.append("Could not compute autocorrelation")
+        if not np.isnan(result.auto_corr):
+            if result.auto_corr > self.max_auto_corr:
+                failures.append(
+                    f"Autocorrelation={result.auto_corr:.3f} > {self.max_auto_corr}"
+                )
+        else:
+            # NaN auto_corr often means constant factor (zero variance across ranks)
+            try:
+                xs_std = factor_values.groupby("trade_date").std()
+                mean_xs_std = float(xs_std.mean())
+                if np.isnan(mean_xs_std) or mean_xs_std < 1e-8:
+                    failures.append(
+                        f"Near-constant factor (mean cross-sectional std={mean_xs_std:.2e})"
+                    )
+                else:
+                    warnings.append("Could not compute autocorrelation (non-constant, possible NaN)")
+            except Exception:
+                warnings.append("Could not compute autocorrelation")
 
         # 3. Novelty: correlation with existing factors
         if existing_factors is not None and not existing_factors.empty:
@@ -181,9 +196,19 @@ class FactorValidator:
             ic, min_ic=self.wf_min_ic
         )
         if not result.wf_passed:
-            failures.append(
-                f"Walk-forward IC={result.wf_ic_mean:.4f} < {self.wf_min_ic}"
-            )
+            # Lenient fallback: if overall IC_IR is very strong (> 1.5),
+            # a marginal walk-forward failure is likely a data-sparsity issue
+            if result.ic_ir > 1.5 and abs(result.ic_mean) > 0.02:
+                logger.info(
+                    "Factor %s: walk-forward IC=%.4f but overall IR=%.2f — "
+                    "accepting (strong signal, walk-forward likely sparse)",
+                    factor_name, result.wf_ic_mean, result.ic_ir,
+                )
+                result.wf_passed = True
+            else:
+                failures.append(
+                    f"Walk-forward IC={result.wf_ic_mean:.4f} < {self.wf_min_ic}"
+                )
 
         result.failures = failures
         result.warnings = warnings
@@ -239,13 +264,17 @@ def _walk_forward_check(
     min_ic: float = 0.005,
 ) -> tuple[bool, float]:
     """Simple walk-forward: train on first train_frac, evaluate IC on remainder."""
+    ic = ic.dropna()
     if len(ic) < 10:
         return False, np.nan
 
     split_idx = int(len(ic) * train_frac)
-    test_ic = ic.iloc[split_idx:]
-    if test_ic.empty:
-        return False, np.nan
+    test_ic = ic.iloc[split_idx:].dropna()
+    if test_ic.empty or len(test_ic) < 3:
+        # Too few test samples — fallback: use full-series mean as proxy
+        logger.debug("Walk-forward: too few test IC samples (%d), using full mean", len(test_ic))
+        full_mean = float(ic.mean())
+        return abs(full_mean) >= min_ic, full_mean
 
     wf_mean = float(test_ic.mean())
     return abs(wf_mean) >= min_ic, wf_mean

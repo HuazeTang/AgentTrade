@@ -232,6 +232,7 @@ class AgentSimulation:
         self._journal: list[dict] = []
         self._decisions: list[dict] = []
         self._fill_count = 0
+        self._gp_equity = None
 
     # ── Main Entry Point ────────────────────────────────────────────────────
 
@@ -1462,7 +1463,17 @@ class AgentSimulation:
         # Run cumulative backtests (sequentially adding each factor)
         accepted_factors: list[dict] = []
         cumulative_gp_names: list[str] = []
-        baseline_metrics = None
+
+        # Compute true baseline metrics from the pure-baseline equity curve
+        if self._baseline_equity is not None:
+            true_baseline = self._compute_metrics_from_equity(
+                self._baseline_equity, self.initial_cash,
+            )
+        else:
+            true_baseline = {"sharpe_ratio": -999.0}
+        logger.info("True baseline (no GP): ret=%.2f%%, SR=%.3f",
+                     true_baseline.get("cumulative_return", 0) * 100,
+                     true_baseline.get("sharpe_ratio", 0))
 
         for fmeta in new_factors:
             cumulative_gp_names.append(fmeta["name"])
@@ -1483,14 +1494,19 @@ class AgentSimulation:
                 "win_rate": m.get("win_rate", 0),
             }
 
-            if baseline_metrics is None:
-                baseline_metrics = m  # first cumulative is baseline + 1st GP
-
-            # Decision: accept if cumulative Sharpe >= previous cumulative Sharpe
-            prev_sharpe = baseline_metrics["sharpe_ratio"] if len(accepted_factors) == 0 else \
-                          accepted_factors[-1]["cumulative_backtest"]["sharpe_ratio"]
-            cur_sharpe = m["sharpe_ratio"]
-            fmeta["accepted"] = cur_sharpe >= prev_sharpe - 0.01  # small tolerance
+            # Decision: accept if cumulative Sharpe improves over true baseline
+            # by a meaningful margin, and improves over the previous accepted factor.
+            baseline_sharpe = true_baseline.get("sharpe_ratio", 0)
+            if len(accepted_factors) == 0:
+                # First factor: must beat TRUE baseline by at least 0.03
+                cur_sharpe = m["sharpe_ratio"]
+                prev_sharpe = true_baseline.get("sharpe_ratio", 0)
+                fmeta["accepted"] = cur_sharpe >= prev_sharpe + 0.03
+            else:
+                # Subsequent factors: must beat previous accepted cumulative
+                prev_sharpe = accepted_factors[-1]["cumulative_backtest"]["sharpe_ratio"]
+                cur_sharpe = m["sharpe_ratio"]
+                fmeta["accepted"] = cur_sharpe >= prev_sharpe + 0.02
 
             if fmeta["accepted"]:
                 accepted_factors.append(fmeta)
@@ -1503,6 +1519,45 @@ class AgentSimulation:
                              fmeta["name"],
                              fmeta["cumulative_backtest"]["cumulative_return"] * 100,
                              cur_sharpe, cur_sharpe - prev_sharpe)
+
+        # ── Second pass: re-test rejected factors with full accepted set ──
+        if accepted_factors:
+            rejected = [fm for fm in new_factors if not fm.get("accepted")]
+            if rejected:
+                logger.info("Second pass: re-testing %d rejected factors with %d accepted",
+                             len(rejected), len(accepted_factors))
+                for fmeta in rejected:
+                    # Build factor set: baseline + all accepted + this rejected
+                    test_names = [fm["name"] for fm in accepted_factors] + [fmeta["name"]]
+                    factor_df, factor_weights = self._compute_factor_set_staged(
+                        baseline_factors, test_names,
+                    )
+                    equity = self._run_backtest_loop(
+                        factor_df, factor_weights, symbols, f"cumul_retest_{fmeta['name']}",
+                    )
+                    m = self._compute_metrics_from_equity(equity, self.initial_cash)
+                    prev_sharpe = accepted_factors[-1]["cumulative_backtest"]["sharpe_ratio"]
+                    cur_sharpe = m["sharpe_ratio"]
+
+                    if cur_sharpe >= prev_sharpe + 0.02:
+                        fmeta["accepted"] = True
+                        fmeta["cumulative_backtest"] = {
+                            "cumulative_return": m.get("cumulative_return", 0),
+                            "sharpe_ratio": cur_sharpe,
+                            "max_drawdown": m.get("max_drawdown", 0),
+                            "annualized_return": m.get("annualized_return", 0),
+                            "win_rate": m.get("win_rate", 0),
+                        }
+                        accepted_factors.append(fmeta)
+                        logger.info("Retest +%s: ret=%.2f%%, SR=%.3f → ACCEPTED (ΔSR=%.3f)",
+                                     fmeta["name"],
+                                     m.get("cumulative_return", 0) * 100,
+                                     cur_sharpe, cur_sharpe - prev_sharpe)
+                    else:
+                        logger.info("Retest +%s: ret=%.2f%%, SR=%.3f → still rejected (ΔSR=%.3f)",
+                                     fmeta["name"],
+                                     m.get("cumulative_return", 0) * 100,
+                                     cur_sharpe, cur_sharpe - prev_sharpe)
 
         # ── 4. Save enriched gp_factors.json ─────────────────────────────────
         gp_meta_for_persistence: list[dict] = []
@@ -1543,8 +1598,8 @@ class AgentSimulation:
                 "max_generations": self.gp_generations,
                 "accepted_count": len(accepted_factors),
                 "total_candidates": len(new_factors),
-                "baseline_return": baseline_metrics.get("cumulative_return", 0) if baseline_metrics else 0,
-                "baseline_sharpe": baseline_metrics.get("sharpe_ratio", 0) if baseline_metrics else 0,
+                "baseline_return": true_baseline.get("cumulative_return", 0) if true_baseline else 0,
+                "baseline_sharpe": true_baseline.get("sharpe_ratio", 0) if true_baseline else 0,
                 "final_return": final_metrics.get("cumulative_return", 0),
                 "final_sharpe": final_metrics.get("sharpe_ratio", 0),
             },
@@ -1557,7 +1612,7 @@ class AgentSimulation:
                      gp_file, len(accepted_factors), len(new_factors))
 
         # ── 5. Console ablation table ────────────────────────────────────────
-        self._print_ablation_table(new_factors, baseline_metrics, accepted_factors)
+        self._print_ablation_table(new_factors, true_baseline, accepted_factors)
 
         # ── 6. Evolution charts ──────────────────────────────────────────────
         self._generate_gp_report(gp, [f["name"] for f in accepted_factors])
@@ -1577,7 +1632,7 @@ class AgentSimulation:
         return {
             "gp_factors": accepted_factors,
             "all_candidates": new_factors,
-            "baseline_metrics": baseline_metrics,
+            "baseline_metrics": true_baseline,
         }
 
     def _print_ablation_table(
@@ -1638,13 +1693,160 @@ class AgentSimulation:
     def _generate_gp_report(
         self, gp: GPEngine, selected: list[str],
     ) -> None:
-        """Generate GP evolution progress charts."""
+        """Generate GP evolution progress charts and summary report."""
         history = gp.generation_history
         if not history:
             return
 
         chart_dir = Path(self.output_dir) / "gp_report"
         chart_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+            import matplotlib.ticker as mticker
+        except ImportError:
+            logger.warning("matplotlib not available for GP report charts")
+            return
+
+        gens = [s.generation for s in history]
+        best_fit = [s.best_fitness for s in history]
+        mean_fit = [s.mean_fitness for s in history]
+        median_fit = [s.median_fitness for s in history]
+        best_ic = [s.best_ic for s in history]
+        mean_ic = [s.mean_ic for s in history]
+        best_ir = [s.best_ir for s in history]
+        mean_ir = [s.mean_ir for s in history]
+        best_depth = [s.best_depth for s in history]
+        mean_depth = [s.mean_depth for s in history]
+        valid_count = [s.valid_count for s in history]
+        total_count = [s.total_count for s in history]
+        hall_size = [s.hall_of_fame_size for s in history]
+        elapsed = [s.elapsed_seconds for s in history]
+
+        fig, axes = plt.subplots(2, 3, figsize=(18, 11))
+        fig.suptitle(f"GP Evolution Progress — {self.gp_population} pop × {len(history)} gens, "
+                     f"selected: {selected or '(none)'}",
+                     fontsize=13, fontweight="bold")
+
+        # 1. Fitness
+        ax = axes[0, 0]
+        ax.plot(gens, best_fit, "g-o", ms=6, label="Best Fitness")
+        ax.plot(gens, mean_fit, "b-s", ms=4, label="Mean Fitness")
+        ax.plot(gens, median_fit, "orange", marker="D", ms=4, label="Median Fitness")
+        ax.axhline(y=0, color="gray", ls="--", lw=0.8)
+        ax.set_xlabel("Generation")
+        ax.set_ylabel("Fitness")
+        ax.set_title("Fitness Progression")
+        ax.legend(fontsize=7)
+        ax.grid(True, alpha=0.3)
+
+        # 2. IC Mean
+        ax = axes[0, 1]
+        ax.plot(gens, best_ic, "g-o", ms=6, label="Best IC")
+        ax.plot(gens, mean_ic, "b-s", ms=4, label="Mean IC")
+        ax.axhline(y=0, color="gray", ls="--", lw=0.8)
+        ax.axhline(y=0.03, color="green", ls=":", lw=0.8, label="Min viable")
+        ax.set_xlabel("Generation")
+        ax.set_ylabel("IC Mean")
+        ax.set_title("Information Coefficient")
+        ax.legend(fontsize=7)
+        ax.grid(True, alpha=0.3)
+
+        # 3. IC IR
+        ax = axes[0, 2]
+        ax.plot(gens, best_ir, "g-o", ms=6, label="Best IR")
+        ax.plot(gens, mean_ir, "b-s", ms=4, label="Mean IR")
+        ax.axhline(y=0, color="gray", ls="--", lw=0.8)
+        ax.axhline(y=0.3, color="green", ls=":", lw=0.8, label="Min viable")
+        ax.set_xlabel("Generation")
+        ax.set_ylabel("IC IR")
+        ax.set_title("Information Ratio")
+        ax.legend(fontsize=7)
+        ax.grid(True, alpha=0.3)
+
+        # 4. Complexity (depth)
+        ax = axes[1, 0]
+        ax.plot(gens, best_depth, "g-o", ms=6, label="Best Depth")
+        ax.plot(gens, mean_depth, "b-s", ms=4, label="Mean Depth")
+        ax.set_xlabel("Generation")
+        ax.set_ylabel("Tree Depth")
+        ax.set_title("Expression Complexity")
+        ax.legend(fontsize=7)
+        ax.grid(True, alpha=0.3)
+        ax.yaxis.set_major_locator(mticker.MaxNLocator(integer=True))
+
+        # 5. Validation yield
+        ax = axes[1, 1]
+        valid_pct = [v / t * 100 if t > 0 else 0 for v, t in zip(valid_count, total_count)]
+        ax.bar(gens, valid_pct, color="steelblue", alpha=0.7, label="Valid %")
+        ax.set_xlabel("Generation")
+        ax.set_ylabel("Valid %")
+        ax.set_title(f"Validation Yield (pop={total_count[0] if total_count else '?'})")
+        ax.set_ylim(0, 105)
+        ax.grid(True, alpha=0.3, axis="y")
+        # Hall of fame line on same axis
+        ax2 = ax.twinx()
+        ax2.plot(gens, hall_size, "r-D", ms=4, label="Hall of Fame")
+        ax2.set_ylabel("HoF Size", color="red")
+        ax2.tick_params(axis="y", labelcolor="red")
+        lines1, labels1 = ax.get_legend_handles_labels()
+        lines2, labels2 = ax2.get_legend_handles_labels()
+        ax.legend(lines1 + lines2, labels1 + labels2, fontsize=7, loc="upper left")
+
+        # 6. Cumulative time + Stall
+        ax = axes[1, 2]
+        cum_time = [sum(elapsed[:i + 1]) for i in range(len(elapsed))]
+        ax.fill_between(gens, 0, cum_time, alpha=0.15, color="blue")
+        ax.plot(gens, cum_time, "b-o", ms=5, label="Cumul. Time (s)")
+        ax.set_xlabel("Generation")
+        ax.set_ylabel("Seconds")
+        ax.set_title("Cumulative Computation Time")
+        ax.legend(fontsize=7)
+        ax.grid(True, alpha=0.3)
+
+        for ax_row in axes.flat:
+            ax_row.xaxis.set_major_locator(mticker.MaxNLocator(integer=True))
+
+        fig.tight_layout()
+        chart_path = chart_dir / "gp_evolution.png"
+        fig.savefig(chart_path, dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        logger.info("GP evolution chart saved to %s", chart_path)
+
+        # ── Write summary markdown report ──
+        report_lines = [
+            "# GP Discovery Report",
+            "",
+            f"**Generated:** {datetime.now().isoformat()}",
+            f"**Population:** {self.gp_population} | **Generations:** {len(history)}",
+            f"**Training:** {TRAIN_PERIOD[0]} ~ {TRAIN_PERIOD[1]}",
+            f"**Backtest:** {self.start} ~ {self.end}",
+            f"**Selected factors:** {selected or '(none)'}",
+            "",
+            "## Per-Generation Summary",
+            "",
+            "| Gen | Best Fit | Mean Fit | Best IC | Mean IC | Best IR | Mean IR | Best D | Mean D | Valid | HoF | Time(s) |",
+            "|-----|----------|----------|---------|---------|---------|---------|--------|--------|-------|-----|---------|",
+        ]
+        for s in history:
+            report_lines.append(
+                f"| {s.generation:3d} | {s.best_fitness:+.4f} | {s.mean_fitness:+.4f} | "
+                f"{s.best_ic:+.4f} | {s.mean_ic:+.4f} | {s.best_ir:+.3f} | {s.mean_ir:+.3f} | "
+                f"{s.best_depth} | {s.mean_depth:.1f} | {s.valid_count}/{s.total_count} | "
+                f"{s.hall_of_fame_size} | {s.elapsed_seconds:.0f} |"
+            )
+
+        report_lines += [
+            "",
+            "## Evolution Charts",
+            "",
+            f"![Evolution](gp_evolution.png)",
+        ]
+        report_path = chart_dir / "gp_report.md"
+        report_path.write_text("\n".join(report_lines))
+        logger.info("GP summary report saved to %s", report_path)
 
     # ── Factor Composite ────────────────────────────────────────────────────
 
