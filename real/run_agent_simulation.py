@@ -1460,9 +1460,8 @@ class AgentSimulation:
                              fmeta["solo_backtest"]["sharpe_ratio"],
                              fmeta["solo_backtest"]["max_drawdown"] * 100)
 
-        # Run cumulative backtests (sequentially adding each factor)
+        # Run cumulative backtests (only stacking ACCEPTED factors)
         accepted_factors: list[dict] = []
-        cumulative_gp_names: list[str] = []
 
         # Compute true baseline metrics from the pure-baseline equity curve
         if self._baseline_equity is not None:
@@ -1476,14 +1475,15 @@ class AgentSimulation:
                      true_baseline.get("sharpe_ratio", 0))
 
         for fmeta in new_factors:
-            cumulative_gp_names.append(fmeta["name"])
-            # Use the latest GP factor's co-evolved strategy for the cumulative backtest
+            # Build factor set: previously accepted + this candidate.
+            # Rejected factors are excluded so they don't pollute later cumul tests.
+            test_names = [f["name"] for f in accepted_factors] + [fmeta["name"]]
             self._strategy_params = fmeta.get("strategy_gene", {})
             factor_df, factor_weights = self._compute_factor_set_staged(
-                baseline_factors, cumulative_gp_names,
+                baseline_factors, test_names,
             )
             equity = self._run_backtest_loop(
-                factor_df, factor_weights, symbols, f"cumul_{len(cumulative_gp_names)}",
+                factor_df, factor_weights, symbols, f"cumul_{len(test_names)}",
             )
             m = self._compute_metrics_from_equity(equity, self.initial_cash)
             fmeta["cumulative_backtest"] = {
