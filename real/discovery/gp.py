@@ -46,6 +46,7 @@ class Individual(NamedTuple):
     auto_corr: float
     complexity: int
     depth: int
+    generation: int = 0  # which generation this individual was created in
 
 
 @dataclass
@@ -281,7 +282,7 @@ class GPEngine:
         """Evaluate each tree: compile → compute → validate → fitness."""
         individuals = []
         for tree in trees:
-            ind = self._evaluate_one(tree, data, forward_returns, existing_factors)
+            ind = self._evaluate_one(tree, data, forward_returns, existing_factors, self._generation)
             individuals.append(ind)
         return individuals
 
@@ -291,6 +292,7 @@ class GPEngine:
         data: pd.DataFrame,
         forward_returns: pd.Series,
         existing_factors: pd.DataFrame | None,
+        generation: int = 0,
     ) -> Individual:
         """Evaluate a single expression tree."""
         cfg = self.config
@@ -302,7 +304,7 @@ class GPEngine:
             return Individual(
                 tree=tree, factor_name="trivial", factor_cls=None,
                 fitness=-999, ic_mean=0, ic_ir=0, hit_rate=0, auto_corr=1,
-                complexity=complexity, depth=depth,
+                complexity=complexity, depth=depth, generation=generation,
             )
 
         # Try to compile and compute
@@ -315,7 +317,7 @@ class GPEngine:
             return Individual(
                 tree=tree, factor_name="invalid", factor_cls=None,
                 fitness=-999, ic_mean=0, ic_ir=0, hit_rate=0, auto_corr=1,
-                complexity=complexity, depth=depth,
+                complexity=complexity, depth=depth, generation=generation,
             )
 
         # Validate
@@ -331,7 +333,7 @@ class GPEngine:
             return Individual(
                 tree=tree, factor_name=factor_cls.meta.name, factor_cls=factor_cls,
                 fitness=-999, ic_mean=0, ic_ir=0, hit_rate=0, auto_corr=1,
-                complexity=complexity, depth=depth,
+                complexity=complexity, depth=depth, generation=generation,
             )
 
         ic_mean = result.ic_mean
@@ -344,7 +346,7 @@ class GPEngine:
             return Individual(
                 tree=tree, factor_name=factor_cls.meta.name, factor_cls=factor_cls,
                 fitness=-999, ic_mean=0, ic_ir=0, hit_rate=0, auto_corr=1,
-                complexity=complexity, depth=depth,
+                complexity=complexity, depth=depth, generation=generation,
             )
 
         # Reject near-constant signals (e.g. lt() comparisons with non-overlapping
@@ -355,7 +357,7 @@ class GPEngine:
                 tree=tree, factor_name=factor_cls.meta.name, factor_cls=factor_cls,
                 fitness=-999, ic_mean=ic_mean, ic_ir=ic_ir,
                 hit_rate=hit_rate, auto_corr=auto_corr,
-                complexity=complexity, depth=depth,
+                complexity=complexity, depth=depth, generation=generation,
             )
 
         # Stability: min IC across sub-periods
@@ -634,3 +636,8 @@ class GPEngine:
     @property
     def generation(self) -> int:
         return self._generation
+
+    def history_to_dict(self) -> list[dict]:
+        """Serialize generation history for persistence in gp_factors.json."""
+        import dataclasses
+        return [dataclasses.asdict(s) for s in self._history]

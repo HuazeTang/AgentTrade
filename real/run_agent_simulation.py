@@ -71,6 +71,7 @@ MAX_POSITION_PCT = 0.95
 SELL_RANK_LIMIT  = 5     # sell only if rank drops below this (vs MAX_POSITIONS=1 for buys)
 SYMBOL_COUNT     = 800       # expanded from 500 to capture more medium-cap names
 JOURNAL_DIR      = Path(__file__).resolve().parent / "data" / "results"
+GP_FACTORS_PATH  = JOURNAL_DIR / "gp_factors.json"  # fixed path for cross-session reuse
 
 # Market drawdown circuit breaker: skip new buys when market is falling
 # to avoid catching a falling knife. Existing positions ride through.
@@ -185,7 +186,7 @@ class AgentSimulation:
         mode: str = "llm",       # "llm", "factor", "heuristic"
         model: str | None = None,
         output_dir: Path | None = None,
-        use_gp: bool = False,
+        gp_discover: bool = False,
         gp_population: int = 200,
         gp_generations: int = 25,
         gp_early_stop: int = 10,
@@ -210,8 +211,7 @@ class AgentSimulation:
 
         # LLM
         self.use_llm = (mode == "llm")
-        self.use_gp = use_gp
-        self.load_gp = False  # set via --load-gp flag
+        self.gp_discover = gp_discover
         self.gp_population = gp_population
         self.gp_generations = gp_generations
         self.gp_early_stop = gp_early_stop
@@ -277,29 +277,26 @@ class AgentSimulation:
             baseline_df, baseline_weights, symbols, "baseline",
         )
 
-        # 6. GP discovery (if enabled) or load persisted GP factors
-        gp_factors: list[str] = []
-        if self.use_gp:
-            gp_factors = self._run_gp_discovery(self._daily_cache, baseline_factors)
-        elif self.load_gp:
-            gp_factors = self._load_persisted_gp_factors()
-
-        # 7. Combined backtest (baseline + GP) — only if GP found factors
-        if gp_factors:
-            combined_factors = baseline_factors + gp_factors
-            logger.info("GP discovered %d new factors. Total: %d",
-                         len(gp_factors), len(combined_factors))
-            combined_df, combined_weights = self._compute_factor_set(combined_factors)
-            self._gp_equity = self._run_backtest_loop(
-                combined_df, combined_weights, symbols, "combined",
-            )
-            # Use combined results for the final report
-            self._factor_df = combined_df
-            self._factor_weights = combined_weights
+        # 6. GP: discover new factors or load accumulated ones
+        gp_ablation = None
+        if self.gp_discover:
+            # Full GP discovery + per-factor backtest pipeline
+            gp_ablation = self._run_gp_pipeline(self._daily_cache, baseline_factors)
+            # _run_gp_pipeline sets self._factor_df, self._factor_weights, self._gp_equity
         else:
-            self._gp_equity = None
-            self._factor_df = baseline_df
-            self._factor_weights = baseline_weights
+            # Auto-load accumulated GP factors from fixed path
+            gp_factors = self._load_persisted_gp_factors(accepted_only=True)
+            if gp_factors:
+                self._factor_df, self._factor_weights = self._compute_factor_set_staged(
+                    baseline_factors, gp_factors,
+                )
+                self._gp_equity = self._run_backtest_loop(
+                    self._factor_df, self._factor_weights, symbols, "combined",
+                )
+            else:
+                self._gp_equity = None
+                self._factor_df = baseline_df
+                self._factor_weights = baseline_weights
 
         return self._finalize()
 
@@ -319,6 +316,47 @@ class AgentSimulation:
         train_dates = get_trading_days(TRAIN_PERIOD[0], TRAIN_PERIOD[1])
         factor_weights = self._calibrate_factor_weights(factor_df, train_dates)
         logger.info("Calibrated %d factor weights", len(factor_weights))
+
+        return factor_df, factor_weights
+
+    def _compute_factor_set_staged(
+        self, baseline_names: list[str], gp_names: list[str],
+    ) -> tuple[pd.DataFrame, dict[str, float]]:
+        """Compute baseline factors first, then GP factors in a second pass.
+
+        GP factors may reference baseline factor columns as terminals, so
+        baseline columns must exist in the DataFrame before GP computation.
+        """
+        engine = FactorEngine()
+
+        # Stage 1: baseline factors
+        baseline_df = engine.compute(baseline_names, self._daily_cache)
+        logger.info("Stage 1: %d baseline factors (%d rows)",
+                     len(baseline_names), len(baseline_df))
+
+        if not gp_names:
+            shifted = baseline_df.unstack().shift(1).stack()
+            factor_df = shifted.reorder_levels(["trade_date", "symbol"]).sort_index()
+            train_dates = get_trading_days(TRAIN_PERIOD[0], TRAIN_PERIOD[1])
+            weights = self._calibrate_factor_weights(factor_df, train_dates)
+            return factor_df, weights
+
+        # Stage 2: enrich data with baseline columns, then compute GP factors
+        enriched = self._daily_cache.copy()
+        for col in baseline_df.columns:
+            enriched[col] = baseline_df[col]
+
+        gp_df = engine.compute(gp_names, enriched)
+        logger.info("Stage 2: %d GP factors (%d rows)", len(gp_names), len(gp_df))
+
+        factor_df = pd.concat([baseline_df, gp_df], axis=1)
+
+        shifted = factor_df.unstack().shift(1).stack()
+        factor_df = shifted.reorder_levels(["trade_date", "symbol"]).sort_index()
+
+        train_dates = get_trading_days(TRAIN_PERIOD[0], TRAIN_PERIOD[1])
+        factor_weights = self._calibrate_factor_weights(factor_df, train_dates)
+        logger.info("Calibrated %d factor weights (baseline + GP)", len(factor_weights))
 
         return factor_df, factor_weights
 
@@ -406,28 +444,10 @@ class AgentSimulation:
         self._daily_cache = self._add_derived_features(self._daily_cache)
         active_factors = [f for f in BASELINE_FACTORS if f not in DISABLED_FACTORS]
 
-        # Load and register persisted GP factors from prior discovery runs
-        gp_file = self.output_dir / "gp_factors.json"
-        gp_factor_names: list[str] = []
-        if gp_file.exists():
-            import json as _json
-            from discovery.expr import Expr
-            from discovery.compiler import compile_expr
-            with open(gp_file, "r", encoding="utf-8") as _f:
-                gp_data = _json.load(_f)
-            for entry in gp_data.get("gp_factors", []):
-                try:
-                    tree = Expr.from_dict(entry["expression"])
-                    compile_expr(tree, factor_name=entry["name"],
-                                 category=entry.get("category", "gp"),
-                                 register=True)
-                    gp_factor_names.append(entry["name"])
-                    logger.info("Loaded GP factor: %s", entry["name"])
-                except Exception as e:
-                    logger.warning("Failed to load GP factor %s: %s", entry.get("name"), e)
-            if gp_factor_names:
-                active_factors.extend(gp_factor_names)
-                logger.info("Including %d GP factors in recommendation", len(gp_factor_names))
+        # Load and register persisted GP factors (accepted only)
+        gp_factor_names = self._load_persisted_gp_factors(accepted_only=True)
+        if gp_factor_names:
+            active_factors.extend(gp_factor_names)
 
         engine = FactorEngine()
         self._factor_df = engine.compute(active_factors, self._daily_cache)
@@ -554,25 +574,8 @@ class AgentSimulation:
         self._daily_cache = self._add_derived_features(self._daily_cache)
         active_factors = [f for f in BASELINE_FACTORS if f not in DISABLED_FACTORS]
 
-        # Load GP factors
-        gp_file = self.output_dir / "gp_factors.json"
-        gp_factor_names: list[str] = []
-        if gp_file.exists():
-            import json as _json
-            from discovery.expr import Expr
-            from discovery.compiler import compile_expr
-            with open(gp_file, "r", encoding="utf-8") as _f:
-                gp_data = _json.load(_f)
-            for entry in gp_data.get("gp_factors", []):
-                try:
-                    tree = Expr.from_dict(entry["expression"])
-                    compile_expr(tree, factor_name=entry["name"],
-                                 category=entry.get("category", "gp"),
-                                 register=True)
-                    gp_factor_names.append(entry["name"])
-                    logger.info("Loaded GP factor: %s", entry["name"])
-                except Exception as e:
-                    logger.warning("Failed to load GP factor %s: %s", entry.get("name"), e)
+        # Load GP factors (accepted only)
+        gp_factor_names = self._load_persisted_gp_factors(accepted_only=True)
         if gp_factor_names:
             active_factors.extend(gp_factor_names)
 
@@ -1100,15 +1103,15 @@ class AgentSimulation:
 
     # ── GP Factor Discovery ─────────────────────────────────────────────────
 
-    def _load_persisted_gp_factors(self) -> list[str]:
-        """Load and register GP factors from persisted gp_factors.json."""
+    def _load_persisted_gp_factors(self, accepted_only: bool = True) -> list[str]:
+        """Load and register GP factors from the fixed gp_factors.json path."""
         import json as _json
         from discovery.expr import Expr
         from discovery.compiler import compile_expr
 
-        gp_file = self.output_dir / "gp_factors.json"
+        gp_file = GP_FACTORS_PATH
         if not gp_file.exists():
-            logger.warning("No persisted GP factors found at %s", gp_file)
+            logger.info("No persisted GP factors at %s", gp_file)
             return []
 
         with open(gp_file, "r", encoding="utf-8") as _f:
@@ -1116,25 +1119,42 @@ class AgentSimulation:
 
         names: list[str] = []
         for entry in gp_data.get("gp_factors", []):
+            if accepted_only and not entry.get("accepted", True):
+                continue
             try:
                 tree = Expr.from_dict(entry["expression"])
                 compile_expr(tree, factor_name=entry["name"],
                              category=entry.get("category", "gp"),
                              register=True)
                 names.append(entry["name"])
-                logger.info("Loaded persisted GP factor: %s", entry["name"])
+                logger.info("Loaded GP factor: %s (gen=%s, IC=%.4f, IR=%.3f)",
+                             entry["name"], entry.get("generation", "?"),
+                             entry.get("ic_mean", 0), entry.get("ic_ir", 0))
             except Exception as e:
                 logger.warning("Failed to load GP factor %s: %s", entry.get("name"), e)
 
-        logger.info("Loaded %d persisted GP factors", len(names))
+        logger.info("Loaded %d persisted GP factors from %s", len(names), gp_file)
         return names
 
-    def _run_gp_discovery(self, data: pd.DataFrame, active_factors: list[str]) -> list[str]:
-        """Run GP evolution on training data, return validated new factor names."""
-        from discovery.gp import GPEngine, GPConfig
-        from discovery.validate import FactorValidator, orthogonal_filter
+    # ── GP Discovery Pipeline ───────────────────────────────────────────────
 
-        # Split data into train/test
+    def _run_gp_pipeline(
+        self, data: pd.DataFrame, baseline_factors: list[str],
+    ) -> dict | None:
+        """Run GP discovery with per-factor solo+cumulative backtesting.
+
+        Flow:
+        1. GP evolution on training data (reuse existing GPEngine)
+        2. Validate top candidates + orthogonal filter
+        3. For each validated factor: solo backtest → cumulative backtest
+        4. Decision: cumulative Sharpe improvement → accepted
+        5. Print ablation table to console
+        6. Save enriched gp_factors.json (fixed path: data/results/gp_factors.json)
+        7. Generate evolution charts
+
+        Returns ablation dict for _finalize(), or None if no factors discovered.
+        """
+        # ── 1. GP Evolution ──────────────────────────────────────────────────
         all_dates = sorted(data.index.get_level_values("trade_date").unique())
         split_idx = int(len(all_dates) * 0.67)
         gp_train_dates = all_dates[:split_idx]
@@ -1143,55 +1163,71 @@ class AgentSimulation:
                      gp_train_dates[0].date(), gp_train_dates[-1].date(),
                      len(gp_train_dates))
 
-        # Restrict to training data
         train_mask = data.index.get_level_values("trade_date").isin(gp_train_dates)
         gp_data = data.loc[train_mask]
 
-        # Compute forward returns for GP fitness
         close = gp_data["close"].unstack()
         fwd_ret = close.pct_change(periods=FORWARD_PERIODS).shift(-FORWARD_PERIODS).stack()
         fwd_ret.name = "fwd_ret"
 
-        # Compute active factor values on training data for GP
         engine = FactorEngine()
-        existing_df = engine.compute(active_factors, gp_data)
+        existing_df = engine.compute(baseline_factors, gp_data)
 
-        # Robust NaN handling: keep factors with >= 50% coverage, fill remaining NaN with 0
         coverage = existing_df.notna().mean()
         usable = coverage[coverage >= 0.5].index.tolist()
         if len(usable) < 5:
             logger.warning("Too few usable factors for GP (%d), skipping", len(usable))
-            return []
+            return None
         existing_df = existing_df[usable].fillna(0.0)
-        logger.info("GP: %d/%d factors usable (>=50%% coverage)", len(usable), len(active_factors))
+        logger.info("GP: %d/%d factors usable (>=50%% coverage)", len(usable), len(baseline_factors))
 
-        # Inject factor values as data columns so GP can reference them as terminals.
-        # Deduplicate against raw fields and pre-derived terminals.
+        # Inject factor values as data columns for GP terminals
         from discovery.expr import TERMINAL_FIELDS
         raw_field_set = set(gp_data.columns) | set(TERMINAL_FIELDS)
+
+        # Also include previously accepted GP factors as terminals (iterative accumulation)
+        gp_file = GP_FACTORS_PATH
+        prior_gp_names: list[str] = []
+        if gp_file.exists():
+            import json as _json
+            with open(gp_file, "r", encoding="utf-8") as _f:
+                prior_data = _json.load(_f)
+            prior_gp_names = [e["name"] for e in prior_data.get("gp_factors", [])
+                            if e.get("accepted", True)]
+
         factor_terminals = [f for f in usable if f not in raw_field_set]
+        if prior_gp_names:
+            # Register prior GP factors and add their values as terminals
+            self._load_persisted_gp_factors(accepted_only=True)
+            prior_gp_df = engine.compute(prior_gp_names, gp_data)
+            for name in prior_gp_names:
+                if name in prior_gp_df.columns:
+                    gp_data[name] = prior_gp_df[name]
+                    if name not in factor_terminals:
+                        factor_terminals.append(name)
+            logger.info("GP: injected %d prior GP factors as terminals", len(prior_gp_names))
+
         if factor_terminals:
-            gp_data = gp_data.join(existing_df[factor_terminals], how="left")
+            # Only join columns that exist in existing_df (prior GP factors are
+            # already injected directly into gp_data above)
+            joinable = [f for f in factor_terminals if f in existing_df.columns]
+            if joinable:
+                gp_data = gp_data.join(existing_df[joinable], how="left")
             logger.info("GP: injected %d factor columns as terminals: %s",
                          len(factor_terminals), factor_terminals)
         else:
             logger.info("GP: no new factor terminals (all overlap with raw fields)")
 
-        # Build extended terminal list: raw fields + active factor names
         extended_terminals = list(TERMINAL_FIELDS) + factor_terminals
 
-        # Align
         common_idx = existing_df.index.intersection(fwd_ret.dropna().index)
         gp_fwd = fwd_ret.loc[common_idx]
         gp_existing = existing_df.loc[common_idx]
 
         if len(gp_fwd) < 100:
             logger.warning("Too few GP training samples (%d), skipping", len(gp_fwd))
-            return []
+            return None
 
-        # GP config — tuned for factor combination search:
-        # max_depth=7 gives room for nested raw×factor combos
-        # parsimony=0.0003 reduces penalty so compound trees aren't crowded out
         gp_config = GPConfig(
             population_size=self.gp_population,
             max_generations=self.gp_generations,
@@ -1220,13 +1256,13 @@ class AgentSimulation:
         logger.info("GP evolution complete: %.0fs, %d generations",
                      time.time() - t0, gp.generation)
 
-        # Validate top candidates
+        # ── 2. Validate candidates ───────────────────────────────────────────
         validator = FactorValidator()
         max_new = 5
-        new_factors: list[str] = []
+        new_factors: list[dict] = []  # store full metadata per factor
         validated_values: dict[str, pd.Series] = {}
-
         hall = sorted(best_individuals, key=lambda x: x.fitness, reverse=True)[:max_new * 2]
+
         for ind in hall:
             if ind.factor_cls is None or ind.fitness < -100:
                 continue
@@ -1243,16 +1279,39 @@ class AgentSimulation:
                 )
 
                 if result.passed:
-                    new_factors.append(ind.factor_name)
+                    new_factors.append({
+                        "name": ind.factor_name,
+                        "category": ind.factor_cls.meta.category,
+                        "expression": ind.tree.to_dict(),
+                        "generation": ind.generation,
+                        "fitness": ind.fitness,
+                        "ic_mean": ind.ic_mean,
+                        "ic_ir": ind.ic_ir,
+                        "ic_std": getattr(result, "ic_std", 0),
+                        "hit_rate": ind.hit_rate,
+                        "auto_corr": ind.auto_corr,
+                        "max_corr_existing": getattr(result, "max_corr_existing", 0),
+                        "complexity": ind.complexity,
+                        "depth": ind.depth,
+                        "validation_passed": True,
+                        "wf_ic_mean": getattr(result, "wf_ic_mean", 0),
+                        "factor_cls": ind.factor_cls,
+                        "factor_vals": factor_vals,
+                    })
                     existing_df[ind.factor_name] = factor_vals
                     validated_values[ind.factor_name] = factor_vals
-                    logger.info("GP factor accepted: %s (fitness=%.4f, IC=%.4f, IR=%.3f)",
-                                 ind.factor_name, ind.fitness, ind.ic_mean, ind.ic_ir)
+                    logger.info("GP factor accepted: %s (gen=%d, fitness=%.4f, IC=%.4f, IR=%.3f)",
+                                 ind.factor_name, ind.generation, ind.fitness, ind.ic_mean, ind.ic_ir)
                 else:
-                    logger.info("GP factor rejected: %s (%s)",
-                                 ind.factor_name, ", ".join(result.failures[:2]))
+                    logger.info("GP factor rejected: %s (gen=%d, %s)",
+                                 ind.factor_name, ind.generation, ", ".join(result.failures[:2]))
             except Exception as e:
                 logger.debug("GP factor error: %s — %s", ind.factor_name, e)
+
+        if not new_factors:
+            logger.warning("No GP factors passed validation")
+            self._generate_gp_report(gp, [])
+            return None
 
         # Orthogonal filter
         if len(new_factors) > 1:
@@ -1262,161 +1321,242 @@ class AgentSimulation:
             rejected = set(validated_values) - set(ortho_selected)
             if rejected:
                 logger.info("Orthogonal filter dropped: %s", rejected)
-            new_factors = [f for f in new_factors if f in ortho_selected]
+            new_factors = [f for f in new_factors if f["name"] in ortho_selected]
 
         # Category diversity: at most 1 per category
         seen_categories: set[str] = set()
-        selected: list[str] = []
-        for fname in new_factors:
-            cat = "other"
-            for ind in hall:
-                if ind.factor_name == fname and ind.factor_cls is not None:
-                    cat = ind.factor_cls.meta.category
-                    break
-            if cat not in seen_categories or len(selected) < 2:
-                selected.append(fname)
+        diverse: list[dict] = []
+        for fmeta in new_factors:
+            cat = fmeta["category"]
+            if cat not in seen_categories or len(diverse) < 2:
+                diverse.append(fmeta)
                 seen_categories.add(cat)
-            if len(selected) >= 2:
+            if len(diverse) >= 2:
                 break
+        new_factors = diverse
 
-        # Register selected GP factors in global registry for FactorEngine
+        if not new_factors:
+            logger.warning("No GP factors survived diversity filter")
+            self._generate_gp_report(gp, [])
+            return None
+
+        # Register selected GP factors
         from factor.registry import registry
+        for fmeta in new_factors:
+            try:
+                registry.register(fmeta["factor_cls"])
+            except ValueError:
+                pass
+
+        # ── 3. Per-factor backtesting ────────────────────────────────────────
+        symbols = sorted(data.index.get_level_values("symbol").unique().tolist())
+
+        # Run solo backtest for each GP factor
+        for fmeta in new_factors:
+            gp_name = fmeta["name"]
+            factor_df, factor_weights = self._compute_factor_set_staged(
+                baseline_factors, [gp_name],
+            )
+            equity = self._run_backtest_loop(
+                factor_df, factor_weights, symbols, f"solo_{gp_name}",
+            )
+            m = self._compute_metrics_from_equity(equity, self.initial_cash)
+            fmeta["solo_backtest"] = {
+                "cumulative_return": m.get("cumulative_return", 0),
+                "sharpe_ratio": m.get("sharpe_ratio", 0),
+                "max_drawdown": m.get("max_drawdown", 0),
+                "annualized_return": m.get("annualized_return", 0),
+                "win_rate": m.get("win_rate", 0),
+            }
+            logger.info("Solo backtest %s: ret=%.2f%%, SR=%.3f, DD=%.2f%%",
+                         gp_name,
+                         fmeta["solo_backtest"]["cumulative_return"] * 100,
+                         fmeta["solo_backtest"]["sharpe_ratio"],
+                         fmeta["solo_backtest"]["max_drawdown"] * 100)
+
+        # Run cumulative backtests (sequentially adding each factor)
+        accepted_factors: list[dict] = []
+        cumulative_gp_names: list[str] = []
+        baseline_metrics = None
+
+        for fmeta in new_factors:
+            cumulative_gp_names.append(fmeta["name"])
+            factor_df, factor_weights = self._compute_factor_set_staged(
+                baseline_factors, cumulative_gp_names,
+            )
+            equity = self._run_backtest_loop(
+                factor_df, factor_weights, symbols, f"cumul_{len(cumulative_gp_names)}",
+            )
+            m = self._compute_metrics_from_equity(equity, self.initial_cash)
+            fmeta["cumulative_backtest"] = {
+                "cumulative_return": m.get("cumulative_return", 0),
+                "sharpe_ratio": m.get("sharpe_ratio", 0),
+                "max_drawdown": m.get("max_drawdown", 0),
+                "annualized_return": m.get("annualized_return", 0),
+                "win_rate": m.get("win_rate", 0),
+            }
+
+            if baseline_metrics is None:
+                baseline_metrics = m  # first cumulative is baseline + 1st GP
+
+            # Decision: accept if cumulative Sharpe >= previous cumulative Sharpe
+            prev_sharpe = baseline_metrics["sharpe_ratio"] if len(accepted_factors) == 0 else \
+                          accepted_factors[-1]["cumulative_backtest"]["sharpe_ratio"]
+            cur_sharpe = m["sharpe_ratio"]
+            fmeta["accepted"] = cur_sharpe >= prev_sharpe - 0.01  # small tolerance
+
+            if fmeta["accepted"]:
+                accepted_factors.append(fmeta)
+                logger.info("Cumul backtest +%s: ret=%.2f%%, SR=%.3f → ACCEPTED",
+                             fmeta["name"],
+                             fmeta["cumulative_backtest"]["cumulative_return"] * 100,
+                             cur_sharpe)
+            else:
+                logger.info("Cumul backtest +%s: ret=%.2f%%, SR=%.3f → REJECTED (ΔSR=%.3f)",
+                             fmeta["name"],
+                             fmeta["cumulative_backtest"]["cumulative_return"] * 100,
+                             cur_sharpe, cur_sharpe - prev_sharpe)
+
+        # ── 4. Save enriched gp_factors.json ─────────────────────────────────
         gp_meta_for_persistence: list[dict] = []
-        for ind in hall:
-            if ind.factor_name in selected and ind.factor_cls is not None:
-                try:
-                    registry.register(ind.factor_cls)
-                    logger.debug("Registered GP factor: %s", ind.factor_name)
-                except ValueError:
-                    logger.debug("GP factor already registered: %s", ind.factor_name)
-                # Persist expression tree for later reuse (e.g. recommend mode)
-                gp_meta_for_persistence.append({
-                    "name": ind.factor_name,
-                    "category": ind.factor_cls.meta.category,
-                    "expression": ind.tree.to_dict(),
-                })
+        for fmeta in new_factors:
+            entry = {
+                "name": fmeta["name"],
+                "category": fmeta["category"],
+                "expression": fmeta["expression"],
+                "generation": fmeta["generation"],
+                "fitness": fmeta["fitness"],
+                "ic_mean": fmeta["ic_mean"],
+                "ic_ir": fmeta["ic_ir"],
+                "ic_std": fmeta["ic_std"],
+                "hit_rate": fmeta["hit_rate"],
+                "auto_corr": fmeta["auto_corr"],
+                "max_corr_existing": fmeta["max_corr_existing"],
+                "complexity": fmeta["complexity"],
+                "depth": fmeta["depth"],
+                "validation_passed": fmeta["validation_passed"],
+                "wf_ic_mean": fmeta["wf_ic_mean"],
+                "solo_backtest": fmeta["solo_backtest"],
+                "cumulative_backtest": fmeta["cumulative_backtest"],
+                "discovered_at": date.today().isoformat(),
+                "accepted": fmeta["accepted"],
+            }
+            gp_meta_for_persistence.append(entry)
 
-        # Save GP factor definitions for cross-session reuse
-        if gp_meta_for_persistence:
-            gp_file = self.output_dir / "gp_factors.json"
-            gp_file.parent.mkdir(parents=True, exist_ok=True)
-            import json as _json
-            with open(gp_file, "w", encoding="utf-8") as _f:
-                _json.dump({"gp_factors": gp_meta_for_persistence}, _f, ensure_ascii=False, indent=2)
-            logger.info("GP factor definitions saved to %s", gp_file)
+        final_metrics = new_factors[-1]["cumulative_backtest"] if new_factors else {}
+        persistence = {
+            "gp_factors": gp_meta_for_persistence,
+            "evolution_history": gp.history_to_dict(),
+            "meta": {
+                "discovered_at": datetime.now().isoformat(),
+                "training_period": [str(TRAIN_PERIOD[0]), str(TRAIN_PERIOD[1])],
+                "backtest_period": [str(self.start), str(self.end)],
+                "population_size": self.gp_population,
+                "max_generations": self.gp_generations,
+                "accepted_count": len(accepted_factors),
+                "total_candidates": len(new_factors),
+                "baseline_return": baseline_metrics.get("cumulative_return", 0) if baseline_metrics else 0,
+                "baseline_sharpe": baseline_metrics.get("sharpe_ratio", 0) if baseline_metrics else 0,
+                "final_return": final_metrics.get("cumulative_return", 0),
+                "final_sharpe": final_metrics.get("sharpe_ratio", 0),
+            },
+        }
+        gp_file.parent.mkdir(parents=True, exist_ok=True)
+        import json as _json
+        with open(gp_file, "w", encoding="utf-8") as _f:
+            _json.dump(persistence, _f, ensure_ascii=False, indent=2)
+        logger.info("GP factors saved to %s (%d accepted / %d total)",
+                     gp_file, len(accepted_factors), len(new_factors))
 
-        # Generate GP evolution report
-        self._generate_gp_report(gp, selected)
+        # ── 5. Console ablation table ────────────────────────────────────────
+        self._print_ablation_table(new_factors, baseline_metrics, accepted_factors)
 
-        return selected
+        # ── 6. Evolution charts ──────────────────────────────────────────────
+        self._generate_gp_report(gp, [f["name"] for f in accepted_factors])
+
+        # Restore state for the accepted factors (last cumulative run is current)
+        if accepted_factors:
+            final_gp_names = [f["name"] for f in accepted_factors]
+            self._factor_df, self._factor_weights = self._compute_factor_set_staged(
+                baseline_factors, final_gp_names,
+            )
+            self._gp_equity = self._run_backtest_loop(
+                self._factor_df, self._factor_weights, symbols, "combined",
+            )
+        else:
+            self._gp_equity = None
+
+        return {
+            "gp_factors": accepted_factors,
+            "all_candidates": new_factors,
+            "baseline_metrics": baseline_metrics,
+        }
+
+    def _print_ablation_table(
+        self,
+        new_factors: list[dict],
+        baseline_metrics: dict | None,
+        accepted_factors: list[dict],
+    ) -> None:
+        """Print formatted GP ablation table to console."""
+        accepted_names = {f["name"] for f in accepted_factors}
+        bl_ret = (baseline_metrics.get("cumulative_return", 0) * 100) if baseline_metrics else 0
+        bl_sr = baseline_metrics.get("sharpe_ratio", 0) if baseline_metrics else 0
+        bl_dd = (baseline_metrics.get("max_drawdown", 0) * 100) if baseline_metrics else 0
+
+        width = 103
+        print()
+        print("=" * width)
+        print("  GP Factor Discovery & Backtest Results".center(width - 2))
+        print(f"  Training: {TRAIN_PERIOD[0]} ~ {TRAIN_PERIOD[1]}    Backtest: {self.start} ~ {self.end}".center(width - 2))
+        print("=" * width)
+        hdr = (f"{'Factor':<42s} {'Gen':>3s} {'IC':>7s} {'IC_IR':>6s} "
+               f"{'Solo_Ret':>9s} {'Solo_SR':>7s} {'Cumul_Ret':>9s} {'Cumul_SR':>8s} {'MaxDD':>7s} {'Acc':>3s}")
+        print(hdr)
+        print("-" * width)
+
+        # Baseline row
+        active_count = len(BASELINE_FACTORS) - len(DISABLED_FACTORS)
+        bl_label = f"baseline ({active_count} factors)"
+        print(f"{bl_label:<42s} {'-':>3s} {'-':>7s} {'-':>6s} "
+               f"{bl_ret:>+8.1f}% {bl_sr:>6.2f} {'-':>9s} {'-':>8s} {bl_dd:>+6.1f}% {'-':>3s}")
+
+        for fmeta in new_factors:
+            name = f"+ {fmeta['name']}"[:41]
+            gen = fmeta["generation"]
+            ic = fmeta["ic_mean"]
+            ic_ir = fmeta["ic_ir"]
+            sr = fmeta["solo_backtest"]
+            cr = fmeta["cumulative_backtest"]
+            acc = "Y" if fmeta["name"] in accepted_names else "N"
+            print(f"{name:<42s} {gen:3d} {ic:7.4f} {ic_ir:6.3f} "
+                   f"{sr['cumulative_return']*100:>+8.1f}% {sr['sharpe_ratio']:6.2f} "
+                   f"{cr['cumulative_return']*100:>+8.1f}% {cr['sharpe_ratio']:7.2f} "
+                   f"{cr['max_drawdown']*100:>+6.1f}% {acc:>3s}")
+
+        print("-" * width)
+        final_ret = (new_factors[-1]["cumulative_backtest"]["cumulative_return"] * 100) if new_factors else bl_ret
+        final_sr = new_factors[-1]["cumulative_backtest"]["sharpe_ratio"] if new_factors else bl_sr
+        delta_ret = final_ret - bl_ret
+        print(f"Final: {len(accepted_factors)} GP factors accepted. "
+              f"Baseline: {bl_ret:+.1f}% → Combined: {final_ret:+.1f}% (Δ{delta_ret:+.1f}%)")
+        print(f"Saved: {GP_FACTORS_PATH} "
+              f"({len(accepted_factors)} active factors, usable as terminals next GP run)")
+        print("=" * width)
+        print()
+
+    # ── GP Evolution Report (charts only, table is now in _print_ablation_table) ──
 
     def _generate_gp_report(
         self, gp: GPEngine, selected: list[str],
     ) -> None:
-        """Generate console table and charts showing GP evolution progress."""
+        """Generate GP evolution progress charts."""
         history = gp.generation_history
         if not history:
             return
 
         chart_dir = Path(self.output_dir) / "gp_report"
         chart_dir.mkdir(parents=True, exist_ok=True)
-
-        # ── Console table ──────────────────────────────────────────────────
-        header = (
-            f"{'Gen':>4s} {'BestFit':>8s} {'MeanFit':>8s} {'MedianFit':>8s} "
-            f"{'BestIC':>7s} {'MeanIC':>7s} {'BestIR':>7s} {'MeanIR':>7s} "
-            f"{'Depth':>5s} {'Nodes':>5s} {'Valid':>5s} {'HoF':>4s} {'Stall':>5s} {'Elap':>6s}"
-        )
-        sep = "-" * len(header)
-        print(f"\n{' GP Evolution Progress '.center(len(header), '=')}")
-        print(header)
-        print(sep)
-
-        for s in history:
-            print(
-                f"{s.generation:4d} {s.best_fitness:8.4f} {s.mean_fitness:8.4f} {s.median_fitness:8.4f} "
-                f"{abs(s.best_ic):7.4f} {s.mean_ic:7.4f} {s.best_ir:7.3f} {s.mean_ir:7.3f} "
-                f"{s.best_depth:5d} {s.best_nodes:5d} {s.valid_count:5d} {s.hall_of_fame_size:4d} {s.stall_count:5d} {s.elapsed_seconds:5.0f}s"
-            )
-
-        print(sep)
-        print(f"Selected factors: {selected}")
-        print(f"Total generations: {gp.generation}")
-
-        # ── Charts ─────────────────────────────────────────────────────────
-        gens = [s.generation for s in history]
-        fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-        fig.suptitle("GP Evolution Progress", fontsize=14, fontweight="bold")
-
-        # 1) Fitness evolution
-        ax = axes[0, 0]
-        ax.plot(gens, [s.best_fitness for s in history], "r-o", label="Best", markersize=5)
-        ax.plot(gens, [s.mean_fitness for s in history], "b-s", label="Mean", markersize=5)
-        ax.plot(gens, [s.median_fitness for s in history], "g--^", label="Median", markersize=5)
-        ax.fill_between(
-            gens,
-            [s.mean_fitness - s.std_fitness for s in history],
-            [s.mean_fitness + s.std_fitness for s in history],
-            alpha=0.15, color="b",
-        )
-        ax.set_xlabel("Generation")
-        ax.set_ylabel("Fitness")
-        ax.set_title("Fitness Evolution")
-        ax.legend(fontsize=8)
-        ax.grid(True, alpha=0.3)
-
-        # 2) IC & IR evolution (best)
-        ax = axes[0, 1]
-        ax.plot(gens, [abs(s.best_ic) for s in history], "r-o", label="Best |IC|", markersize=5)
-        ax.plot(gens, [s.mean_ic for s in history], "r--s", label="Mean |IC|", markersize=5)
-        ax.set_xlabel("Generation")
-        ax.set_ylabel("|IC|", color="r")
-        ax.tick_params(axis="y", labelcolor="r")
-        ax2 = ax.twinx()
-        ax2.plot(gens, [max(0, s.best_ir) for s in history], "b-o", label="Best IR", markersize=5)
-        ax2.plot(gens, [max(0, s.mean_ir) for s in history], "b--s", label="Mean IR", markersize=5)
-        ax2.set_ylabel("IC IR", color="b")
-        ax2.tick_params(axis="y", labelcolor="b")
-        ax.set_title("IC & IR Evolution")
-        lines1, labels1 = ax.get_legend_handles_labels()
-        lines2, labels2 = ax2.get_legend_handles_labels()
-        ax.legend(lines1 + lines2, labels1 + labels2, fontsize=7, loc="upper left")
-        ax.grid(True, alpha=0.3)
-
-        # 3) Complexity
-        ax = axes[1, 0]
-        ax.plot(gens, [s.best_depth for s in history], "r-o", label="Best Depth", markersize=5)
-        ax.plot(gens, [s.mean_depth for s in history], "r--s", label="Mean Depth", markersize=5)
-        ax.plot(gens, [s.best_nodes for s in history], "b-o", label="Best Nodes", markersize=5)
-        ax.plot(gens, [s.mean_nodes for s in history], "b--s", label="Mean Nodes", markersize=5)
-        ax.set_xlabel("Generation")
-        ax.set_ylabel("Count")
-        ax.set_title("Complexity (Depth & Nodes)")
-        ax.legend(fontsize=8)
-        ax.grid(True, alpha=0.3)
-
-        # 4) Population health + HoF
-        ax = axes[1, 1]
-        ax.bar(gens, [s.valid_count for s in history], color="g", alpha=0.6, label="Valid")
-        ax.bar(gens, [s.total_count - s.valid_count for s in history],
-               bottom=[s.valid_count for s in history], color="r", alpha=0.4, label="Invalid")
-        ax.set_xlabel("Generation")
-        ax.set_ylabel("Population")
-        ax.set_title("Population Health")
-        ax2 = ax.twinx()
-        ax2.plot(gens, [s.hall_of_fame_size for s in history], "b-D", label="HoF Size", markersize=5)
-        ax2.set_ylabel("Hall of Fame Size", color="b")
-        ax2.tick_params(axis="y", labelcolor="b")
-        lines1, labels1 = ax.get_legend_handles_labels()
-        lines2, labels2 = ax2.get_legend_handles_labels()
-        ax.legend(lines1 + lines2, labels1 + labels2, fontsize=8)
-        ax.grid(True, alpha=0.3, axis="y")
-
-        fig.tight_layout()
-        report_path = chart_dir / "gp_evolution.png"
-        fig.savefig(report_path, dpi=150, bbox_inches="tight")
-        plt.close(fig)
-        logger.info("GP evolution report saved: %s", report_path)
 
     # ── Factor Composite ────────────────────────────────────────────────────
 
@@ -2693,10 +2833,8 @@ def main():
                         help="Decision mode: llm (AI agent), factor (signal-driven), compare (both)")
     parser.add_argument("--model", type=str, default=None,
                         help="LLM model to use")
-    parser.add_argument("--use-gp", action="store_true",
-                        help="Run GP factor discovery and use all validated factors")
-    parser.add_argument("--load-gp", action="store_true",
-                        help="Load persisted GP factors from gp_factors.json (skip rediscovery)")
+    parser.add_argument("--gp-discover", action="store_true",
+                        help="Run GP factor discovery with per-factor backtesting and enriched persistence")
     parser.add_argument("--gp-population", type=int, default=200,
                         help="GP population size (default: 200)")
     parser.add_argument("--gp-generations", type=int, default=25,
@@ -2715,7 +2853,7 @@ def main():
     end = date.fromisoformat(args.end)
 
     gp_kwargs = dict(
-        use_gp=args.use_gp,
+        gp_discover=args.gp_discover,
         gp_population=args.gp_population,
         gp_generations=args.gp_generations,
     )
@@ -2727,7 +2865,6 @@ def main():
         start=start, end=end, initial_cash=args.cash,
         mode=args.mode, model=args.model, **gp_kwargs,
     )
-    sim.load_gp = args.load_gp
 
     if args.recommend:
         return _run_recommend(sim, args.recommend_cash, args.recommend_top)
@@ -2847,7 +2984,7 @@ def _run_comparison(start: date, end: date, cash: float, model: str | None, gp_k
 
     print("=" * 60)
     print("  Comparison Mode: LLM Agent vs Factor-Driven")
-    if gp_kwargs.get("use_gp"):
+    if gp_kwargs.get("gp_discover"):
         print("  GP Factor Discovery: ENABLED")
     print(f"  Period: {start} → {end}")
     print(f"  Cash: ¥{cash:,.0f}")

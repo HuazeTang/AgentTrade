@@ -14,11 +14,8 @@ AgentTrade 量化交易系统 — 使用指南
 # 1. 每日选股推荐（明天买什么）
 # ═══════════════════════════════════════════════════════════════════════════════
 """
-# 基础推荐（Top 15，10万资金）
+# 推荐（自动加载 gp_factors.json 中的积累因子）
 python run_agent_simulation.py --recommend --recommend-top 15 --recommend-cash 100000
-
-# 加载 GP 因子（推荐）
-python run_agent_simulation.py --recommend --recommend-top 15 --recommend-cash 100000 --load-gp
 
 # 输出: 排名、代码、综合得分、最新收盘价、涨跌幅、建议股数、估算成本、top因子
 """
@@ -27,11 +24,8 @@ python run_agent_simulation.py --recommend --recommend-top 15 --recommend-cash 1
 # 2. 单只股票深度分析
 # ═══════════════════════════════════════════════════════════════════════════════
 """
-# 生成 K 线图 + 因子走势 + 综合得分
+# 自动加载 gp_factors.json
 python run_agent_simulation.py --analyze 603629
-
-# 带 GP 因子
-python run_agent_simulation.py --analyze 603629 --load-gp
 
 # 输出: 多面板 PNG 图表 (data/results/sim_*/analysis_*.png)
 """
@@ -40,19 +34,16 @@ python run_agent_simulation.py --analyze 603629 --load-gp
 # 3. 回测 / 仿真
 # ═══════════════════════════════════════════════════════════════════════════════
 """
-# --- 因子驱动回测（默认区间 2025-10-01 → 2026-04-30）---
+# --- 因子驱动回测（自动加载 gp_factors.json，默认区间 2025-10-01 → 2026-04-30）---
 python run_agent_simulation.py --mode factor
 
-# 同上 + 加载已保存的 GP 因子
-python run_agent_simulation.py --mode factor --load-gp
-
 # 自定义区间 + 资金
-python run_agent_simulation.py --mode factor --load-gp \
+python run_agent_simulation.py --mode factor \
     --start 2025-10-01 --end 2026-05-18 --cash 100000
 
-# --- GP 因子发现 + 回测（从头跑遗传规划，耗时长）---
-python run_agent_simulation.py --mode factor --use-gp \
-    --gp-population 200 --gp-generations 25
+# --- GP 因子发现 + 逐因子回测 + 保存（新命令，替代旧 --use-gp / --load-gp）---
+python run_agent_simulation.py --gp-discover \
+    --gp-population 200 --gp-generations 25 --cash 100000
 
 # --- LLM Agent 回测（需 Qwen API Key）---
 python run_agent_simulation.py --mode llm --model qwen-max
@@ -63,10 +54,11 @@ python run_agent_simulation.py --mode compare --model qwen-max
 # 输出:
 #   逐日权益、交易记录
 #   最终: 累计收益率、年化收益、夏普比率、最大回撤、胜率
-#   ablation: 基准 vs +GP 因子对比
+#   ablation: 基准 vs +GP 因子对比（含逐因子solo + cumulative）
 #   K线图: data/results/sim_*/charts/
 #   权益曲线: data/results/sim_*/equity_position.png
 #   报告: data/results/sim_*/report.md
+#   GP因子池: data/results/gp_factors.json（积累，下次GP挖掘时作为terminals）
 """
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -109,8 +101,7 @@ python download_all_main.py
   --mode {llm,factor,compare}
                          决策模式: llm=AI代理, factor=因子驱动, compare=两者对比
   --model MODEL          LLM模型名 (如 qwen-max)
-  --use-gp               从头跑GP因子发现 (耗时长，约30分钟)
-  --load-gp              加载已保存的GP因子 (推荐，秒级)
+  --gp-discover          GP因子发现 + 逐因子回测 + 保存到 gp_factors.json
   --gp-population N      GP种群大小 (默认200)
   --gp-generations N     GP最大代数 (默认25)
   --recommend            选股推荐模式 (基于最新数据，假定空仓)
@@ -145,7 +136,7 @@ python download_all_main.py
   download_all_main.py     批量下载A股日线
   data/cache/daily/        日线缓存 (parquet, 前复权)
   data/results/            回测/推荐/报告输出
-  data/results/gp_factors.json  已保存的GP因子
+  data/results/gp_factors.json  积累的GP因子池（含代数/IC/IR/回测结果，下次挖掘时作为terminals）
   discovery/gp.py          遗传规划因子发现引擎
   factor/engine.py         因子计算引擎
   config/chart_style.py    图表样式 (中文字体 + 颜色)
