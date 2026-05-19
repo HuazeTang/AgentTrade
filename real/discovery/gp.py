@@ -111,7 +111,7 @@ class GPConfig:
     crossover_prob: float = 0.7
     mutation_prob: float = 0.3
     elite_count: int = 5
-    max_depth: int = 6
+    max_depth: int = 7
     max_complexity: int = 30
     parsimony_penalty: float = 0.001  # per node
     terminal_prob: float = 0.3  # probability of picking terminal during mutation
@@ -122,11 +122,12 @@ class GPConfig:
     terminals: list[str] | None = None  # None = use TERMINAL_FIELDS from expr.py
 
     # Mutation weights
-    subtree_mutation_weight: float = 0.30
-    window_mutation_weight: float = 0.20
-    operator_mutation_weight: float = 0.20
-    constant_mutation_weight: float = 0.15
-    unary_mutation_weight: float = 0.15
+    subtree_mutation_weight: float = 0.20
+    window_mutation_weight: float = 0.15
+    operator_mutation_weight: float = 0.15
+    constant_mutation_weight: float = 0.10
+    unary_mutation_weight: float = 0.10
+    wrap_rolling_mutation_weight: float = 0.30  # wrap subtree with rolling/ts op
 
     # Fitness weights
     ic_mean_weight: float = 0.4
@@ -320,13 +321,15 @@ class GPEngine:
         terminals = cfg.terminals or TERMINAL_FIELDS
         population = []
         for i in range(cfg.population_size):
-            depth = random.randint(2, min(cfg.max_depth, 4))
+            # Ramped half-and-half with higher initial depth to encourage
+            # rolling/ts ops instead of shallow price comparisons.
+            depth = random.randint(3, min(cfg.max_depth, 6))
             method = "grow" if i % 3 != 0 else "full"
             tree = random_expr(max_depth=depth, method=method, terminals=terminals)
             if tree.node_count() <= cfg.max_complexity:
                 population.append(tree)
             else:
-                population.append(random_expr(max_depth=2, method="grow", terminals=terminals))
+                population.append(random_expr(max_depth=3, method="grow", terminals=terminals))
 
         return population
 
@@ -536,13 +539,14 @@ class GPEngine:
     def _mutate(self, tree: Expr) -> Expr:
         """Apply one of several mutation operators at random."""
         cfg = self.config
-        choices = ["subtree", "window", "operator", "constant", "unary"]
+        choices = ["subtree", "window", "operator", "constant", "unary", "wrap_rolling"]
         weights = [
             cfg.subtree_mutation_weight,
             cfg.window_mutation_weight,
             cfg.operator_mutation_weight,
             cfg.constant_mutation_weight,
             cfg.unary_mutation_weight,
+            cfg.wrap_rolling_mutation_weight,
         ]
         op = random.choices(choices, weights=weights, k=1)[0]
 
@@ -556,6 +560,8 @@ class GPEngine:
             return self._mutate_constant(tree)
         elif op == "unary":
             return self._mutate_unary(tree)
+        elif op == "wrap_rolling":
+            return self._mutate_wrap_rolling(tree)
         return tree
 
     def _mutate_subtree(self, tree: Expr) -> Expr:
@@ -565,7 +571,7 @@ class GPEngine:
             return tree
         target = random.choice(nodes)
         new_subtree = random_expr(
-            max_depth=random.randint(1, 3),
+            max_depth=random.randint(2, 4),
             method=random.choice(["grow", "full"]),
             terminals=self.config.terminals or TERMINAL_FIELDS,
         )
@@ -673,6 +679,43 @@ class GPEngine:
                 return tree
             target = random.choice(unary_nodes)
             return tree.replace_child(target, target.child.clone())
+
+    def _mutate_wrap_rolling(self, tree: Expr) -> Expr:
+        """Wrap a random subtree with a rolling or time-series operation.
+
+        This is the primary mechanism for building temporal structure:
+        div(close, amount) → ts_std(div(close, amount), 20).
+        """
+        nodes = collect_all_nodes(tree)
+        if not nodes:
+            return tree
+
+        target = random.choice(nodes)
+
+        # Choose rolling op type: rolling (60%), ts (25%), rolling_binary (15%)
+        r = random.random()
+        if r < 0.60:
+            op = random.choice(ROLLING_OPS)
+            if op == "ts_ema":
+                w = random.choice(EMA_SPANS)
+            else:
+                w = random.choice(ROLLING_WINDOWS)
+            qt = random.choice(QUANTILE_VALUES) if op == "ts_quantile" else None
+            wrapper = RollingOp(op, w, target.clone(), quantile=qt)
+        elif r < 0.85:
+            op = random.choice(TS_OPS)
+            p = random.choice(TS_PERIODS)
+            wrapper = TimeSeriesOp(op, p, target.clone())
+        else:
+            op = random.choice(ROLLING_OPS_BINARY)
+            w = random.choice(ROLLING_WINDOWS)
+            const_child = ConstExpr(round(random.uniform(-1, 1), 2))
+            wrapper = RollingOp(op, w, target.clone(), right=const_child)
+
+        new_tree = tree.replace_child(target, wrapper)
+        if new_tree.depth() > self.config.max_depth:
+            return tree  # reject if too deep
+        return new_tree
 
     # ── Generation Stats ───────────────────────────────────────────────────
 

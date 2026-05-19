@@ -692,13 +692,14 @@ def _random_tree(
 
     # At depths 1..max_depth-1, probabilistically choose node type
     # 9 choices: rolling, ts, binary, unary, cs, cs_group, ternary, rolling_binary, terminal
+    # Weights for: rolling, ts, binary, unary, cs, cs_group, ternary, rolling_binary, terminal
     if method == "full":
-        node_type_weights = [0.20, 0.20, 0.14, 0.10, 0.08, 0.08, 0.08, 0.08, 0.04]
+        node_type_weights = [0.24, 0.22, 0.10, 0.08, 0.08, 0.07, 0.08, 0.09, 0.04]
     else:  # grow
         if current_depth == 1:
-            node_type_weights = [0.22, 0.18, 0.12, 0.10, 0.08, 0.08, 0.06, 0.08, 0.08]
+            node_type_weights = [0.26, 0.20, 0.08, 0.08, 0.08, 0.07, 0.07, 0.08, 0.08]
         else:
-            node_type_weights = [0.16, 0.12, 0.12, 0.10, 0.08, 0.08, 0.06, 0.08, 0.20]
+            node_type_weights = [0.18, 0.14, 0.10, 0.08, 0.08, 0.07, 0.07, 0.08, 0.20]
 
     choice = random.choices(
         ["rolling", "ts", "binary", "unary", "cs", "cs_group", "ternary", "rolling_binary", "terminal"],
