@@ -2688,6 +2688,22 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
             "win_rate": win_rate,
         }
 
+    def _llm_analyze_backtest(self) -> dict | None:
+        """Send backtest results to LLM for weakness diagnosis and factor proposals."""
+        from llm.backtest_analyzer import analyze_backtest
+
+        return analyze_backtest(
+            journal=self._journal,
+            equity_series=self.accountant.to_equity_series(),
+            factor_weights=self._factor_weights,
+            start=self.start,
+            end=self.end,
+            max_positions=MAX_POSITIONS,
+            sell_rank_limit=SELL_RANK_LIMIT,
+            take_profit_pct=TAKE_PROFIT_PCT,
+            llm=self.llm if (self.llm and self.llm.configured) else None,
+        )
+
     def _finalize(self) -> dict:
         """Compute final metrics and save outputs."""
         equity_series = self.accountant.to_equity_series()
@@ -2777,6 +2793,18 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
                         delta_sharpe, delta_dd * 100,
                     )
             metrics["ablation"] = ablation
+
+        # LLM backtest analysis (independent of mode — works if API key available)
+        llm_analysis = self._llm_analyze_backtest()
+        if llm_analysis:
+            metrics["llm_analysis"] = llm_analysis
+            print(f"\n  🤖 LLM 回测诊断:")
+            print(f"  {llm_analysis.get('diagnosis', 'N/A')[:200]}")
+            proposed = llm_analysis.get("proposed_factors", [])
+            if proposed:
+                print(f"  新因子建议 ({len(proposed)}个):")
+                for pf in proposed:
+                    print(f"    • {pf.get('name', '?')}: {pf.get('intuition', '?')[:120]}")
 
         ts = datetime.now().strftime("%Y%m%d_%H%M")
 
@@ -2878,6 +2906,23 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
                 lines.append(f"| {k} | {bv} | {cv} | {dv_str} |")
             lines.append(f"\nGP factors: {ablation.get('gp_factors', [])}")
             lines.append(f"Decision: {'ACCEPTED' if ablation.get('gp_accepted') else 'REJECTED'}")
+
+        # LLM Analysis section
+        llm_analysis = metrics.get("llm_analysis")
+        if llm_analysis:
+            lines.append(f"\n## LLM Backtest Analysis\n")
+            diag = llm_analysis.get("diagnosis", "N/A")
+            lines.append(f"\n### Diagnosis\n\n{diag}\n")
+            proposed = llm_analysis.get("proposed_factors", [])
+            if proposed:
+                lines.append(f"\n### Proposed New Factors ({len(proposed)})\n")
+                lines.append(f"| Name | Intuition | Expression Hint |")
+                lines.append(f"|------|-----------|-----------------|")
+                for pf in proposed:
+                    name = pf.get("name", "?")
+                    intuition = pf.get("intuition", "?")
+                    hint = pf.get("expression_hint", "?")
+                    lines.append(f"| {name} | {intuition} | `{hint}` |")
 
         lines.append(f"\n## Equity Curve\n")
         lines.append(f"| Date | Equity | Daily Return |")

@@ -42,14 +42,17 @@
         "win_rate": 0.471831
       },
       "cumulative_backtest": {
-        "cumulative_return": -0.440285,
-        "sharpe_ratio": -1.011,
-        "max_drawdown": -0.484812,
-        "annualized_return": -0.640368,
-        "win_rate": 0.471831
+        "cumulative_return": 0.59,
+        "sharpe_ratio": 1.604,
+        "max_drawdown": -0.2474,
+        "annualized_return": 1.0264,
+        "win_rate": 0.493
       },
       "discovered_at": "2026-05-18",
-      "accepted": false
+      "accepted": true,
+      "strategy_gene": {
+        "sell_rank_limit": 5
+      }
     },
     {
       "name": "gp_ts_min120_ts_delay120_sign_cs_group_zscore_board_high_ebf099a1",
@@ -352,11 +355,11 @@
     ],
     "population_size": 100,
     "max_generations": 10,
-    "accepted_count": 1,
+    "accepted_count": 2,
     "total_candidates": 2,
-    "baseline_return": 0.144967,
-    "baseline_sharpe": 0.693,
-    "final_return": -0.440285,
-    "final_sharpe": -1.011
+    "baseline_return": 0.1968,
+    "baseline_sharpe": 0.803,
+    "final_return": 0.59,
+    "final_sharpe": 1.604
   }
 }
