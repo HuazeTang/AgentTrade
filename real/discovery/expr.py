@@ -75,13 +75,20 @@ class Expr(ABC):
         if t == "binary":
             return BinaryOp(d["op"], Expr.from_dict(d["left"]), Expr.from_dict(d["right"]))
         if t == "rolling":
-            return RollingOp(d["op"], d["window"], Expr.from_dict(d["child"]))
+            right = Expr.from_dict(d["right"]) if "right" in d else None
+            qt = d.get("quantile")
+            return RollingOp(d["op"], d["window"], Expr.from_dict(d["child"]),
+                             right=right, quantile=qt)
         if t == "cs":
             return CrossSectionalOp(d["op"], Expr.from_dict(d["child"]))
         if t == "cs_group":
             return GroupedCrossSectionalOp(d["op"], d["group_field"], Expr.from_dict(d["child"]))
         if t == "ts":
             return TimeSeriesOp(d["op"], d["periods"], Expr.from_dict(d["child"]))
+        if t == "ternary":
+            return TernaryOp(d["op"], Expr.from_dict(d["cond"]),
+                             Expr.from_dict(d["then_branch"]),
+                             Expr.from_dict(d["else_branch"]))
         raise ValueError(f"Unknown expr type: {t}")
 
 
@@ -283,13 +290,18 @@ class BinaryOp(Expr):
 
 @dataclass
 class RollingOp(Expr):
-    """Time-series rolling operations: ts_sum, ts_mean, ts_std, ts_min, ts_max, ts_rank, ts_delay.
+    """Time-series rolling operations: ts_sum, ts_mean, ts_std, ts_min, ts_max, ts_rank, ts_delay,
+    ts_skew, ts_kurt, ts_corr, ts_quantile, ts_ema, ts_prod.
 
-    These unstack → operate on time axis → stack.
+    These unstack -> operate on time axis -> stack.
+    ts_corr takes 2 children (left/right); other ops take 1.
+    ts_quantile has a `quantile` param; ts_ema uses `window` as span.
     """
     op: str
     window: int
     child: Expr
+    right: Expr | None = None       # second child for ts_corr
+    quantile: float | None = None   # for ts_quantile (0.1, 0.25, 0.75, 0.9)
 
     _IMPLS = {
         "ts_sum":   ".rolling({w}, min_periods=max(1,{w}//2)).sum()",
@@ -299,43 +311,86 @@ class RollingOp(Expr):
         "ts_max":   ".rolling({w}, min_periods=max(1,{w}//2)).max()",
         "ts_delay": ".shift({w})",
         "ts_rank":  ".rolling({w}, min_periods=max(1,{w}//2)).apply(lambda x: (x.rank().iloc[-1]-1)/(len(x)-1) if len(x)>1 else 0.5, raw=False)",
+        "ts_skew":  ".rolling({w}, min_periods=max(1,{w}//2)).skew()",
+        "ts_kurt":  ".rolling({w}, min_periods=max(1,{w}//2)).kurt()",
+        "ts_quantile": ".rolling({w}, min_periods=max(1,{w}//2)).quantile({q})",
+        "ts_ema":   ".ewm(span={w}, adjust=False).mean()",
+        "ts_prod":  ".pipe(lambda x: (1+x).rolling({w}, min_periods=max(1,{w}//2)).apply(np.prod, raw=True)-1)",
     }
 
     def to_source(self) -> str:
+        if self.op == "ts_corr" and self.right is not None:
+            left_src = self.child.to_source()
+            right_src = self.right.to_source()
+            w = self.window
+            return (
+                f"(({left_src}).unstack()"
+                f".rolling({w}, min_periods=max(1,{w}//2))"
+                f".corr(({right_src}).unstack()))"
+                f".stack()"
+            )
         inner = self.child.to_source()
         impl = self._IMPLS.get(self.op, self._IMPLS["ts_mean"])
         unstacked = f"({inner}).unstack()"
-        operated = unstacked + impl.format(w=self.window)
+        qt_val = self.quantile if self.quantile is not None else 0.5
+        operated = unstacked + impl.format(w=self.window, q=qt_val)
         return f"({operated}).stack()"
 
     def complexity(self) -> int:
-        return 1 + self.child.complexity()
+        extra = self.right.complexity() if self.right else 0
+        return 1 + self.child.complexity() + extra
 
     def required_fields(self) -> set[str]:
-        return self.child.required_fields()
+        fields = self.child.required_fields()
+        if self.right:
+            fields |= self.right.required_fields()
+        return fields
 
     def depth(self) -> int:
-        return 1 + self.child.depth()
+        right_depth = self.right.depth() if self.right else 0
+        return 1 + max(self.child.depth(), right_depth)
 
     def node_count(self) -> int:
-        return 1 + self.child.node_count()
+        extra = self.right.node_count() if self.right else 0
+        return 1 + self.child.node_count() + extra
 
     def clone(self) -> Expr:
-        return RollingOp(self.op, self.window, self.child.clone())
+        return RollingOp(self.op, self.window, self.child.clone(),
+                         right=self.right.clone() if self.right else None,
+                         quantile=self.quantile)
 
     def children(self) -> list[Expr]:
+        if self.right:
+            return [self.child, self.right]
         return [self.child]
 
     def replace_child(self, old: Expr, new: Expr) -> Expr:
         if self.child is old:
-            return RollingOp(self.op, self.window, new)
-        return RollingOp(self.op, self.window, self.child.replace_child(old, new))
+            return RollingOp(self.op, self.window, new,
+                             right=self.right.clone() if self.right else None,
+                             quantile=self.quantile)
+        if self.right is old:
+            return RollingOp(self.op, self.window, self.child.clone(),
+                             right=new, quantile=self.quantile)
+        new_child = self.child.replace_child(old, new)
+        new_right = self.right.replace_child(old, new) if self.right else None
+        return RollingOp(self.op, self.window, new_child,
+                         right=new_right, quantile=self.quantile)
 
     def __repr__(self) -> str:
-        return f"{self.op}({self.window}, {self.child!r})"
+        if self.right:
+            return f"{self.op}({self.window}, {self.child!r}, {self.right!r})"
+        qt = f", q={self.quantile:g}" if self.quantile is not None else ""
+        return f"{self.op}({self.window}{qt}, {self.child!r})"
 
     def to_dict(self) -> dict:
-        return {"type": "rolling", "op": self.op, "window": self.window, "child": self.child.to_dict()}
+        d: dict = {"type": "rolling", "op": self.op, "window": self.window,
+                    "child": self.child.to_dict()}
+        if self.right:
+            d["right"] = self.right.to_dict()
+        if self.quantile is not None:
+            d["quantile"] = self.quantile
+        return d
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -355,6 +410,7 @@ class CrossSectionalOp(Expr):
         "cs_rank":   ".rank(axis=1, pct=True)",
         "cs_zscore": ".pipe(lambda df: df.sub(df.mean(axis=1), axis=0).div(df.std(axis=1).clip(lower=1e-10), axis=0))",
         "cs_scale":  ".pipe(lambda df: (df - df.min(axis=1)) / (df.max(axis=1) - df.min(axis=1)).clip(lower=1e-10))",
+        "cs_regression_residual": ".pipe(lambda df: df.sub(df.mean(axis=1), axis=0))",
     }
 
     def to_source(self) -> str:
@@ -510,6 +566,67 @@ class TimeSeriesOp(Expr):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# Ternary conditional operator (if-then-else)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+@dataclass
+class TernaryOp(Expr):
+    """Conditional operator: if_then(cond, then_branch, else_branch).
+
+    Evaluates cond > 0, picks then_branch or else_branch element-wise.
+    """
+    op: str              # "if_then"
+    cond: Expr           # condition expression
+    then_branch: Expr    # value when cond > 0
+    else_branch: Expr    # value when cond <= 0
+
+    def to_source(self) -> str:
+        c = self.cond.to_source()
+        t = self.then_branch.to_source()
+        e = self.else_branch.to_source()
+        return f"np.where(({c})>0, {t}, {e})"
+
+    def complexity(self) -> int:
+        return 1 + self.cond.complexity() + self.then_branch.complexity() + self.else_branch.complexity()
+
+    def required_fields(self) -> set[str]:
+        return self.cond.required_fields() | self.then_branch.required_fields() | self.else_branch.required_fields()
+
+    def depth(self) -> int:
+        return 1 + max(self.cond.depth(), self.then_branch.depth(), self.else_branch.depth())
+
+    def node_count(self) -> int:
+        return 1 + self.cond.node_count() + self.then_branch.node_count() + self.else_branch.node_count()
+
+    def clone(self) -> Expr:
+        return TernaryOp(self.op, self.cond.clone(), self.then_branch.clone(), self.else_branch.clone())
+
+    def children(self) -> list[Expr]:
+        return [self.cond, self.then_branch, self.else_branch]
+
+    def replace_child(self, old: Expr, new: Expr) -> Expr:
+        if self.cond is old:
+            return TernaryOp(self.op, new, self.then_branch, self.else_branch)
+        if self.then_branch is old:
+            return TernaryOp(self.op, self.cond, new, self.else_branch)
+        if self.else_branch is old:
+            return TernaryOp(self.op, self.cond, self.then_branch, new)
+        return TernaryOp(self.op,
+                         self.cond.replace_child(old, new),
+                         self.then_branch.replace_child(old, new),
+                         self.else_branch.replace_child(old, new))
+
+    def __repr__(self) -> str:
+        return f"if_then({self.cond!r}, {self.then_branch!r}, {self.else_branch!r})"
+
+    def to_dict(self) -> dict:
+        return {"type": "ternary", "op": self.op,
+                "cond": self.cond.to_dict(),
+                "then_branch": self.then_branch.to_dict(),
+                "else_branch": self.else_branch.to_dict()}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 # Tree generation helpers (used by GP initialisation and mutation)
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -528,13 +645,20 @@ GROUP_FIELDS = ["board"]
 # Operators available for each node type
 UNARY_OPS = ["neg", "abs", "log", "sqrt", "sign"]
 BINARY_OPS = ["add", "sub", "mul", "div", "max", "min", "gt", "lt"]
-ROLLING_OPS = ["ts_sum", "ts_mean", "ts_std", "ts_min", "ts_max", "ts_delay", "ts_rank"]
-CS_OPS = ["cs_rank", "cs_zscore"]
+ROLLING_OPS = ["ts_sum", "ts_mean", "ts_std", "ts_min", "ts_max", "ts_delay", "ts_rank",
+               "ts_skew", "ts_kurt", "ts_quantile", "ts_ema", "ts_prod"]
+ROLLING_OPS_BINARY = ["ts_corr"]  # needs 2 children
+CS_OPS = ["cs_rank", "cs_zscore", "cs_regression_residual"]
 CS_GROUP_OPS = ["cs_group_mean", "cs_group_zscore"]
 TS_OPS = ["pct_change", "delta"]
+TERNARY_OPS = ["if_then"]
 
 # Typical windows for rolling ops
 ROLLING_WINDOWS = [5, 10, 20, 30, 60, 120]
+# Typical spans for ema
+EMA_SPANS = [5, 10, 20, 30, 60]
+# Typical quantile values
+QUANTILE_VALUES = [0.1, 0.25, 0.75, 0.9]
 # Typical periods for TS ops
 TS_PERIODS = [1, 5, 10, 21, 63]
 
@@ -567,17 +691,17 @@ def _random_tree(
         return _random_terminal(terminals)
 
     # At depths 1..max_depth-1, probabilistically choose node type
-    # 7 choices: rolling, ts, binary, unary, cs, cs_group, terminal
+    # 9 choices: rolling, ts, binary, unary, cs, cs_group, ternary, rolling_binary, terminal
     if method == "full":
-        node_type_weights = [0.26, 0.26, 0.18, 0.10, 0.08, 0.08, 0.04]
+        node_type_weights = [0.20, 0.20, 0.14, 0.10, 0.08, 0.08, 0.08, 0.08, 0.04]
     else:  # grow
         if current_depth == 1:
-            node_type_weights = [0.28, 0.24, 0.14, 0.10, 0.08, 0.08, 0.08]
+            node_type_weights = [0.22, 0.18, 0.12, 0.10, 0.08, 0.08, 0.06, 0.08, 0.08]
         else:
-            node_type_weights = [0.19, 0.15, 0.14, 0.10, 0.08, 0.08, 0.26]
+            node_type_weights = [0.16, 0.12, 0.12, 0.10, 0.08, 0.08, 0.06, 0.08, 0.20]
 
     choice = random.choices(
-        ["rolling", "ts", "binary", "unary", "cs", "cs_group", "terminal"],
+        ["rolling", "ts", "binary", "unary", "cs", "cs_group", "ternary", "rolling_binary", "terminal"],
         weights=node_type_weights,
         k=1,
     )[0]
@@ -586,8 +710,19 @@ def _random_tree(
         return _random_terminal(terminals)
     elif choice == "rolling":
         op = random.choice(ROLLING_OPS)
+        if op == "ts_ema":
+            w = random.choice(EMA_SPANS)
+        else:
+            w = random.choice(ROLLING_WINDOWS)
+        qt = random.choice(QUANTILE_VALUES) if op == "ts_quantile" else None
+        return RollingOp(op, w, _random_tree(current_depth + 1, max_depth, terminals, method),
+                         quantile=qt)
+    elif choice == "rolling_binary":
+        op = random.choice(ROLLING_OPS_BINARY)
         w = random.choice(ROLLING_WINDOWS)
-        return RollingOp(op, w, _random_tree(current_depth + 1, max_depth, terminals, method))
+        left = _random_tree(current_depth + 1, max_depth, terminals, method)
+        right = _random_tree(current_depth + 1, max_depth, terminals, method)
+        return RollingOp(op, w, left, right=right)
     elif choice == "ts":
         op = random.choice(TS_OPS)
         p = random.choice(TS_PERIODS)
@@ -607,6 +742,11 @@ def _random_tree(
         op = random.choice(CS_GROUP_OPS)
         gf = random.choice(GROUP_FIELDS)
         return GroupedCrossSectionalOp(op, gf, _random_tree(current_depth + 1, max_depth, terminals, method))
+    elif choice == "ternary":
+        cond = _random_tree(current_depth + 1, max_depth, terminals, method)
+        then_b = _random_tree(current_depth + 1, max_depth, terminals, method)
+        else_b = _random_tree(current_depth + 1, max_depth, terminals, method)
+        return TernaryOp("if_then", cond, then_b, else_b)
 
     return _random_terminal(terminals)
 

@@ -268,6 +268,93 @@ ROLLING_OPERATORS: list[OperatorMeta] = [
             ".apply(lambda x: (x.rank().iloc[-1]-1)/(len(x)-1) if len(x)>1 else 0.5, raw=False).stack()"
         ),
     ),
+    OperatorMeta(
+        name="ts_skew",
+        arity=1,
+        category="rolling",
+        description="Rolling skewness: third moment — asymmetry of returns distribution",
+        detail="Positive skew = fat right tail (crash-proof? moonshot potential). "
+               "Negative skew = fat left tail (crash risk). High absolute skew signals "
+               "regime change or pending reversal. Typical window: 20-60 days.",
+        params=["window"],
+        param_defaults={"window": [10, 20, 30, 60]},
+        node_type="rolling",
+        pandas_template="({x}).unstack().rolling({w}, min_periods=max(1,{w}//2)).skew().stack()",
+    ),
+    OperatorMeta(
+        name="ts_kurt",
+        arity=1,
+        category="rolling",
+        description="Rolling kurtosis: fourth moment — tail fatness vs normal distribution",
+        detail="High kurtosis = fat tails, extreme events more likely. Low kurtosis = "
+               "thin tails, returns clustered near mean. Spikes often precede volatility "
+               "regime changes. Common in crash prediction models.",
+        params=["window"],
+        param_defaults={"window": [20, 30, 60, 120]},
+        node_type="rolling",
+        pandas_template="({x}).unstack().rolling({w}, min_periods=max(1,{w}//2)).kurt().stack()",
+    ),
+    OperatorMeta(
+        name="ts_corr",
+        arity=2,
+        category="rolling",
+        description="Rolling correlation: co-movement between two series over N days",
+        detail="Measures linear relationship between two factors. Corr(price, volume) "
+               "detects volume-price divergence. Corr(stock_ret, mkt_ret) is rolling beta. "
+               "High positive corr = same direction; negative = divergence signal.",
+        params=["window"],
+        param_defaults={"window": [10, 20, 30, 60]},
+        node_type="rolling",
+        pandas_template=(
+            "({x}).unstack().rolling({w}, min_periods=max(1,{w}//2))"
+            ".corr(({y}).unstack()).stack()"
+        ),
+    ),
+    OperatorMeta(
+        name="ts_quantile",
+        arity=1,
+        category="rolling",
+        description="Rolling quantile: value at a given percentile over N days",
+        detail="Captures distribution extremes. q=0.1 gives the 'worst 10%' floor; "
+               "q=0.9 gives the 'best 10%' ceiling. More robust than min/max since it "
+               "ignores single outliers. Used in VaR-like risk signals.",
+        params=["window", "quantile"],
+        param_defaults={"window": [20, 30, 60], "quantile": [0.1, 0.25, 0.75, 0.9]},
+        node_type="rolling",
+        pandas_template=(
+            "({x}).unstack().rolling({w}, min_periods=max(1,{w}//2))"
+            ".quantile({q}).stack()"
+        ),
+    ),
+    OperatorMeta(
+        name="ts_ema",
+        arity=1,
+        category="rolling",
+        description="Exponential moving average: decay-weighted mean with span S",
+        detail="Gives more weight to recent observations. Faster to react than SMA. "
+               "Span=5 tracks fast trends; span=60 captures slow regime. "
+               "Standard in modern momentum (bid-ask bounce resistant).",
+        params=["span"],
+        param_defaults={"span": [5, 10, 20, 30, 60]},
+        node_type="rolling",
+        pandas_template="({x}).unstack().ewm(span={s}, adjust=False).mean().stack()",
+    ),
+    OperatorMeta(
+        name="ts_prod",
+        arity=1,
+        category="rolling",
+        description="Rolling product: cumulative (1+ret) product minus 1 over N days",
+        detail="Equivalent to cumulative return. prod(close_pct_change, 20) = 20-day "
+               "return. Different from sum because it compounds. Correct for return "
+               "accumulation; sum approximates only for small returns.",
+        params=["window"],
+        param_defaults={"window": [5, 10, 20, 30, 60]},
+        node_type="rolling",
+        pandas_template=(
+            "({x}).unstack().pipe(lambda x: (1+x).rolling({w}, min_periods=max(1,{w}//2))"
+            ".apply(np.prod, raw=True)-1).stack()"
+        ),
+    ),
 ]
 
 CROSS_SECTIONAL_OPERATORS: list[OperatorMeta] = [
@@ -343,6 +430,21 @@ CROSS_SECTIONAL_OPERATORS: list[OperatorMeta] = [
             ".transform(lambda x: (x - x.mean()) / (x.std() + 1e-10)).T.stack()"
         ),
     ),
+    OperatorMeta(
+        name="cs_regression_residual",
+        arity=1,
+        category="cross_sectional",
+        description="Cross-sectional residual: deviation from cross-sectional mean",
+        detail="Removes market-level signal, isolating stock-specific alpha. "
+               "Equivalent to x - cs_mean(x). Use to de-mean before ranking. "
+               "Creates long-short neutral factors.",
+        node_type="cs",
+        pandas_template=(
+            "({x}).unstack()"
+            ".pipe(lambda df: df.sub(df.mean(axis=1), axis=0))"
+            ".stack()"
+        ),
+    ),
 ]
 
 TIME_SERIES_OPERATORS: list[OperatorMeta] = [
@@ -386,9 +488,23 @@ TIME_SERIES_OPERATORS: list[OperatorMeta] = [
     ),
 ]
 
+TERNARY_OPERATORS: list[OperatorMeta] = [
+    OperatorMeta(
+        name="if_then",
+        arity=3,
+        category="conditional",
+        description="Conditional: if cond>0 use then_branch, else use else_branch",
+        detail="Enables non-linear switching logic. if_then(momentum>0, momentum, reversal) "
+               "applies momentum in up-trending names and reversal in down-trending. "
+               "Combined with gt/lt, creates powerful rule-based factors.",
+        node_type="ternary",
+        pandas_template="np.where(({c})>0, {t}, {e})",
+    ),
+]
+
 ALL_OPERATORS: list[OperatorMeta] = (
     UNARY_OPERATORS + BINARY_OPERATORS + ROLLING_OPERATORS
-    + CROSS_SECTIONAL_OPERATORS + TIME_SERIES_OPERATORS
+    + CROSS_SECTIONAL_OPERATORS + TIME_SERIES_OPERATORS + TERNARY_OPERATORS
 )
 
 

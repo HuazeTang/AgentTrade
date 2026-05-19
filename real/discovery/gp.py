@@ -24,15 +24,43 @@ import pandas as pd
 from discovery.compiler import compile_expr, compile_and_validate
 from discovery.expr import (
     Expr, VarExpr, ConstExpr, UnaryOp, BinaryOp,
-    RollingOp, CrossSectionalOp, GroupedCrossSectionalOp, TimeSeriesOp,
+    RollingOp, CrossSectionalOp, GroupedCrossSectionalOp, TimeSeriesOp, TernaryOp,
     random_expr, collect_all_nodes,
-    ROLLING_OPS, ROLLING_WINDOWS, UNARY_OPS, BINARY_OPS,
+    ROLLING_OPS, ROLLING_OPS_BINARY, ROLLING_WINDOWS, UNARY_OPS, BINARY_OPS,
     CS_OPS, CS_GROUP_OPS, GROUP_FIELDS, TS_OPS, TS_PERIODS, TERMINAL_FIELDS,
+    EMA_SPANS, QUANTILE_VALUES, TERNARY_OPS,
 )
 from discovery.operators import operator_registry
 from discovery.validate import FactorValidator
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class StrategyGene:
+    """Position strategy parameters co-evolved with factor expression.
+
+    Only sell_rank_limit for now (single-position constraint: MAX_POSITIONS=1).
+    Future: take_profit_pct, rebalance_freq, etc.
+    """
+    sell_rank_limit: int = 5  # 2..20
+
+    def mutate(self, rng: random.Random) -> StrategyGene:
+        """Perturb sell_rank_limit within [2, 20]."""
+        delta = rng.choice([-3, -2, -1, 1, 2, 3])
+        new_val = max(2, min(20, self.sell_rank_limit + delta))
+        return StrategyGene(sell_rank_limit=new_val)
+
+    @staticmethod
+    def random(rng: random.Random) -> StrategyGene:
+        return StrategyGene(sell_rank_limit=rng.randint(2, 21))
+
+    def to_dict(self) -> dict:
+        return {"sell_rank_limit": self.sell_rank_limit}
+
+    @staticmethod
+    def from_dict(d: dict) -> StrategyGene:
+        return StrategyGene(sell_rank_limit=d.get("sell_rank_limit", 5))
 
 
 class Individual(NamedTuple):
@@ -47,6 +75,7 @@ class Individual(NamedTuple):
     complexity: int
     depth: int
     generation: int = 0  # which generation this individual was created in
+    strategy_gene: StrategyGene = StrategyGene()  # co-evolved position strategy
 
 
 @dataclass
@@ -137,6 +166,7 @@ class GPEngine:
         forward_returns: pd.Series,
         existing_factors: pd.DataFrame | None = None,
         callback: Callable[[int, list[Individual]], None] | None = None,
+        seeds: list[Individual] | None = None,
     ) -> list[Individual]:
         """Evolve a population of factor expressions.
 
@@ -146,6 +176,8 @@ class GPEngine:
             existing_factors: DataFrame of existing factor values for novelty check.
             callback: Optional function called after each generation with
                       (generation, population).
+            seeds: Optional pre-evaluated Individuals to inject into initial
+                   population (e.g. LLM-proposed seeds).
 
         Returns:
             List of Individuals sorted by fitness (best first).
@@ -157,13 +189,28 @@ class GPEngine:
         self._hall_of_fame = []
 
         # Initialize population
-        logger.info("Initializing population of %d ...", cfg.population_size)
-        population = self._initialize_population()
+        n_seeds = len(seeds) if seeds else 0
+        logger.info("Initializing population of %d (including %d seeds) ...",
+                     cfg.population_size, n_seeds)
+        trees = self._initialize_population()
+        # Replace first N trees with seed trees
+        seed_trees = []
+        seed_strategy_genes = []
+        if seeds:
+            for i, seed in enumerate(seeds):
+                if i < len(trees):
+                    seed_trees.append(seed.tree.clone())
+                    seed_strategy_genes.append(seed.strategy_gene)
+            trees = seed_trees + trees[len(seed_trees):]
 
-        # Evaluate initial population
+        # Evaluate initial population with random strategy genes
         logger.info("Evaluating initial population ...")
+        init_sgs = seed_strategy_genes + [
+            StrategyGene.random(random) for _ in range(len(trees) - len(seed_strategy_genes))
+        ]
         population = self._evaluate_population(
-            population, data, forward_returns, existing_factors
+            trees, data, forward_returns, existing_factors,
+            strategy_genes=init_sgs,
         )
         population.sort(key=lambda ind: ind.fitness, reverse=True)
         self._update_hall_of_fame(population[:cfg.elite_count])
@@ -185,8 +232,8 @@ class GPEngine:
             else:
                 elites = population[:cfg.elite_count]
 
-            # Generate offspring
-            offspring = []
+            # Generate offspring: (tree, strategy_gene) pairs
+            offspring: list[tuple[Expr, StrategyGene]] = []
             while len(offspring) < cfg.population_size - cfg.elite_count:
                 # Selection
                 parent1 = self._tournament_select(population)
@@ -194,10 +241,15 @@ class GPEngine:
 
                 child_tree1 = parent1.tree.clone()
                 child_tree2 = parent2.tree.clone()
+                child_sg1 = parent1.strategy_gene
+                child_sg2 = parent2.strategy_gene
 
                 # Crossover
                 if random.random() < cfg.crossover_prob:
                     child_tree1, child_tree2 = self._crossover(child_tree1, child_tree2)
+                    # 50% chance to swap strategy genes during crossover
+                    if random.random() < 0.5:
+                        child_sg1, child_sg2 = child_sg2, child_sg1
 
                 # Mutation
                 if random.random() < cfg.mutation_prob:
@@ -205,16 +257,24 @@ class GPEngine:
                 if random.random() < cfg.mutation_prob:
                     child_tree2 = self._mutate(child_tree2)
 
+                # Strategy gene mutation (30% chance per child)
+                if random.random() < 0.3:
+                    child_sg1 = child_sg1.mutate(random)
+                if random.random() < 0.3:
+                    child_sg2 = child_sg2.mutate(random)
+
                 # Enforce depth/complexity limits
                 if child_tree1.depth() <= cfg.max_depth and child_tree1.node_count() <= cfg.max_complexity:
-                    offspring.append(child_tree1)
+                    offspring.append((child_tree1, child_sg1))
                 if len(offspring) < cfg.population_size - cfg.elite_count:
                     if child_tree2.depth() <= cfg.max_depth and child_tree2.node_count() <= cfg.max_complexity:
-                        offspring.append(child_tree2)
+                        offspring.append((child_tree2, child_sg2))
 
-            # Evaluate offspring
+            # Evaluate offspring (pass strategy genes)
+            off_trees, off_sgs = zip(*offspring) if offspring else ([], [])
             new_pop = self._evaluate_population(
-                offspring, data, forward_returns, existing_factors
+                list(off_trees), data, forward_returns, existing_factors,
+                strategy_genes=list(off_sgs),
             )
 
             # New population = elites + evaluated offspring
@@ -278,11 +338,14 @@ class GPEngine:
         data: pd.DataFrame,
         forward_returns: pd.Series,
         existing_factors: pd.DataFrame | None,
+        strategy_genes: list[StrategyGene] | None = None,
     ) -> list[Individual]:
         """Evaluate each tree: compile → compute → validate → fitness."""
         individuals = []
-        for tree in trees:
-            ind = self._evaluate_one(tree, data, forward_returns, existing_factors, self._generation)
+        for i, tree in enumerate(trees):
+            sg = strategy_genes[i] if strategy_genes else StrategyGene()
+            ind = self._evaluate_one(tree, data, forward_returns, existing_factors,
+                                     self._generation, strategy_gene=sg)
             individuals.append(ind)
         return individuals
 
@@ -293,11 +356,13 @@ class GPEngine:
         forward_returns: pd.Series,
         existing_factors: pd.DataFrame | None,
         generation: int = 0,
+        strategy_gene: StrategyGene | None = None,
     ) -> Individual:
         """Evaluate a single expression tree."""
         cfg = self.config
         complexity = tree.node_count()
         depth = tree.depth()
+        sg = strategy_gene or StrategyGene()
 
         # Reject trivial trees — raw fields or single constants have no structure
         if depth <= 1:
@@ -305,6 +370,7 @@ class GPEngine:
                 tree=tree, factor_name="trivial", factor_cls=None,
                 fitness=-999, ic_mean=0, ic_ir=0, hit_rate=0, auto_corr=1,
                 complexity=complexity, depth=depth, generation=generation,
+                strategy_gene=sg,
             )
 
         # Try to compile and compute
@@ -318,6 +384,7 @@ class GPEngine:
                 tree=tree, factor_name="invalid", factor_cls=None,
                 fitness=-999, ic_mean=0, ic_ir=0, hit_rate=0, auto_corr=1,
                 complexity=complexity, depth=depth, generation=generation,
+                strategy_gene=sg,
             )
 
         # Validate
@@ -334,6 +401,7 @@ class GPEngine:
                 tree=tree, factor_name=factor_cls.meta.name, factor_cls=factor_cls,
                 fitness=-999, ic_mean=0, ic_ir=0, hit_rate=0, auto_corr=1,
                 complexity=complexity, depth=depth, generation=generation,
+                strategy_gene=sg,
             )
 
         ic_mean = result.ic_mean
@@ -347,6 +415,7 @@ class GPEngine:
                 tree=tree, factor_name=factor_cls.meta.name, factor_cls=factor_cls,
                 fitness=-999, ic_mean=0, ic_ir=0, hit_rate=0, auto_corr=1,
                 complexity=complexity, depth=depth, generation=generation,
+                strategy_gene=sg,
             )
 
         # Reject near-constant signals (e.g. lt() comparisons with non-overlapping
@@ -358,6 +427,7 @@ class GPEngine:
                 fitness=-999, ic_mean=ic_mean, ic_ir=ic_ir,
                 hit_rate=hit_rate, auto_corr=auto_corr,
                 complexity=complexity, depth=depth, generation=generation,
+                strategy_gene=sg,
             )
 
         # Stability: min IC across sub-periods
@@ -403,6 +473,8 @@ class GPEngine:
             auto_corr=auto_corr,
             complexity=complexity,
             depth=depth,
+            generation=generation,
+            strategy_gene=sg,
         )
 
     # ── Selection ──────────────────────────────────────────────────────────
@@ -491,7 +563,7 @@ class GPEngine:
         return tree.replace_child(target, new_subtree)
 
     def _mutate_window(self, tree: Expr) -> Expr:
-        """Change the window/periods/group_field parameter on parameterized nodes."""
+        """Change the window/periods/quantile/span parameter on parameterized nodes."""
         all_nodes = collect_all_nodes(tree)
         param_nodes = [n for n in all_nodes if isinstance(n, (RollingOp, TimeSeriesOp, GroupedCrossSectionalOp))]
         if not param_nodes:
@@ -499,7 +571,15 @@ class GPEngine:
 
         target = random.choice(param_nodes)
         if isinstance(target, RollingOp):
-            target.window = random.choice(ROLLING_WINDOWS)
+            if target.op == "ts_ema":
+                target.window = random.choice(EMA_SPANS)
+            elif target.op == "ts_quantile":
+                if random.random() < 0.5:
+                    target.window = random.choice(ROLLING_WINDOWS)
+                else:
+                    target.quantile = random.choice(QUANTILE_VALUES)
+            else:
+                target.window = random.choice(ROLLING_WINDOWS)
         elif isinstance(target, TimeSeriesOp):
             target.periods = random.choice(TS_PERIODS)
         elif isinstance(target, GroupedCrossSectionalOp):
@@ -513,7 +593,7 @@ class GPEngine:
         op_nodes = [
             n for n in all_nodes
             if isinstance(n, (UnaryOp, BinaryOp, RollingOp, CrossSectionalOp,
-                             GroupedCrossSectionalOp, TimeSeriesOp))
+                             GroupedCrossSectionalOp, TimeSeriesOp, TernaryOp))
         ]
         if not op_nodes:
             return tree
@@ -527,8 +607,16 @@ class GPEngine:
             new_op = random.choice([o for o in BINARY_OPS if o != target.op])
             target.op = new_op
         elif isinstance(target, RollingOp):
-            new_op = random.choice([o for o in ROLLING_OPS if o != target.op])
-            target.op = new_op
+            if target.right is not None:
+                # Binary rolling op (ts_corr): only swap with other binary rolling ops
+                others = [o for o in ROLLING_OPS_BINARY if o != target.op]
+                if others:
+                    target.op = random.choice(others)
+            else:
+                # Single-child rolling op: stay single-child
+                others = [o for o in ROLLING_OPS if o != target.op]
+                if others:
+                    target.op = random.choice(others)
         elif isinstance(target, CrossSectionalOp):
             new_op = random.choice([o for o in CS_OPS if o != target.op])
             target.op = new_op
@@ -538,6 +626,9 @@ class GPEngine:
         elif isinstance(target, TimeSeriesOp):
             new_op = random.choice([o for o in TS_OPS if o != target.op])
             target.op = new_op
+        elif isinstance(target, TernaryOp):
+            # Only one ternary op for now — no change, just return
+            pass
 
         return tree
 

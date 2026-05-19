@@ -190,6 +190,7 @@ class AgentSimulation:
         gp_population: int = 200,
         gp_generations: int = 25,
         gp_early_stop: int = 10,
+        llm_seed: bool = True,
     ):
         self.start = start
         self.end = end
@@ -215,6 +216,7 @@ class AgentSimulation:
         self.gp_population = gp_population
         self.gp_generations = gp_generations
         self.gp_early_stop = gp_early_stop
+        self.llm_seed = llm_seed
         self.llm = create_default_client() if self.use_llm else None
         if self.use_llm and model:
             self.llm.model = model
@@ -1104,7 +1106,11 @@ class AgentSimulation:
     # ── GP Factor Discovery ─────────────────────────────────────────────────
 
     def _load_persisted_gp_factors(self, accepted_only: bool = True) -> list[str]:
-        """Load and register GP factors from the fixed gp_factors.json path."""
+        """Load and register GP factors from the fixed gp_factors.json path.
+
+        Also sets self._gp_strategy_params (latest accepted factor's strategy_gene)
+        for use by _factor_decide in --mode factor runs.
+        """
         import json as _json
         from discovery.expr import Expr
         from discovery.compiler import compile_expr
@@ -1118,6 +1124,7 @@ class AgentSimulation:
             gp_data = _json.load(_f)
 
         names: list[str] = []
+        latest_sg = None
         for entry in gp_data.get("gp_factors", []):
             if accepted_only and not entry.get("accepted", True):
                 continue
@@ -1127,11 +1134,20 @@ class AgentSimulation:
                              category=entry.get("category", "gp"),
                              register=True)
                 names.append(entry["name"])
-                logger.info("Loaded GP factor: %s (gen=%s, IC=%.4f, IR=%.3f)",
+                sg = entry.get("strategy_gene", {})
+                if sg:
+                    latest_sg = sg
+                logger.info("Loaded GP factor: %s (gen=%s, IC=%.4f, IR=%.3f, sell_limit=%s)",
                              entry["name"], entry.get("generation", "?"),
-                             entry.get("ic_mean", 0), entry.get("ic_ir", 0))
+                             entry.get("ic_mean", 0), entry.get("ic_ir", 0),
+                             sg.get("sell_rank_limit", "default"))
             except Exception as e:
                 logger.warning("Failed to load GP factor %s: %s", entry.get("name"), e)
+
+        if latest_sg:
+            self._strategy_params = latest_sg
+            logger.info("Using co-evolved strategy: sell_rank_limit=%d",
+                         latest_sg.get("sell_rank_limit", SELL_RANK_LIMIT))
 
         logger.info("Loaded %d persisted GP factors from %s", len(names), gp_file)
         return names
@@ -1247,11 +1263,43 @@ class AgentSimulation:
         )
         gp = GPEngine(config=gp_config)
 
+        # ── LLM seed generation ────────────────────────────────────────────
+        llm_seeds: list = []
+        if self.llm_seed:
+            try:
+                from agent.llm_client import create_default_client
+                from discovery.llm_seed import LLMSeedGenerator
+                llm = create_default_client()
+                seed_gen = LLMSeedGenerator()
+                # Analyze baseline weaknesses
+                diagnosis = seed_gen.analyze_baseline_weakness(
+                    gp_existing, gp_fwd, llm,
+                )
+                dead_count = diagnosis.get("dead_count", 0)
+                decaying_count = diagnosis.get("decaying_count", 0)
+                logger.info("Baseline diagnosis: %d dead, %d decaying, %d healthy",
+                             dead_count, decaying_count,
+                             diagnosis.get("total_factors", 0) - dead_count - decaying_count)
+
+                # Propose seeds
+                existing_names = list(gp_existing.columns) + prior_gp_names
+                proposals = seed_gen.propose_factors(diagnosis, existing_names, llm, n_ideas=5)
+                if proposals:
+                    llm_seeds = seed_gen.compile_seeds(proposals)
+                    logger.info("LLM generated %d/%d valid seed factors",
+                                 len(llm_seeds), len(proposals))
+                    for s in llm_seeds:
+                        logger.info("  LLM seed: %s (depth=%d, complexity=%d)",
+                                     s.factor_name, s.depth, s.complexity)
+            except Exception as e:
+                logger.warning("LLM seed generation failed: %s", e, exc_info=True)
+
         t0 = time.time()
         best_individuals = gp.evolve(
             data=gp_data,
             forward_returns=gp_fwd,
             existing_factors=gp_existing,
+            seeds=llm_seeds if llm_seeds else None,
         )
         logger.info("GP evolution complete: %.0fs, %d generations",
                      time.time() - t0, gp.generation)
@@ -1297,6 +1345,7 @@ class AgentSimulation:
                         "wf_ic_mean": getattr(result, "wf_ic_mean", 0),
                         "factor_cls": ind.factor_cls,
                         "factor_vals": factor_vals,
+                        "strategy_gene": ind.strategy_gene.to_dict(),
                     })
                     existing_df[ind.factor_name] = factor_vals
                     validated_values[ind.factor_name] = factor_vals
@@ -1351,28 +1400,64 @@ class AgentSimulation:
         # ── 3. Per-factor backtesting ────────────────────────────────────────
         symbols = sorted(data.index.get_level_values("symbol").unique().tolist())
 
-        # Run solo backtest for each GP factor
+        # Run solo backtests in parallel (independent: baseline + single GP factor each)
+        from backtest.parallel import BacktestTask, run_parallel_backtests
+
+        solo_tasks = []
         for fmeta in new_factors:
-            gp_name = fmeta["name"]
-            factor_df, factor_weights = self._compute_factor_set_staged(
-                baseline_factors, [gp_name],
-            )
-            equity = self._run_backtest_loop(
-                factor_df, factor_weights, symbols, f"solo_{gp_name}",
-            )
-            m = self._compute_metrics_from_equity(equity, self.initial_cash)
-            fmeta["solo_backtest"] = {
-                "cumulative_return": m.get("cumulative_return", 0),
-                "sharpe_ratio": m.get("sharpe_ratio", 0),
-                "max_drawdown": m.get("max_drawdown", 0),
-                "annualized_return": m.get("annualized_return", 0),
-                "win_rate": m.get("win_rate", 0),
-            }
-            logger.info("Solo backtest %s: ret=%.2f%%, SR=%.3f, DD=%.2f%%",
-                         gp_name,
-                         fmeta["solo_backtest"]["cumulative_return"] * 100,
-                         fmeta["solo_backtest"]["sharpe_ratio"],
-                         fmeta["solo_backtest"]["max_drawdown"] * 100)
+            sp = fmeta.get("strategy_gene", {})
+            solo_tasks.append(BacktestTask(
+                label=f"solo_{fmeta['name']}",
+                baseline_names=baseline_factors,
+                gp_names=[fmeta["name"]],
+                start=self.start, end=self.end,
+                initial_cash=self.initial_cash,
+                symbols=symbols,
+                daily_cache=self._daily_cache,
+                trading_days=self._trading_days,
+                strategy_params=sp,
+            ))
+
+        if len(solo_tasks) > 1:
+            solo_results = run_parallel_backtests(solo_tasks)
+            for fmeta in new_factors:
+                m = solo_results.get(f"solo_{fmeta['name']}", {})
+                fmeta["solo_backtest"] = {
+                    "cumulative_return": m.get("cumulative_return", 0),
+                    "sharpe_ratio": m.get("sharpe_ratio", 0),
+                    "max_drawdown": m.get("max_drawdown", 0),
+                    "annualized_return": m.get("annualized_return", 0),
+                    "win_rate": m.get("win_rate", 0),
+                }
+                logger.info("Solo backtest %s: ret=%.2f%%, SR=%.3f, DD=%.2f%%",
+                             fmeta["name"],
+                             fmeta["solo_backtest"]["cumulative_return"] * 100,
+                             fmeta["solo_backtest"]["sharpe_ratio"],
+                             fmeta["solo_backtest"]["max_drawdown"] * 100)
+        else:
+            # Single factor: run inline (no parallelism benefit)
+            for fmeta in new_factors:
+                gp_name = fmeta["name"]
+                self._strategy_params = fmeta.get("strategy_gene", {})
+                factor_df, factor_weights = self._compute_factor_set_staged(
+                    baseline_factors, [gp_name],
+                )
+                equity = self._run_backtest_loop(
+                    factor_df, factor_weights, symbols, f"solo_{gp_name}",
+                )
+                m = self._compute_metrics_from_equity(equity, self.initial_cash)
+                fmeta["solo_backtest"] = {
+                    "cumulative_return": m.get("cumulative_return", 0),
+                    "sharpe_ratio": m.get("sharpe_ratio", 0),
+                    "max_drawdown": m.get("max_drawdown", 0),
+                    "annualized_return": m.get("annualized_return", 0),
+                    "win_rate": m.get("win_rate", 0),
+                }
+                logger.info("Solo backtest %s: ret=%.2f%%, SR=%.3f, DD=%.2f%%",
+                             gp_name,
+                             fmeta["solo_backtest"]["cumulative_return"] * 100,
+                             fmeta["solo_backtest"]["sharpe_ratio"],
+                             fmeta["solo_backtest"]["max_drawdown"] * 100)
 
         # Run cumulative backtests (sequentially adding each factor)
         accepted_factors: list[dict] = []
@@ -1381,6 +1466,8 @@ class AgentSimulation:
 
         for fmeta in new_factors:
             cumulative_gp_names.append(fmeta["name"])
+            # Use the latest GP factor's co-evolved strategy for the cumulative backtest
+            self._strategy_params = fmeta.get("strategy_gene", {})
             factor_df, factor_weights = self._compute_factor_set_staged(
                 baseline_factors, cumulative_gp_names,
             )
@@ -1440,6 +1527,7 @@ class AgentSimulation:
                 "cumulative_backtest": fmeta["cumulative_backtest"],
                 "discovered_at": date.today().isoformat(),
                 "accepted": fmeta["accepted"],
+                "strategy_gene": fmeta.get("strategy_gene", {"sell_rank_limit": 5}),
             }
             gp_meta_for_persistence.append(entry)
 
@@ -1713,11 +1801,15 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
         td: date,
         candidates: pd.DataFrame,
         yest_data: pd.DataFrame,
+        strategy_params: dict | None = None,
     ) -> dict:
         """Factor-driven strategy: buys at close, sells at open.
 
         Uses D's factor composite (shifted = D-1 real data) for both decisions.
         Buys at D close (1-day info lag, safe), sells at D open (no lag).
+
+        Args:
+            strategy_params: Optional dict with 'sell_rank_limit' for co-evolved strategy.
         """
         positions = self._portfolio_summary(yest_data)
         equity = max(self._equity, self.initial_cash)
@@ -1730,9 +1822,14 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
         mkt_dd = abs(self._market_dd.get(pd.Timestamp(td), 0.0)) if hasattr(self, '_market_dd') else 0.0
         skip_buys = mkt_dd > MKT_DD_THRESHOLD
 
+        sell_rank_limit = SELL_RANK_LIMIT
+        sp = strategy_params or getattr(self, '_strategy_params', None) or {}
+        if sp.get("sell_rank_limit"):
+            sell_rank_limit = sp["sell_rank_limit"]
+
         ranked = candidates.sort_values("composite_score", ascending=False)
         buy_top = set(ranked.head(MAX_POSITIONS)["symbol"].tolist())      # top-1 for buying
-        sell_top = set(ranked.head(SELL_RANK_LIMIT)["symbol"].tolist())   # top-5 for holding
+        sell_top = set(ranked.head(sell_rank_limit)["symbol"].tolist())   # top-N for holding
         held_symbols = {p["symbol"] for p in positions}
 
         sells = []
@@ -1797,7 +1894,7 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
 
         return {
             "date": td.isoformat(),
-            "reasoning": f"Factor: buy top-{MAX_POSITIONS} by composite score. {len(buys)} buys, {len(sells)} sells.",
+            "reasoning": f"Factor: buy top-{MAX_POSITIONS}, sell if >{sell_rank_limit}. {len(buys)} buys, {len(sells)} sells.",
             "buys": buys,
             "sells": sells,
         }
@@ -2839,6 +2936,10 @@ def main():
                         help="GP population size (default: 200)")
     parser.add_argument("--gp-generations", type=int, default=25,
                         help="GP max generations (default: 25)")
+    parser.add_argument("--llm-seed", action="store_true", default=True,
+                        help="Use LLM to seed GP initial population (default: True)")
+    parser.add_argument("--no-llm-seed", action="store_false", dest="llm_seed",
+                        help="Disable LLM seed generation")
     parser.add_argument("--recommend", action="store_true",
                         help="Recommend tomorrow's trade based on latest data (assumes empty position)")
     parser.add_argument("--recommend-cash", type=float, default=INITIAL_CASH,
@@ -2856,6 +2957,7 @@ def main():
         gp_discover=args.gp_discover,
         gp_population=args.gp_population,
         gp_generations=args.gp_generations,
+        llm_seed=args.llm_seed,
     )
 
     if args.mode == "compare":
