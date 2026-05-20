@@ -38,6 +38,11 @@ class BacktestTask:
     daily_cache: pd.DataFrame | None = field(default=None, repr=False)
     trading_days: pd.DatetimeIndex | None = field(default=None, repr=False)
 
+    # Pre-computed factor cache: when set, _worker_backtest subsets this
+    # DataFrame instead of calling _compute_factor_set_staged from scratch.
+    # Must contain baseline columns + all GP columns referenced by gp_names.
+    factor_cache: pd.DataFrame | None = field(default=None, repr=False)
+
 
 def run_parallel_backtests(
     tasks: list[BacktestTask],
@@ -90,9 +95,10 @@ def _worker_backtest(task: BacktestTask) -> dict:
 
     This must be a top-level function (not a method) for ThreadPoolExecutor compat.
     """
-    from run_agent_simulation import AgentSimulation
+    from run_agent_simulation import AgentSimulation, _calibrate_factor_weights_standalone
     from data.calendar import get_trading_days
     from data.cache import read_daily
+    import pandas as pd
 
     # Load market data (needed since daily_cache can't be passed between threads
     # cleanly due to pandas shared internals)
@@ -105,27 +111,57 @@ def _worker_backtest(task: BacktestTask) -> dict:
     if trading_days is None:
         trading_days = get_trading_days(task.start, task.end)
 
-    # Create minimal simulation instance
-    sim = AgentSimulation(
-        mode="factor",
-        start=task.start,
-        end=task.end,
-        initial_cash=task.initial_cash,
-    )
-    sim._trading_days = trading_days
-    sim._daily_cache = data
-    sim._trading_day_index = 0
-    sim._strategy_params = task.strategy_params or {}
+    # Use pre-computed factor cache if available (avoids recomputing baseline +
+    # GP factors from scratch for each cumulative backtest)
+    if task.factor_cache is not None:
+        # Subset: baseline columns + requested GP columns
+        all_needed = [c for c in task.baseline_names if c in task.factor_cache.columns]
+        all_needed += [c for c in task.gp_names if c in task.factor_cache.columns]
+        factor_df = task.factor_cache[all_needed].copy()
+
+        # Shift: D's factor uses D-1 close
+        shifted = factor_df.unstack().shift(1).stack()
+        factor_df = shifted.reorder_levels(["trade_date", "symbol"]).sort_index()
+
+        from run_agent_simulation import TRAIN_PERIOD
+        train_dates = get_trading_days(TRAIN_PERIOD[0], TRAIN_PERIOD[1])
+        factor_weights = _calibrate_factor_weights_standalone(
+            factor_df, train_dates, data,
+        )
+
+        # Create minimal simulation instance for backtest loop
+        sim = AgentSimulation(
+            mode="factor",
+            start=task.start,
+            end=task.end,
+            initial_cash=task.initial_cash,
+        )
+        sim._trading_days = trading_days
+        sim._daily_cache = data
+        sim._trading_day_index = 0
+        sim._strategy_params = task.strategy_params or {}
+        sim._market_dd = pd.Series(dtype=float)  # minimal stub
+    else:
+        # Fallback: compute factors from scratch
+        sim = AgentSimulation(
+            mode="factor",
+            start=task.start,
+            end=task.end,
+            initial_cash=task.initial_cash,
+        )
+        sim._trading_days = trading_days
+        sim._daily_cache = data
+        sim._trading_day_index = 0
+        sim._strategy_params = task.strategy_params or {}
+
+        factor_df, factor_weights = sim._compute_factor_set_staged(
+            task.baseline_names, task.gp_names,
+        )
 
     # Set up symbols
     symbols = task.symbols
     if not symbols:
         symbols = sorted(data.index.get_level_values("symbol").unique().tolist())
-
-    # Compute factors and weights
-    factor_df, factor_weights = sim._compute_factor_set_staged(
-        task.baseline_names, task.gp_names,
-    )
 
     # Run backtest loop
     equity = sim._run_backtest_loop(

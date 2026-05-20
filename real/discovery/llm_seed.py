@@ -25,7 +25,7 @@ from discovery.operators import operator_registry
 
 if TYPE_CHECKING:
     from agent.llm_client import LLMClient
-    from discovery.gp import Individual, StrategyGene
+    from discovery.gp import Individual
 
 logger = logging.getLogger(__name__)
 
@@ -245,13 +245,12 @@ IMPORTANT: Return ONLY the JSON array, no markdown fences, no explanation."""
             try:
                 factor_cls = compile_expr(tree, factor_name=name,
                                           category=category, register=True)
-                from discovery.gp import Individual, StrategyGene
+                from discovery.gp import Individual
                 ind = Individual(
                     tree=tree, factor_name=name, factor_cls=factor_cls,
                     fitness=0.0, ic_mean=0.0, ic_ir=0.0, hit_rate=0.5,
                     auto_corr=0.5, complexity=tree.complexity(),
                     depth=tree.depth(), generation=-1,
-                    strategy_gene=StrategyGene(sell_rank_limit=5),
                 )
                 seeds.append(ind)
                 logger.info("Compiled LLM seed: %s (%s)", name, hint)

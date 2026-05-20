@@ -13,8 +13,10 @@ from __future__ import annotations
 
 import copy
 import logging
+import os
 import random
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from typing import Callable, NamedTuple
 
@@ -36,33 +38,6 @@ from discovery.validate import FactorValidator
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class StrategyGene:
-    """Position strategy parameters co-evolved with factor expression.
-
-    Only sell_rank_limit for now (single-position constraint: MAX_POSITIONS=1).
-    Future: take_profit_pct, rebalance_freq, etc.
-    """
-    sell_rank_limit: int = 5  # 2..20
-
-    def mutate(self, rng: random.Random) -> StrategyGene:
-        """Perturb sell_rank_limit within [2, 20]."""
-        delta = rng.choice([-3, -2, -1, 1, 2, 3])
-        new_val = max(2, min(20, self.sell_rank_limit + delta))
-        return StrategyGene(sell_rank_limit=new_val)
-
-    @staticmethod
-    def random(rng: random.Random) -> StrategyGene:
-        return StrategyGene(sell_rank_limit=rng.randint(2, 21))
-
-    def to_dict(self) -> dict:
-        return {"sell_rank_limit": self.sell_rank_limit}
-
-    @staticmethod
-    def from_dict(d: dict) -> StrategyGene:
-        return StrategyGene(sell_rank_limit=d.get("sell_rank_limit", 5))
-
-
 class Individual(NamedTuple):
     tree: Expr
     factor_name: str
@@ -75,7 +50,6 @@ class Individual(NamedTuple):
     complexity: int
     depth: int
     generation: int = 0  # which generation this individual was created in
-    strategy_gene: StrategyGene = StrategyGene()  # co-evolved position strategy
 
 
 @dataclass
@@ -139,6 +113,14 @@ class GPConfig:
     early_stop_generations: int = 10  # stop if no improvement in N gens
     min_fitness_improvement: float = 0.001
 
+    # Parallelism
+    max_workers: int = 8  # thread pool size for population evaluation
+
+    # Per-generation backtest: after IC evaluation, run real backtests on the
+    # top-N individuals and blend Sharpe into fitness. Catches IC-false-positives.
+    pure_factor_top_n: int = 5   # number of top individuals for pure factor eval (0 = disabled)
+    pure_factor_blend_weight: float = 0.3  # weight of pure factor Sharpe in blended fitness
+
 
 class GPEngine:
     """Genetic Programming engine for factor evolution.
@@ -168,6 +150,7 @@ class GPEngine:
         existing_factors: pd.DataFrame | None = None,
         callback: Callable[[int, list[Individual]], None] | None = None,
         seeds: list[Individual] | None = None,
+        pure_factor_callback: Callable[[list[Individual], int], None] | None = None,
     ) -> list[Individual]:
         """Evolve a population of factor expressions.
 
@@ -179,6 +162,10 @@ class GPEngine:
                       (generation, population).
             seeds: Optional pre-evaluated Individuals to inject into initial
                    population (e.g. LLM-proposed seeds).
+            pure_factor_callback: Optional function called after IC evaluation with
+                      (sorted_population, generation). Evaluates top individuals
+                      via factor mimicking portfolios and blends pure Sharpe
+                      into fitness in place.
 
         Returns:
             List of Individuals sorted by fitness (best first).
@@ -196,22 +183,16 @@ class GPEngine:
         trees = self._initialize_population()
         # Replace first N trees with seed trees
         seed_trees = []
-        seed_strategy_genes = []
         if seeds:
             for i, seed in enumerate(seeds):
                 if i < len(trees):
                     seed_trees.append(seed.tree.clone())
-                    seed_strategy_genes.append(seed.strategy_gene)
             trees = seed_trees + trees[len(seed_trees):]
 
-        # Evaluate initial population with random strategy genes
+        # Evaluate initial population
         logger.info("Evaluating initial population ...")
-        init_sgs = seed_strategy_genes + [
-            StrategyGene.random(random) for _ in range(len(trees) - len(seed_strategy_genes))
-        ]
         population = self._evaluate_population(
             trees, data, forward_returns, existing_factors,
-            strategy_genes=init_sgs,
         )
         population.sort(key=lambda ind: ind.fitness, reverse=True)
         self._update_hall_of_fame(population[:cfg.elite_count])
@@ -233,24 +214,18 @@ class GPEngine:
             else:
                 elites = population[:cfg.elite_count]
 
-            # Generate offspring: (tree, strategy_gene) pairs
-            offspring: list[tuple[Expr, StrategyGene]] = []
+            # Generate offspring
+            offspring: list[Expr] = []
             while len(offspring) < cfg.population_size - cfg.elite_count:
-                # Selection
                 parent1 = self._tournament_select(population)
                 parent2 = self._tournament_select(population)
 
                 child_tree1 = parent1.tree.clone()
                 child_tree2 = parent2.tree.clone()
-                child_sg1 = parent1.strategy_gene
-                child_sg2 = parent2.strategy_gene
 
                 # Crossover
                 if random.random() < cfg.crossover_prob:
                     child_tree1, child_tree2 = self._crossover(child_tree1, child_tree2)
-                    # 50% chance to swap strategy genes during crossover
-                    if random.random() < 0.5:
-                        child_sg1, child_sg2 = child_sg2, child_sg1
 
                 # Mutation
                 if random.random() < cfg.mutation_prob:
@@ -258,29 +233,30 @@ class GPEngine:
                 if random.random() < cfg.mutation_prob:
                     child_tree2 = self._mutate(child_tree2)
 
-                # Strategy gene mutation (30% chance per child)
-                if random.random() < 0.3:
-                    child_sg1 = child_sg1.mutate(random)
-                if random.random() < 0.3:
-                    child_sg2 = child_sg2.mutate(random)
-
                 # Enforce depth/complexity limits
                 if child_tree1.depth() <= cfg.max_depth and child_tree1.node_count() <= cfg.max_complexity:
-                    offspring.append((child_tree1, child_sg1))
+                    offspring.append(child_tree1)
                 if len(offspring) < cfg.population_size - cfg.elite_count:
                     if child_tree2.depth() <= cfg.max_depth and child_tree2.node_count() <= cfg.max_complexity:
-                        offspring.append((child_tree2, child_sg2))
+                        offspring.append(child_tree2)
 
-            # Evaluate offspring (pass strategy genes)
-            off_trees, off_sgs = zip(*offspring) if offspring else ([], [])
+            # Evaluate offspring
             new_pop = self._evaluate_population(
-                list(off_trees), data, forward_returns, existing_factors,
-                strategy_genes=list(off_sgs),
+                list(offspring), data, forward_returns, existing_factors,
             )
 
             # New population = elites + evaluated offspring
             population = elites + new_pop
             population.sort(key=lambda ind: ind.fitness, reverse=True)
+
+            # Per-generation pure factor evaluation: test top-N individuals
+            # via factor mimicking portfolios and blend pure Sharpe into fitness.
+            if pure_factor_callback and cfg.pure_factor_top_n > 0:
+                try:
+                    pure_factor_callback(population, gen)
+                    population.sort(key=lambda ind: ind.fitness, reverse=True)
+                except Exception as e:
+                    logger.warning("Pure factor callback failed gen %d: %s", gen, e)
 
             self._update_hall_of_fame(population[:cfg.elite_count])
 
@@ -341,16 +317,44 @@ class GPEngine:
         data: pd.DataFrame,
         forward_returns: pd.Series,
         existing_factors: pd.DataFrame | None,
-        strategy_genes: list[StrategyGene] | None = None,
     ) -> list[Individual]:
-        """Evaluate each tree: compile → compute → validate → fitness."""
+        """Evaluate each tree in parallel: compile → compute → validate → fitness.
+
+        Uses ThreadPoolExecutor because Factor classes compiled via exec() are not
+        pickleable. Pandas/numpy release the GIL during compute, so thread-level
+        parallelism still yields 3-4x speedup.
+        """
+        if not trees:
+            return []
+
+        max_workers = min(getattr(self.config, 'max_workers', 8), os.cpu_count() or 4)
+
         individuals = []
-        for i, tree in enumerate(trees):
-            sg = strategy_genes[i] if strategy_genes else StrategyGene()
-            ind = self._evaluate_one(tree, data, forward_returns, existing_factors,
-                                     self._generation, strategy_gene=sg)
-            individuals.append(ind)
-        return individuals
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_map = {
+                executor.submit(
+                    self._evaluate_one, tree, data, forward_returns,
+                    existing_factors, self._generation,
+                ): i
+                for i, tree in enumerate(trees)
+            }
+            for future in as_completed(future_map):
+                try:
+                    individuals.append((future_map[future], future.result()))
+                except Exception as e:
+                    logger.warning("Eval task failed: %s", e)
+                    idx = future_map[future]
+                    tree = trees[idx]
+                    individuals.append((idx, Individual(
+                        tree=tree, factor_name="eval_error", factor_cls=None,
+                        fitness=-999, ic_mean=0, ic_ir=0, hit_rate=0, auto_corr=1,
+                        complexity=tree.node_count(), depth=tree.depth(),
+                        generation=self._generation,
+                    )))
+
+        # Sort back to original order
+        individuals.sort(key=lambda x: x[0])
+        return [ind for _, ind in individuals]
 
     def _evaluate_one(
         self,
@@ -359,13 +363,11 @@ class GPEngine:
         forward_returns: pd.Series,
         existing_factors: pd.DataFrame | None,
         generation: int = 0,
-        strategy_gene: StrategyGene | None = None,
     ) -> Individual:
         """Evaluate a single expression tree."""
         cfg = self.config
         complexity = tree.node_count()
         depth = tree.depth()
-        sg = strategy_gene or StrategyGene()
 
         # Reject trivial trees — raw fields or single constants have no structure
         if depth <= 1:
@@ -373,7 +375,6 @@ class GPEngine:
                 tree=tree, factor_name="trivial", factor_cls=None,
                 fitness=-999, ic_mean=0, ic_ir=0, hit_rate=0, auto_corr=1,
                 complexity=complexity, depth=depth, generation=generation,
-                strategy_gene=sg,
             )
 
         # Try to compile and compute
@@ -387,7 +388,6 @@ class GPEngine:
                 tree=tree, factor_name="invalid", factor_cls=None,
                 fitness=-999, ic_mean=0, ic_ir=0, hit_rate=0, auto_corr=1,
                 complexity=complexity, depth=depth, generation=generation,
-                strategy_gene=sg,
             )
 
         # Validate
@@ -404,7 +404,6 @@ class GPEngine:
                 tree=tree, factor_name=factor_cls.meta.name, factor_cls=factor_cls,
                 fitness=-999, ic_mean=0, ic_ir=0, hit_rate=0, auto_corr=1,
                 complexity=complexity, depth=depth, generation=generation,
-                strategy_gene=sg,
             )
 
         ic_mean = result.ic_mean
@@ -418,7 +417,6 @@ class GPEngine:
                 tree=tree, factor_name=factor_cls.meta.name, factor_cls=factor_cls,
                 fitness=-999, ic_mean=0, ic_ir=0, hit_rate=0, auto_corr=1,
                 complexity=complexity, depth=depth, generation=generation,
-                strategy_gene=sg,
             )
 
         # Reject near-constant signals (e.g. lt() comparisons with non-overlapping
@@ -430,7 +428,6 @@ class GPEngine:
                 fitness=-999, ic_mean=ic_mean, ic_ir=ic_ir,
                 hit_rate=hit_rate, auto_corr=auto_corr,
                 complexity=complexity, depth=depth, generation=generation,
-                strategy_gene=sg,
             )
 
         # Stability: min IC across sub-periods
@@ -467,7 +464,6 @@ class GPEngine:
                 fitness=-999, ic_mean=ic_mean, ic_ir=ic_ir,
                 hit_rate=hit_rate, auto_corr=auto_corr,
                 complexity=complexity, depth=depth, generation=generation,
-                strategy_gene=sg,
             )
 
         fitness -= cfg.parsimony_penalty * complexity
@@ -486,7 +482,6 @@ class GPEngine:
             complexity=complexity,
             depth=depth,
             generation=generation,
-            strategy_gene=sg,
         )
 
     # ── Selection ──────────────────────────────────────────────────────────

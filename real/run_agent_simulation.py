@@ -1107,11 +1107,7 @@ class AgentSimulation:
     # ── GP Factor Discovery ─────────────────────────────────────────────────
 
     def _load_persisted_gp_factors(self, accepted_only: bool = True) -> list[str]:
-        """Load and register GP factors from the fixed gp_factors.json path.
-
-        Also sets self._gp_strategy_params (latest accepted factor's strategy_gene)
-        for use by _factor_decide in --mode factor runs.
-        """
+        """Load and register GP factors from the fixed gp_factors.json path."""
         import json as _json
         from discovery.expr import Expr
         from discovery.compiler import compile_expr
@@ -1125,7 +1121,6 @@ class AgentSimulation:
             gp_data = _json.load(_f)
 
         names: list[str] = []
-        latest_sg = None
         for entry in gp_data.get("gp_factors", []):
             if accepted_only and not entry.get("accepted", True):
                 continue
@@ -1135,20 +1130,11 @@ class AgentSimulation:
                              category=entry.get("category", "gp"),
                              register=True)
                 names.append(entry["name"])
-                sg = entry.get("strategy_gene", {})
-                if sg:
-                    latest_sg = sg
-                logger.info("Loaded GP factor: %s (gen=%s, IC=%.4f, IR=%.3f, sell_limit=%s)",
+                logger.info("Loaded GP factor: %s (gen=%s, IC=%.4f, IR=%.3f)",
                              entry["name"], entry.get("generation", "?"),
-                             entry.get("ic_mean", 0), entry.get("ic_ir", 0),
-                             sg.get("sell_rank_limit", "default"))
+                             entry.get("ic_mean", 0), entry.get("ic_ir", 0))
             except Exception as e:
                 logger.warning("Failed to load GP factor %s: %s", entry.get("name"), e)
-
-        if latest_sg:
-            self._strategy_params = latest_sg
-            logger.info("Using co-evolved strategy: sell_rank_limit=%d",
-                         latest_sg.get("sell_rank_limit", SELL_RANK_LIMIT))
 
         logger.info("Loaded %d persisted GP factors from %s", len(names), gp_file)
         return names
@@ -1261,6 +1247,7 @@ class AgentSimulation:
             stability_weight=0.25,
             hit_rate_weight=0.15,
             terminals=extended_terminals,
+            max_workers=8,
         )
         gp = GPEngine(config=gp_config)
 
@@ -1296,11 +1283,23 @@ class AgentSimulation:
                 logger.warning("LLM seed generation failed: %s", e, exc_info=True)
 
         t0 = time.time()
+
+        # Per-generation pure factor callback (blends pure Sharpe into IC fitness)
+        symbols = sorted(data.index.get_level_values("symbol").unique().tolist())
+        pure_cb = _create_pure_factor_callback(
+            daily_cache=gp_data,
+            forward_returns=gp_fwd,
+            existing_factor_values=gp_existing,
+            top_n=gp_config.pure_factor_top_n,
+            blend_weight=gp_config.pure_factor_blend_weight,
+        )
+
         best_individuals = gp.evolve(
             data=gp_data,
             forward_returns=gp_fwd,
             existing_factors=gp_existing,
             seeds=llm_seeds if llm_seeds else None,
+            pure_factor_callback=pure_cb,
         )
         logger.info("GP evolution complete: %.0fs, %d generations",
                      time.time() - t0, gp.generation)
@@ -1346,7 +1345,6 @@ class AgentSimulation:
                         "wf_ic_mean": getattr(result, "wf_ic_mean", 0),
                         "factor_cls": ind.factor_cls,
                         "factor_vals": factor_vals,
-                        "strategy_gene": ind.strategy_gene.to_dict(),
                     })
                     existing_df[ind.factor_name] = factor_vals
                     validated_values[ind.factor_name] = factor_vals
@@ -1398,166 +1396,110 @@ class AgentSimulation:
             except ValueError:
                 pass
 
-        # ── 3. Per-factor backtesting ────────────────────────────────────────
-        symbols = sorted(data.index.get_level_values("symbol").unique().tolist())
+        # ── Walk-Forward Validation ───────────────────────────────────────────
+        from discovery.pure_factor import walk_forward_validate
 
-        # Run solo backtests in parallel (independent: baseline + single GP factor each)
-        from backtest.parallel import BacktestTask, run_parallel_backtests
-
-        solo_tasks = []
         for fmeta in new_factors:
-            sp = fmeta.get("strategy_gene", {})
-            solo_tasks.append(BacktestTask(
-                label=f"solo_{fmeta['name']}",
-                baseline_names=baseline_factors,
-                gp_names=[fmeta["name"]],
-                start=self.start, end=self.end,
-                initial_cash=self.initial_cash,
-                symbols=symbols,
-                daily_cache=self._daily_cache,
-                trading_days=self._trading_days,
-                strategy_params=sp,
-            ))
-
-        if len(solo_tasks) > 1:
-            solo_results = run_parallel_backtests(solo_tasks)
-            for fmeta in new_factors:
-                m = solo_results.get(f"solo_{fmeta['name']}", {})
-                fmeta["solo_backtest"] = {
-                    "cumulative_return": m.get("cumulative_return", 0),
-                    "sharpe_ratio": m.get("sharpe_ratio", 0),
-                    "max_drawdown": m.get("max_drawdown", 0),
-                    "annualized_return": m.get("annualized_return", 0),
-                    "win_rate": m.get("win_rate", 0),
-                }
-                logger.info("Solo backtest %s: ret=%.2f%%, SR=%.3f, DD=%.2f%%",
-                             fmeta["name"],
-                             fmeta["solo_backtest"]["cumulative_return"] * 100,
-                             fmeta["solo_backtest"]["sharpe_ratio"],
-                             fmeta["solo_backtest"]["max_drawdown"] * 100)
-        else:
-            # Single factor: run inline (no parallelism benefit)
-            for fmeta in new_factors:
-                gp_name = fmeta["name"]
-                self._strategy_params = fmeta.get("strategy_gene", {})
-                factor_df, factor_weights = self._compute_factor_set_staged(
-                    baseline_factors, [gp_name],
+            fv = fmeta["factor_vals"]
+            fname = fmeta["name"]
+            try:
+                wf_result = walk_forward_validate(
+                    fv, gp_fwd,
+                    window_size=min(252, len(gp_train_dates) // 2),
+                    step_size=min(63, len(gp_train_dates) // 6),
+                    min_windows=2,
                 )
-                equity = self._run_backtest_loop(
-                    factor_df, factor_weights, symbols, f"solo_{gp_name}",
-                )
-                m = self._compute_metrics_from_equity(equity, self.initial_cash)
-                fmeta["solo_backtest"] = {
-                    "cumulative_return": m.get("cumulative_return", 0),
-                    "sharpe_ratio": m.get("sharpe_ratio", 0),
-                    "max_drawdown": m.get("max_drawdown", 0),
-                    "annualized_return": m.get("annualized_return", 0),
-                    "win_rate": m.get("win_rate", 0),
-                }
-                logger.info("Solo backtest %s: ret=%.2f%%, SR=%.3f, DD=%.2f%%",
-                             gp_name,
-                             fmeta["solo_backtest"]["cumulative_return"] * 100,
-                             fmeta["solo_backtest"]["sharpe_ratio"],
-                             fmeta["solo_backtest"]["max_drawdown"] * 100)
+                fmeta["walk_forward"] = wf_result
+                logger.info("WF %s: test_SR=%.3f (±%.3f) over %d windows, passed=%s",
+                             fname, wf_result["mean_test_sharpe"],
+                             wf_result["sharpe_std"],
+                             wf_result["n_windows"],
+                             wf_result["passed"])
+            except Exception as e:
+                logger.warning("WF failed for %s: %s", fname, e)
+                fmeta["walk_forward"] = {"error": str(e)}
 
-        # Run cumulative backtests (only stacking ACCEPTED factors)
+        # ── 3. Pure Factor Evaluation ──────────────────────────────────────────
+        # Evaluate each factor via factor mimicking portfolios (no trading simulation)
+        from discovery.pure_factor import FactorMimickingPortfolio
+
+        portfolio = FactorMimickingPortfolio(
+            total_leverage=1.0,
+            rebalance_freq="daily",
+            long_only=False,
+            use_ranks=True,
+        )
+
+        fwd_ret = close.pct_change(periods=FORWARD_PERIODS).shift(-FORWARD_PERIODS).stack()
+        fwd_ret.name = "fwd_ret"
+
+        # Solo pure evaluation: each factor individually
+        for fmeta in new_factors:
+            fv = fmeta["factor_vals"]
+            fname = fmeta["name"]
+            try:
+                pfm = portfolio.evaluate(fv, fwd_ret)
+                fmeta["pure_solo"] = pfm.to_dict()
+                logger.info("Pure solo %s: SR=%.3f, DD=%.2f%%, cumRet=%.2f%%",
+                             fname, pfm.sharpe_ratio,
+                             pfm.max_drawdown * 100, pfm.cumulative_return * 100)
+            except Exception as e:
+                logger.warning("Pure solo eval failed for %s: %s", fname, e)
+                fmeta["pure_solo"] = {"error": str(e)}
+
+        # Cumulative pure evaluation: weighted composite factor mimicking portfolio
         accepted_factors: list[dict] = []
 
-        # Compute true baseline metrics from the pure-baseline equity curve
-        if self._baseline_equity is not None:
-            true_baseline = self._compute_metrics_from_equity(
-                self._baseline_equity, self.initial_cash,
-            )
-        else:
-            true_baseline = {"sharpe_ratio": -999.0}
-        logger.info("True baseline (no GP): ret=%.2f%%, SR=%.3f",
-                     true_baseline.get("cumulative_return", 0) * 100,
-                     true_baseline.get("sharpe_ratio", 0))
-
+        # Calibrate IC-based weights on training data
+        all_factor_vals = {}
         for fmeta in new_factors:
-            # Build factor set: previously accepted + this candidate.
-            # Rejected factors are excluded so they don't pollute later cumul tests.
-            test_names = [f["name"] for f in accepted_factors] + [fmeta["name"]]
-            self._strategy_params = fmeta.get("strategy_gene", {})
-            factor_df, factor_weights = self._compute_factor_set_staged(
-                baseline_factors, test_names,
-            )
-            equity = self._run_backtest_loop(
-                factor_df, factor_weights, symbols, f"cumul_{len(test_names)}",
-            )
-            m = self._compute_metrics_from_equity(equity, self.initial_cash)
-            fmeta["cumulative_backtest"] = {
-                "cumulative_return": m.get("cumulative_return", 0),
-                "sharpe_ratio": m.get("sharpe_ratio", 0),
-                "max_drawdown": m.get("max_drawdown", 0),
-                "annualized_return": m.get("annualized_return", 0),
-                "win_rate": m.get("win_rate", 0),
-            }
+            all_factor_vals[fmeta["name"]] = fmeta["factor_vals"]
+        # Add existing factor values for weight calibration context
+        for col in gp_existing.columns:
+            if col not in all_factor_vals:
+                all_factor_vals[col] = gp_existing[col]
 
-            # Decision: accept if cumulative Sharpe improves over true baseline
-            # by a meaningful margin, and improves over the previous accepted factor.
-            baseline_sharpe = true_baseline.get("sharpe_ratio", 0)
-            if len(accepted_factors) == 0:
-                # First factor: must beat TRUE baseline by at least 0.03
-                cur_sharpe = m["sharpe_ratio"]
-                prev_sharpe = true_baseline.get("sharpe_ratio", 0)
-                fmeta["accepted"] = cur_sharpe >= prev_sharpe + 0.03
-            else:
-                # Subsequent factors: must beat previous accepted cumulative
-                prev_sharpe = accepted_factors[-1]["cumulative_backtest"]["sharpe_ratio"]
-                cur_sharpe = m["sharpe_ratio"]
-                fmeta["accepted"] = cur_sharpe >= prev_sharpe + 0.02
+        gw = _calibrate_factor_weights_standalone(
+            pd.DataFrame(all_factor_vals),
+            get_trading_days(TRAIN_PERIOD[0], TRAIN_PERIOD[1]),
+            gp_data,
+        )
 
-            if fmeta["accepted"]:
-                accepted_factors.append(fmeta)
-                logger.info("Cumul backtest +%s: ret=%.2f%%, SR=%.3f → ACCEPTED",
-                             fmeta["name"],
-                             fmeta["cumulative_backtest"]["cumulative_return"] * 100,
-                             cur_sharpe)
-            else:
-                logger.info("Cumul backtest +%s: ret=%.2f%%, SR=%.3f → REJECTED (ΔSR=%.3f)",
-                             fmeta["name"],
-                             fmeta["cumulative_backtest"]["cumulative_return"] * 100,
-                             cur_sharpe, cur_sharpe - prev_sharpe)
+        for i, fmeta in enumerate(new_factors):
+            fname = fmeta["name"]
+            test_names = [fm["name"] for fm in accepted_factors] + [fname]
 
-        # ── Second pass: re-test rejected factors with full accepted set ──
-        if accepted_factors:
-            rejected = [fm for fm in new_factors if not fm.get("accepted")]
-            if rejected:
-                logger.info("Second pass: re-testing %d rejected factors with %d accepted",
-                             len(rejected), len(accepted_factors))
-                for fmeta in rejected:
-                    # Build factor set: baseline + all accepted + this rejected
-                    test_names = [fm["name"] for fm in accepted_factors] + [fmeta["name"]]
-                    factor_df, factor_weights = self._compute_factor_set_staged(
-                        baseline_factors, test_names,
-                    )
-                    equity = self._run_backtest_loop(
-                        factor_df, factor_weights, symbols, f"cumul_retest_{fmeta['name']}",
-                    )
-                    m = self._compute_metrics_from_equity(equity, self.initial_cash)
-                    prev_sharpe = accepted_factors[-1]["cumulative_backtest"]["sharpe_ratio"]
-                    cur_sharpe = m["sharpe_ratio"]
+            try:
+                # Build IC-weighted composite from accepted + candidate factors
+                test_weights = {n: gw.get(n, 1.0 / len(test_names)) for n in test_names}
+                total_w = sum(abs(w) for w in test_weights.values())
+                test_weights = {n: w / total_w for n, w in test_weights.items()}
 
-                    if cur_sharpe >= prev_sharpe + 0.02:
-                        fmeta["accepted"] = True
-                        fmeta["cumulative_backtest"] = {
-                            "cumulative_return": m.get("cumulative_return", 0),
-                            "sharpe_ratio": cur_sharpe,
-                            "max_drawdown": m.get("max_drawdown", 0),
-                            "annualized_return": m.get("annualized_return", 0),
-                            "win_rate": m.get("win_rate", 0),
-                        }
-                        accepted_factors.append(fmeta)
-                        logger.info("Retest +%s: ret=%.2f%%, SR=%.3f → ACCEPTED (ΔSR=%.3f)",
-                                     fmeta["name"],
-                                     m.get("cumulative_return", 0) * 100,
-                                     cur_sharpe, cur_sharpe - prev_sharpe)
-                    else:
-                        logger.info("Retest +%s: ret=%.2f%%, SR=%.3f → still rejected (ΔSR=%.3f)",
-                                     fmeta["name"],
-                                     m.get("cumulative_return", 0) * 100,
-                                     cur_sharpe, cur_sharpe - prev_sharpe)
+                test_values = {n: all_factor_vals[n] for n in test_names
+                               if n in all_factor_vals}
+                pfm = portfolio.evaluate_composite(test_weights, test_values, fwd_ret)
+                fmeta["pure_cumulative"] = pfm.to_dict()
+                cur_sharpe = pfm.sharpe_ratio
+
+                # Acceptance: cumulative pure Sharpe improvement
+                if len(accepted_factors) == 0:
+                    fmeta["accepted"] = cur_sharpe >= 0.3
+                else:
+                    prev_sharpe = accepted_factors[-1]["pure_cumulative"]["sharpe_ratio"]
+                    fmeta["accepted"] = cur_sharpe >= prev_sharpe + 0.02
+
+                if fmeta["accepted"]:
+                    accepted_factors.append(fmeta)
+                    logger.info("Pure cumul +%s: SR=%.3f, DD=%.2f%% -> ACCEPTED",
+                                 fname, cur_sharpe, pfm.max_drawdown * 100)
+                else:
+                    prev = accepted_factors[-1]["pure_cumulative"]["sharpe_ratio"] if accepted_factors else 0.3
+                    logger.info("Pure cumul +%s: SR=%.3f -> REJECTED (delta=%.3f)",
+                                 fname, cur_sharpe, cur_sharpe - prev)
+            except Exception as e:
+                logger.warning("Pure cumul eval failed for %s: %s", fname, e)
+                fmeta["pure_cumulative"] = {"error": str(e)}
+                fmeta["accepted"] = False
 
         # ── 4. Save enriched gp_factors.json ─────────────────────────────────
         gp_meta_for_persistence: list[dict] = []
@@ -1578,15 +1520,14 @@ class AgentSimulation:
                 "depth": fmeta["depth"],
                 "validation_passed": fmeta["validation_passed"],
                 "wf_ic_mean": fmeta["wf_ic_mean"],
-                "solo_backtest": fmeta["solo_backtest"],
-                "cumulative_backtest": fmeta["cumulative_backtest"],
+                "pure_solo": fmeta.get("pure_solo", {}),
+                "pure_cumulative": fmeta.get("pure_cumulative", {}),
                 "discovered_at": date.today().isoformat(),
                 "accepted": fmeta["accepted"],
-                "strategy_gene": fmeta.get("strategy_gene", {"sell_rank_limit": 5}),
             }
             gp_meta_for_persistence.append(entry)
 
-        final_metrics = new_factors[-1]["cumulative_backtest"] if new_factors else {}
+        final_metrics = new_factors[-1].get("pure_cumulative", {}) if new_factors else {}
         persistence = {
             "gp_factors": gp_meta_for_persistence,
             "evolution_history": gp.history_to_dict(),
@@ -1598,20 +1539,65 @@ class AgentSimulation:
                 "max_generations": self.gp_generations,
                 "accepted_count": len(accepted_factors),
                 "total_candidates": len(new_factors),
-                "baseline_return": true_baseline.get("cumulative_return", 0) if true_baseline else 0,
-                "baseline_sharpe": true_baseline.get("sharpe_ratio", 0) if true_baseline else 0,
-                "final_return": final_metrics.get("cumulative_return", 0),
-                "final_sharpe": final_metrics.get("sharpe_ratio", 0),
+                "final_pure_sharpe": final_metrics.get("sharpe_ratio", 0),
+                "final_pure_drawdown": final_metrics.get("max_drawdown", 0),
             },
         }
         gp_file.parent.mkdir(parents=True, exist_ok=True)
         import json as _json
+
+        # Merge with existing gp_factors.json to preserve old discoveries
+        existing_factors: dict[str, dict] = {}
+        existing_history: list[dict] = []
+        if gp_file.exists():
+            with open(gp_file, "r", encoding="utf-8") as _f:
+                old_data = _json.load(_f)
+            for entry in old_data.get("gp_factors", []):
+                existing_factors[entry["name"]] = entry
+            existing_history = old_data.get("evolution_history", [])
+            logger.info("Loaded %d existing GP factors from %s", len(existing_factors), gp_file)
+
+        # Upsert new factors (keep best fitness if re-discovered)
+        for entry in gp_meta_for_persistence:
+            name = entry["name"]
+            if name in existing_factors:
+                old_fit = existing_factors[name].get("fitness", -999)
+                if entry.get("fitness", -999) > old_fit:
+                    existing_factors[name] = entry
+            else:
+                existing_factors[name] = entry
+
+        merged_factors = sorted(existing_factors.values(),
+                                key=lambda e: e.get("fitness", -999), reverse=True)
+        # Merge evolution history: append new generations, dedupe by generation number
+        seen_gens = {h.get("generation") for h in existing_history}
+        for h in persistence.get("evolution_history", []):
+            if h.get("generation") not in seen_gens:
+                existing_history.append(h)
+                seen_gens.add(h.get("generation"))
+
+        persistence["gp_factors"] = merged_factors
+        persistence["evolution_history"] = existing_history
+        new_count = len(gp_meta_for_persistence)
+        total_accepted = sum(1 for e in merged_factors if e.get("accepted", True))
+        persistence["meta"]["accepted_count"] = total_accepted
+        persistence["meta"]["total_discovered"] = len(merged_factors)
+        persistence["meta"]["new_this_run"] = new_count
+
         with open(gp_file, "w", encoding="utf-8") as _f:
             _json.dump(persistence, _f, ensure_ascii=False, indent=2)
-        logger.info("GP factors saved to %s (%d accepted / %d total)",
-                     gp_file, len(accepted_factors), len(new_factors))
+        logger.info("GP factors saved to %s (%d accepted / %d total, %d new this run)",
+                     gp_file, total_accepted, len(merged_factors), new_count)
 
         # ── 5. Console ablation table ────────────────────────────────────────
+        # Compute baseline metrics (from full simulation equity if available, else placeholder)
+        if self._baseline_equity is not None:
+            true_baseline = self._compute_metrics_from_equity(
+                self._baseline_equity, self.initial_cash,
+            )
+        else:
+            true_baseline = {"sharpe_ratio": 0.0, "cumulative_return": 0.0, "max_drawdown": 0.0}
+
         self._print_ablation_table(new_factors, true_baseline, accepted_factors)
 
         # ── 6. Evolution charts ──────────────────────────────────────────────
@@ -1650,39 +1636,39 @@ class AgentSimulation:
         width = 103
         print()
         print("=" * width)
-        print("  GP Factor Discovery & Backtest Results".center(width - 2))
-        print(f"  Training: {TRAIN_PERIOD[0]} ~ {TRAIN_PERIOD[1]}    Backtest: {self.start} ~ {self.end}".center(width - 2))
+        print("  GP Pure Factor Discovery Results".center(width - 2))
+        print(f"  Training: {TRAIN_PERIOD[0]} ~ {TRAIN_PERIOD[1]}".center(width - 2))
         print("=" * width)
         hdr = (f"{'Factor':<42s} {'Gen':>3s} {'IC':>7s} {'IC_IR':>6s} "
-               f"{'Solo_Ret':>9s} {'Solo_SR':>7s} {'Cumul_Ret':>9s} {'Cumul_SR':>8s} {'MaxDD':>7s} {'Acc':>3s}")
+               f"{'Pure_SR':>8s} {'Pure_DD':>8s} {'Cumul_SR':>8s} {'Cumul_DD':>8s} {'Acc':>3s}")
         print(hdr)
         print("-" * width)
 
-        # Baseline row
+        # Baseline row (no pure baseline, use placeholder)
         active_count = len(BASELINE_FACTORS) - len(DISABLED_FACTORS)
         bl_label = f"baseline ({active_count} factors)"
         print(f"{bl_label:<42s} {'-':>3s} {'-':>7s} {'-':>6s} "
-               f"{bl_ret:>+8.1f}% {bl_sr:>6.2f} {'-':>9s} {'-':>8s} {bl_dd:>+6.1f}% {'-':>3s}")
+               f"{'-':>8s} {'-':>8s} {'-':>8s} {'-':>8s} {'-':>3s}")
 
         for fmeta in new_factors:
             name = f"+ {fmeta['name']}"[:41]
             gen = fmeta["generation"]
             ic = fmeta["ic_mean"]
             ic_ir = fmeta["ic_ir"]
-            sr = fmeta["solo_backtest"]
-            cr = fmeta["cumulative_backtest"]
+            ps = fmeta.get("pure_solo", {})
+            pc = fmeta.get("pure_cumulative", {})
             acc = "Y" if fmeta["name"] in accepted_names else "N"
+            ps_sr = ps.get("sharpe_ratio", 0) or 0
+            ps_dd = (ps.get("max_drawdown", 0) or 0) * 100
+            pc_sr = pc.get("sharpe_ratio", 0) or 0
+            pc_dd = (pc.get("max_drawdown", 0) or 0) * 100
             print(f"{name:<42s} {gen:3d} {ic:7.4f} {ic_ir:6.3f} "
-                   f"{sr['cumulative_return']*100:>+8.1f}% {sr['sharpe_ratio']:6.2f} "
-                   f"{cr['cumulative_return']*100:>+8.1f}% {cr['sharpe_ratio']:7.2f} "
-                   f"{cr['max_drawdown']*100:>+6.1f}% {acc:>3s}")
+                   f"{ps_sr:7.2f} {ps_dd:>+7.1f}% {pc_sr:7.2f} {pc_dd:>+7.1f}% {acc:>3s}")
 
         print("-" * width)
-        final_ret = (new_factors[-1]["cumulative_backtest"]["cumulative_return"] * 100) if new_factors else bl_ret
-        final_sr = new_factors[-1]["cumulative_backtest"]["sharpe_ratio"] if new_factors else bl_sr
-        delta_ret = final_ret - bl_ret
+        final_sr = (new_factors[-1].get("pure_cumulative", {}).get("sharpe_ratio", 0) or 0) if new_factors else 0
         print(f"Final: {len(accepted_factors)} GP factors accepted. "
-              f"Baseline: {bl_ret:+.1f}% → Combined: {final_ret:+.1f}% (Δ{delta_ret:+.1f}%)")
+              f"Last cumulative pure SR: {final_sr:.3f}")
         print(f"Saved: {GP_FACTORS_PATH} "
               f"({len(accepted_factors)} active factors, usable as terminals next GP run)")
         print("=" * width)
@@ -3156,6 +3142,245 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
         with open(path, "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
         logger.info("Report saved to %s", path)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Standalone functions (thread-safe, no instance state)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _calibrate_factor_weights_standalone(
+    factor_df: pd.DataFrame,
+    train_dates: pd.DatetimeIndex,
+    daily_cache: pd.DataFrame,
+) -> dict[str, float]:
+    """Calibrate factor weights via IC_IR on training period. Pure function.
+
+    Weight = |IC_mean| / sum(|IC_mean|), floored at 0.005 per factor.
+    """
+    from discovery.validate import compute_rank_ic
+
+    factor_names = list(factor_df.columns)
+
+    if len(train_dates) < 20:
+        n = max(len(factor_names), 1)
+        return {f: 1.0 / n for f in factor_names}
+
+    train_mask = daily_cache.index.get_level_values("trade_date").isin(train_dates)
+    train_cache = daily_cache[train_mask]
+
+    close = train_cache["close"].unstack()
+    fwd_ret = close.pct_change(periods=FORWARD_PERIODS).shift(-FORWARD_PERIODS).stack()
+    fwd_ret.name = "fwd_ret"
+
+    weights = {}
+    for fname in factor_names:
+        if fname not in factor_df.columns:
+            continue
+        factor_vals = factor_df[fname]
+        common_idx = factor_vals.dropna().index.intersection(fwd_ret.dropna().index)
+        if len(common_idx) < 50:
+            continue
+        ic = compute_rank_ic(factor_vals.loc[common_idx], fwd_ret.loc[common_idx])
+        weights[fname] = max(abs(ic.mean()), 0.005)
+
+    total_w = sum(weights.values())
+    if total_w <= 0:
+        n = max(len(factor_names), 1)
+        return {f: 1.0 / n for f in factor_names}
+
+    return {k: v / total_w for k, v in weights.items()}
+
+
+def _compute_factor_set_staged_standalone(
+    baseline_names: list[str],
+    gp_names: list[str],
+    daily_cache: pd.DataFrame,
+    train_dates: pd.DatetimeIndex,
+) -> tuple[pd.DataFrame, dict[str, float]]:
+    """Compute baseline + GP factors in stages. Pure function."""
+    from factor.engine import FactorEngine
+
+    engine = FactorEngine()
+
+    # Stage 1: baseline
+    baseline_df = engine.compute(baseline_names, daily_cache)
+
+    if not gp_names:
+        shifted = baseline_df.unstack().shift(1).stack()
+        factor_df = shifted.reorder_levels(["trade_date", "symbol"]).sort_index()
+        weights = _calibrate_factor_weights_standalone(factor_df, train_dates, daily_cache)
+        return factor_df, weights
+
+    # Stage 2: enrich with baseline columns, compute GP factors
+    enriched = daily_cache.copy()
+    for col in baseline_df.columns:
+        enriched[col] = baseline_df[col]
+
+    gp_df = engine.compute(gp_names, enriched)
+    factor_df = pd.concat([baseline_df, gp_df], axis=1)
+
+    shifted = factor_df.unstack().shift(1).stack()
+    factor_df = shifted.reorder_levels(["trade_date", "symbol"]).sort_index()
+
+    weights = _calibrate_factor_weights_standalone(factor_df, train_dates, daily_cache)
+    return factor_df, weights
+
+
+def _create_pure_factor_callback(
+    daily_cache: pd.DataFrame,
+    forward_returns: pd.Series,
+    existing_factor_values: pd.DataFrame,
+    total_leverage: float = 1.0,
+    rebalance_freq: str = "daily",
+    top_n: int = 5,
+    blend_weight: float = 0.3,
+):
+    """Create a callback for per-generation pure factor evaluation during GP evolution.
+
+    Instead of full trading simulation, evaluates top-N individuals via factor
+    mimicking portfolios (cross-sectional z-score weights, no trading frictions)
+    and blends pure-factor Sharpe into IC-based fitness.
+
+    Uses CUMULATIVE evaluation: all provisionally-accepted GP factors + candidate.
+    A candidate is accepted if it improves the cumulative pure Sharpe.
+
+    Returns a function with signature: (population: list[Individual], gen: int) -> None
+    Modifies individuals' fitness in place.
+    """
+    from discovery.pure_factor import FactorMimickingPortfolio
+    from factor.engine import FactorEngine
+
+    portfolio = FactorMimickingPortfolio(
+        total_leverage=total_leverage,
+        rebalance_freq=rebalance_freq,
+        long_only=False,
+        use_ranks=True,
+    )
+
+    _baseline_df_cache: pd.DataFrame | None = None
+    _accepted_gp_names: list[str] = []
+    _current_cumulative_sharpe: float | None = None
+
+    def _get_baseline_df():
+        nonlocal _baseline_df_cache
+        if _baseline_df_cache is None:
+            engine = FactorEngine()
+            _baseline_df_cache = engine.compute(
+                list(existing_factor_values.columns), daily_cache)
+        return _baseline_df_cache
+
+    def _compute_cumulative_pure_sharpe(gp_names: list[str]) -> float:
+        """Compute cumulative factor mimicking portfolio Sharpe."""
+        if not gp_names:
+            # Baseline-only: evaluate based on existing factor values
+            composite = pd.Series(0.0, index=existing_factor_values.index)
+            n_cols = len(existing_factor_values.columns)
+            for col in existing_factor_values.columns:
+                fv = existing_factor_values[col]
+                mu = fv.groupby("trade_date").transform("mean")
+                sigma = fv.groupby("trade_date").transform("std").clip(lower=1e-8)
+                z = (fv - mu) / sigma
+                composite = composite.add(z / max(n_cols, 1), fill_value=0.0)
+            metrics = portfolio.evaluate(composite, forward_returns)
+            return metrics.sharpe_ratio
+
+        engine = FactorEngine()
+        gp_df = engine.compute(gp_names, daily_cache)
+        valid = [n for n in gp_names if n in gp_df.columns]
+        if not valid:
+            return 0.0
+
+        # Build composite: equal-weight z-score combination of all factors
+        composite = pd.Series(0.0, index=gp_df.index)
+        for name in valid:
+            col = gp_df[name]
+            mu = col.groupby("trade_date").transform("mean")
+            sigma = col.groupby("trade_date").transform("std").clip(lower=1e-8)
+            z = (col - mu) / sigma
+            composite = composite.add(z / len(valid), fill_value=0.0)
+
+        metrics = portfolio.evaluate(composite, forward_returns)
+        return metrics.sharpe_ratio
+
+    def pure_factor_callback(population, gen: int) -> None:
+        nonlocal _current_cumulative_sharpe
+
+        valid = [ind for ind in population
+                 if ind.fitness > -900 and ind.factor_cls is not None]
+        elites = valid[:top_n]
+        if not elites:
+            return
+
+        # Compile any uncompiled elites
+        compiled = []
+        for ind in elites:
+            if ind.factor_cls is not None:
+                compiled.append(ind)
+            else:
+                try:
+                    from discovery.compiler import compile_expr
+                    fc = compile_expr(ind.tree, factor_name=ind.factor_name, register=False)
+                    compiled.append(ind._replace(factor_cls=fc))
+                except Exception as e:
+                    logger.warning("Pure factor callback: compile failed for %s: %s",
+                                   ind.factor_name, e)
+        if not compiled:
+            return
+
+        # Register factor classes
+        from factor.registry import registry
+        for ind in compiled:
+            if ind.factor_cls is not None:
+                try:
+                    registry.register(ind.factor_cls)
+                except ValueError:
+                    pass
+
+        # Seed current cumulative Sharpe
+        if _current_cumulative_sharpe is None:
+            _current_cumulative_sharpe = _compute_cumulative_pure_sharpe(
+                _accepted_gp_names)
+
+        # Test each elite CUMULATIVELY via pure factor mimicking portfolio
+        accepted_this_gen: list[str] = []
+        for ind in compiled:
+            candidate_names = _accepted_gp_names + [ind.factor_name]
+            cum_sharpe = _compute_cumulative_pure_sharpe(candidate_names)
+            delta_sr = cum_sharpe - _current_cumulative_sharpe
+
+            # Normalize delta SR: -0.3..+0.5 → 0..1
+            bt_score = max(0.0, min(1.0, (delta_sr + 0.3) / 0.8))
+            bt_score = round(bt_score, 4)
+
+            # Blend with IC fitness
+            blended = (1.0 - blend_weight) * ind.fitness + blend_weight * bt_score
+            blended = max(0.0, blended)
+
+            # Update population in place
+            for i, pop_ind in enumerate(population):
+                if pop_ind.factor_name == ind.factor_name and pop_ind.generation == ind.generation:
+                    population[i] = pop_ind._replace(fitness=round(blended, 6))
+                    break
+
+            if delta_sr > 0.001:
+                _accepted_gp_names.append(ind.factor_name)
+                accepted_this_gen.append(ind.factor_name)
+                _current_cumulative_sharpe = cum_sharpe
+                logger.info("Gen %d: +%s ΔpureSR=+%.3f cumSR=%.3f -> accepted",
+                             gen, ind.factor_name, delta_sr, cum_sharpe)
+            else:
+                logger.info("Gen %d: -%s ΔpureSR=-%.3f cumSR=%.3f -> rejected",
+                             gen, ind.factor_name, abs(delta_sr), cum_sharpe)
+
+        if accepted_this_gen:
+            logger.info("Gen %d: accepted %d/%d elites (cumulative pure SR=%.3f, total=%d)",
+                         gen, len(accepted_this_gen), len(compiled),
+                         _current_cumulative_sharpe, len(_accepted_gp_names))
+        else:
+            logger.info("Gen %d: no elite improved cumulative pure SR (%.3f)",
+                         gen, _current_cumulative_sharpe)
+
+    return pure_factor_callback
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
