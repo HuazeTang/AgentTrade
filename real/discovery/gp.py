@@ -297,9 +297,10 @@ class GPEngine:
         terminals = cfg.terminals or TERMINAL_FIELDS
         population = []
         for i in range(cfg.population_size):
-            # Ramped half-and-half with higher initial depth to encourage
-            # rolling/ts ops instead of shallow price comparisons.
-            depth = random.randint(3, min(cfg.max_depth, 6))
+            # Ramped half-and-half: include depth 2 for simple but predictive
+            # expressions (e.g. div(price, volume)), while depths up to 5 seed
+            # rolling/ts structures. wrap_rolling mutation adds complexity later.
+            depth = random.randint(2, min(cfg.max_depth, 5))
             method = "grow" if i % 3 != 0 else "full"
             tree = random_expr(max_depth=depth, method=method, terminals=terminals)
             if tree.node_count() <= cfg.max_complexity:

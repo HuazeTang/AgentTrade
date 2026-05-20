@@ -694,12 +694,12 @@ def _random_tree(
     # 9 choices: rolling, ts, binary, unary, cs, cs_group, ternary, rolling_binary, terminal
     # Weights for: rolling, ts, binary, unary, cs, cs_group, ternary, rolling_binary, terminal
     if method == "full":
-        node_type_weights = [0.24, 0.22, 0.10, 0.08, 0.08, 0.07, 0.08, 0.09, 0.04]
+        node_type_weights = [0.20, 0.18, 0.15, 0.09, 0.08, 0.07, 0.08, 0.10, 0.05]
     else:  # grow
         if current_depth == 1:
-            node_type_weights = [0.26, 0.20, 0.08, 0.08, 0.08, 0.07, 0.07, 0.08, 0.08]
+            node_type_weights = [0.22, 0.18, 0.12, 0.09, 0.08, 0.07, 0.07, 0.08, 0.09]
         else:
-            node_type_weights = [0.18, 0.14, 0.10, 0.08, 0.08, 0.07, 0.07, 0.08, 0.20]
+            node_type_weights = [0.15, 0.12, 0.15, 0.09, 0.08, 0.07, 0.07, 0.08, 0.20]
 
     choice = random.choices(
         ["rolling", "ts", "binary", "unary", "cs", "cs_group", "ternary", "rolling_binary", "terminal"],
@@ -754,7 +754,7 @@ def _random_tree(
 
 def _random_terminal(terminals: list[str]) -> Expr:
     """Randomly choose a VarExpr or ConstExpr, with bias toward price/momentum terminals."""
-    if random.random() < 0.7:
+    if random.random() < 0.85:
         # Bias toward price-like terminals (70% price, 30% volume/other)
         price_terminals = {"close", "high", "low", "open", "ret_5d", "ret_20d", "ret_60d"}
         price_in_set = [t for t in terminals if t in price_terminals]

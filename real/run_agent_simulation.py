@@ -1184,6 +1184,27 @@ class AgentSimulation:
         existing_df = existing_df[usable].fillna(0.0)
         logger.info("GP: %d/%d factors usable (>=50%% coverage)", len(usable), len(baseline_factors))
 
+        # Inject derived fields (ret_*, vol_*, etc.) that TERMINAL_FIELDS
+        # references but that don't exist in raw OHLCV data.  Without these,
+        # ~44% of random trees fail compilation with KeyError.
+        _close = gp_data["close"].unstack()
+        _volume = gp_data["volume"].unstack()
+        _amount = gp_data["amount"].unstack()
+        _high = gp_data["high"].unstack()
+        _low = gp_data["low"].unstack()
+        _derived = {}
+        _derived["ret_5d"] = _close.pct_change(5).stack()
+        _derived["ret_20d"] = _close.pct_change(20).stack()
+        _derived["ret_60d"] = _close.pct_change(60).stack()
+        _derived["vol_20d"] = _volume.rolling(20, min_periods=5).mean().stack()
+        _derived["vol_60d"] = _volume.rolling(60, min_periods=10).mean().stack()
+        _derived["hl_ratio"] = ((_high - _low) / _close.clip(lower=1e-8)).stack()
+        _derived["vol_ratio"] = (_volume / _volume.shift(1).clip(lower=1e-8)).stack()
+        _derived["amihud"] = (_close.pct_change().abs() / _amount.clip(lower=1e-8)).stack()
+        for _name, _series in _derived.items():
+            if _name not in gp_data.columns:
+                gp_data[_name] = _series
+
         # Inject factor values as data columns for GP terminals
         from discovery.expr import TERMINAL_FIELDS
         raw_field_set = set(gp_data.columns) | set(TERMINAL_FIELDS)
@@ -1193,10 +1214,14 @@ class AgentSimulation:
         prior_gp_names: list[str] = []
         if gp_file.exists():
             import json as _json
-            with open(gp_file, "r", encoding="utf-8") as _f:
-                prior_data = _json.load(_f)
-            prior_gp_names = [e["name"] for e in prior_data.get("gp_factors", [])
-                            if e.get("accepted", True)]
+            try:
+                with open(gp_file, "r", encoding="utf-8") as _f:
+                    prior_data = _json.load(_f)
+                prior_gp_names = [e["name"] for e in prior_data.get("gp_factors", [])
+                                if e.get("accepted", True)]
+            except (json.JSONDecodeError, ValueError, OSError) as e:
+                logger.warning("Failed to load gp_factors.json (%s), starting fresh", e)
+                prior_gp_names = []
 
         factor_terminals = [f for f in usable if f not in raw_field_set]
         if prior_gp_names:
@@ -1584,8 +1609,11 @@ class AgentSimulation:
         persistence["meta"]["total_discovered"] = len(merged_factors)
         persistence["meta"]["new_this_run"] = new_count
 
-        with open(gp_file, "w", encoding="utf-8") as _f:
+        # Atomic write: temp file then rename, to prevent corruption on crash
+        _tmp_path = gp_file.with_suffix(".tmp")
+        with open(_tmp_path, "w", encoding="utf-8") as _f:
             _json.dump(persistence, _f, ensure_ascii=False, indent=2)
+        _tmp_path.rename(gp_file)
         logger.info("GP factors saved to %s (%d accepted / %d total, %d new this run)",
                      gp_file, total_accepted, len(merged_factors), new_count)
 
