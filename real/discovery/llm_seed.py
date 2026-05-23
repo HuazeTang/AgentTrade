@@ -55,27 +55,69 @@ class LLMSeedGenerator:
 
     # ── Main pipeline ──────────────────────────────────────────────────────
 
+    def compute_factor_performance(
+        self,
+        factor_df: pd.DataFrame,
+        forward_returns: pd.Series,
+    ) -> dict[str, dict]:
+        """Compute pure FMP performance for each factor.
+
+        Returns {name: {sharpe, cum_return, max_dd, win_rate, ic_mean, ic_ir}}
+        so the LLM can see which factors actually make/lose money.
+        """
+        from discovery.pure_factor import FactorMimickingPortfolio
+
+        portfolio = FactorMimickingPortfolio(
+            total_leverage=1.0, rebalance_freq="daily",
+            long_only=False, use_ranks=True,
+        )
+        perf = {}
+        for col in factor_df.columns:
+            try:
+                fv = factor_df[col].dropna()
+                common = fv.index.intersection(forward_returns.dropna().index)
+                if len(common) < 100:
+                    perf[col] = {"sharpe": 0, "cum_return": 0, "max_dd": 0,
+                                 "win_rate": 0, "ic_mean": 0, "ic_ir": 0}
+                    continue
+                metrics = portfolio.evaluate(fv.loc[common], forward_returns.loc[common])
+                perf[col] = {
+                    "sharpe": round(metrics.sharpe_ratio, 3),
+                    "cum_return": round(metrics.cumulative_return * 100, 2),
+                    "max_dd": round(metrics.max_drawdown * 100, 2),
+                    "win_rate": round(metrics.win_rate, 3),
+                    "ic_mean": round(metrics.ic_mean, 4),
+                    "ic_ir": round(metrics.ic_ir, 3),
+                }
+            except Exception:
+                perf[col] = {"sharpe": 0, "cum_return": 0, "max_dd": 0,
+                             "win_rate": 0, "ic_mean": 0, "ic_ir": 0}
+        return perf
+
     def analyze_baseline_weakness(
         self,
         factor_df: pd.DataFrame,
         forward_returns: pd.Series,
         llm: "LLMClient",
+        factor_performance: dict[str, dict] | None = None,
     ) -> dict:
-        """Compute per-factor IC stats and feed diagnosis to LLM.
+        """Compute per-factor IC stats + FMP performance and feed diagnosis to LLM.
 
         Returns a structured diagnosis dict with:
-          - per_factor: {name: {ic_mean, ic_ir, trend_slope, status}}
+          - per_factor: {name: {ic_mean, ic_ir, trend_slope, status, perf}}
           - correlation_clusters: list of factor groups with high mutual correlation
-          - summary: natural-language summary from LLM
+          - performance_summary: top/bottom performers by Sharpe and cum_return
         """
         from factor.validation import compute_rank_ic, ic_summary, factor_correlation
+
+        if factor_performance is None:
+            factor_performance = self.compute_factor_performance(factor_df, forward_returns)
 
         per_factor = {}
         for col in factor_df.columns:
             try:
                 ic_series = compute_rank_ic(factor_df[col], forward_returns)
                 ic_s = ic_summary(ic_series.dropna())
-                # Simple trend: linear slope of IC over time
                 ic_clean = ic_series.dropna()
                 if len(ic_clean) >= 20:
                     x = np.arange(len(ic_clean))
@@ -91,16 +133,23 @@ class LLMSeedGenerator:
                 elif abs(ic_s.get("mean", 0)) < 0.02:
                     status = "weak"
 
+                perf = factor_performance.get(col, {})
                 per_factor[col] = {
                     "ic_mean": round(ic_s.get("mean", 0), 4),
                     "ic_ir": round(ic_s.get("ir", 0), 3),
                     "hit_rate": round(ic_s.get("hit_rate", 0), 3),
                     "trend_slope": round(slope, 6),
                     "status": status,
+                    "fmp_sharpe": perf.get("sharpe", 0),
+                    "fmp_cum_return_pct": perf.get("cum_return", 0),
+                    "fmp_max_dd_pct": perf.get("max_dd", 0),
+                    "fmp_win_rate": perf.get("win_rate", 0),
                 }
             except Exception:
                 per_factor[col] = {"ic_mean": 0, "ic_ir": 0, "hit_rate": 0,
-                                   "trend_slope": 0, "status": "error"}
+                                   "trend_slope": 0, "status": "error",
+                                   "fmp_sharpe": 0, "fmp_cum_return_pct": 0,
+                                   "fmp_max_dd_pct": 0, "fmp_win_rate": 0}
 
         # Correlation clusters (simple: pairs with corr > 0.5)
         corr_clusters = []
@@ -142,9 +191,13 @@ class LLMSeedGenerator:
         diagnosis: dict,
         existing_names: list[str],
         llm: "LLMClient",
-        n_ideas: int = 5,
+        n_ideas: int = 20,
     ) -> list[dict]:
         """Ask LLM to propose factor formulas addressing diagnosed weaknesses.
+
+        Provides IC stats, FMP performance (Sharpe, drawdown, cumulative return),
+        and correlation clusters so the LLM can reason about what the portfolio
+        is missing and propose economically-motivated factors.
 
         Returns list of {name, intuition, category, expression_hint}.
         """
@@ -152,7 +205,15 @@ class LLMSeedGenerator:
             logger.info("LLM seeding skipped (no API key)")
             return []
 
-        # Build concise prompt
+        # Categorize factors by performance
+        perf_ranking = []
+        for name, info in diagnosis.get("per_factor", {}).items():
+            perf_ranking.append((name, info))
+        perf_ranking.sort(key=lambda x: x[1].get("fmp_sharpe", 0), reverse=True)
+
+        top_performers = perf_ranking[:5]
+        bottom_performers = perf_ranking[-5:]
+
         weak_factors = {
             name: info for name, info in diagnosis.get("per_factor", {}).items()
             if info["status"] in ("dead", "decaying", "weak")
@@ -164,14 +225,21 @@ class LLMSeedGenerator:
 
         prompt = f"""You are a quantitative researcher designing stock selection factors for the Chinese A-share market.
 
-## Current Factor Health
-Dead/decaying factors (need replacement):
+## Factor Performance (Factor Mimicking Portfolio, no trading costs)
+Top 5 performers (by Sharpe):
+{json.dumps([{"name": n, **info} for n, info in top_performers], indent=2, ensure_ascii=False)}
+
+Bottom 5 performers:
+{json.dumps([{"name": n, **info} for n, info in bottom_performers], indent=2, ensure_ascii=False)}
+
+## Factor Health (IC trend)
+Dead/decaying/weak factors (need replacement):
 {json.dumps(weak_factors, indent=2, ensure_ascii=False)}
 
-Healthy factors (preserve):
+Healthy factors (preserve their signal):
 {json.dumps(healthy_factors, indent=2, ensure_ascii=False)}
 
-Correlation clusters (redundant pairs):
+## Correlation Clusters (redundant pairs to diversify away from)
 {json.dumps(diagnosis.get('correlation_clusters', []), indent=2, ensure_ascii=False)}
 
 ## Available Data Fields
@@ -183,14 +251,21 @@ Derived: ret_5d, ret_20d, ret_60d, vol_20d, vol_60d, hl_ratio, amihud, vol_ratio
 
 ## Task
 Propose exactly {n_ideas} new factor formulas that:
-1. Address the specific weaknesses above (replace dead/decaying factors with uncorrelated alternatives)
-2. Capture non-linear relationships, tail risk, or conditional patterns the existing factors miss
-3. Use the expression_hint format below (machine-parseable shorthand)
+
+1. **Fill performance gaps**: Look at bottom performers — what market inefficiency are they failing to capture? Propose factors that target the OPPOSITE signal or a different dimension. If all momentum factors are weak, try mean-reversion or value. If volume factors cluster together, try price pattern or volatility regime.
+
+2. **Diversify signal sources**: Avoid high correlation with existing factors. Propose factors using different data fields, different operator types, different lookback windows, and different mathematical transformations.
+
+3. **Economic intuition**: Each factor should have a clear economic rationale. No pure data-mining combinations.
+   - Good: "low turnover after large drawdowns signals capitulation" → use ts_min(turnover,10) combined with drawdown
+   - Bad: "mul(close, volume) worked in backtest" → no economic story
+
+4. **Variety**: Mix simple factors (1-2 nodes) and moderate-complexity factors (3-5 nodes). Include different categories: momentum, value, quality, volatility, liquidity, volume_price, risk, composite.
 
 Output a JSON array:
-[{{"name": "snake_case_name", "intuition": "1-2 sentence economic rationale",
-   "category": "momentum|value|quality|volatility|liquidity|leader|volume_price|risk|composite",
-   "expression_hint": "op(field, param) or op(op(field,p), op(field2,p))"}}]
+[{{"name": "snake_case_name", "intuition": "2-3 sentence economic rationale referencing specific weaknesses this factor addresses",
+   "category": "momentum|value|quality|volatility|liquidity|volume_price|risk|composite",
+   "expression_hint": "op(field, param) or nested expression"}}]
 
 Expression hint syntax:
 - Variable: field_name (e.g. close, volume, ret_20d)
@@ -201,7 +276,7 @@ Expression hint syntax:
 - Conditional: if_then(cond, then_val, else_val)
 - Time-series: pct_change(x,5), delta(x,5)
 - Constants: 0.5, -1.0, etc.
-- Nesting: ts_mean(div(close, volume), 20)
+- Nesting: ts_mean(div(close, volume), 20), ts_zscore(div(high, low), 60)
 
 IMPORTANT: Return ONLY the JSON array, no markdown fences, no explanation."""
 

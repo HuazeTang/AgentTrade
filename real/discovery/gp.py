@@ -79,12 +79,12 @@ class GenerationStats:
 @dataclass
 class GPConfig:
     """Configuration for the GP engine."""
-    population_size: int = 200
-    max_generations: int = 50
-    tournament_size: int = 7
+    population_size: int = 800
+    max_generations: int = 60
+    tournament_size: int = 5
     crossover_prob: float = 0.7
-    mutation_prob: float = 0.3
-    elite_count: int = 5
+    mutation_prob: float = 0.4
+    elite_count: int = 10
     max_depth: int = 7
     max_complexity: int = 30
     parsimony_penalty: float = 0.001  # per node
@@ -110,15 +110,27 @@ class GPConfig:
     hit_rate_weight: float = 0.2
 
     # Early stopping
-    early_stop_generations: int = 10  # stop if no improvement in N gens
+    early_stop_generations: int = 25  # stop if no improvement in N gens
     min_fitness_improvement: float = 0.001
 
+    # Diversity injection: when stall_count >= refresh_stall_threshold,
+    # replace bottom refresh_fraction of population with random fresh trees.
+    refresh_stall_threshold: int = 8
+    refresh_fraction: float = 0.30
+
+    # Same-factor diversity injection: when the best individual's factor_name
+    # is unchanged for N consecutive generations, inject fresh trees regardless
+    # of fitness improvement.  This catches the case where pure_factor_blend
+    # keeps inflating fitness for the same expression, preventing the normal
+    # stall detection from ever firing.
+    same_factor_stall_threshold: int = 5
+
     # Parallelism
-    max_workers: int = 8  # thread pool size for population evaluation
+    max_workers: int = 16  # thread pool size for population evaluation
 
     # Per-generation backtest: after IC evaluation, run real backtests on the
     # top-N individuals and blend Sharpe into fitness. Catches IC-false-positives.
-    pure_factor_top_n: int = 5   # number of top individuals for pure factor eval (0 = disabled)
+    pure_factor_top_n: int = 10   # number of top individuals for pure factor eval (0 = disabled)
     pure_factor_blend_weight: float = 0.3  # weight of pure factor Sharpe in blended fitness
 
 
@@ -138,6 +150,8 @@ class GPEngine:
         self._generation = 0
         self._best_fitness: float = -np.inf
         self._stall_count = 0
+        self._prev_best_name: str | None = None  # track same-factor domination
+        self._same_factor_stall = 0
         self._hall_of_fame: list[Individual] = []
         self._history: list[GenerationStats] = []
 
@@ -151,6 +165,7 @@ class GPEngine:
         callback: Callable[[int, list[Individual]], None] | None = None,
         seeds: list[Individual] | None = None,
         pure_factor_callback: Callable[[list[Individual], int], None] | None = None,
+        llm_diversity_callback: Callable[[Individual, int], list[Individual] | None] | None = None,
     ) -> list[Individual]:
         """Evolve a population of factor expressions.
 
@@ -166,6 +181,10 @@ class GPEngine:
                       (sorted_population, generation). Evaluates top individuals
                       via factor mimicking portfolios and blends pure Sharpe
                       into fitness in place.
+            llm_diversity_callback: Optional function called when same-factor
+                      stall is detected. Receives (stuck_individual, generation)
+                      and returns list of compiled seed Individuals, or None
+                      to fall back to random diversity injection.
 
         Returns:
             List of Individuals sorted by fitness (best first).
@@ -208,10 +227,18 @@ class GPEngine:
             t_start = time.time()
 
             # Elitism: keep best N valid individuals (skip NaN fitness)
+            # Deduplicate by factor_name so the same expression doesn't
+            # monopolize multiple elite slots.
             valid_pop = [ind for ind in population if not np.isnan(ind.fitness) and ind.fitness > -900]
-            if len(valid_pop) >= 1:
-                elites = valid_pop[:cfg.elite_count]
-            else:
+            seen_names: set[str] = set()
+            elites: list[Individual] = []
+            for ind in valid_pop:
+                if ind.factor_name not in seen_names:
+                    elites.append(ind)
+                    seen_names.add(ind.factor_name)
+                    if len(elites) >= cfg.elite_count:
+                        break
+            if not elites:
                 elites = population[:cfg.elite_count]
 
             # Generate offspring
@@ -270,12 +297,94 @@ class GPEngine:
             )
             self._record_generation_stats(population, elapsed)
 
-            # Early stopping
+            # ── Same-factor domination detection ──────────────────────────────
+            # Tracks whether the best individual's expression (factor_name) is
+            # unchanged across generations.  This is independent of fitness:
+            # pure_factor_blend can keep inflating fitness for the same expression,
+            # which would prevent the normal fitness-based stall detector from
+            # ever firing.  When the same factor dominates for too long, we inject
+            # fresh random trees to escape the local optimum.
+            best_name = best.factor_name
+            if best_name and best_name == self._prev_best_name:
+                self._same_factor_stall += 1
+            else:
+                self._same_factor_stall = 0
+                self._prev_best_name = best_name
+
+            if (cfg.same_factor_stall_threshold > 0
+                    and self._same_factor_stall >= cfg.same_factor_stall_threshold):
+                # Try LLM diversity callback first — if available, ask LLM to
+                # analyze the stuck factor and propose targeted variants.
+                # Fall back to random fresh trees if LLM fails or is unavailable.
+                n_refresh = max(int(cfg.population_size * cfg.refresh_fraction),
+                                cfg.population_size // 4)
+                n_keep = cfg.population_size - n_refresh
+                llm_seeds: list[Individual] = []
+                if llm_diversity_callback:
+                    try:
+                        llm_seeds = list(llm_diversity_callback(best, gen) or [])
+                    except Exception as e:
+                        logger.warning(
+                            "LLM diversity callback failed gen %d: %s", gen, e,
+                        )
+                if llm_seeds:
+                    fresh_pop = self._evaluate_population(
+                        [s.tree for s in llm_seeds], data, forward_returns,
+                        existing_factors,
+                    )
+                    n_random = n_refresh - len(llm_seeds)
+                    if n_random > 0:
+                        random_trees = self._initialize_population()[:n_random]
+                        random_pop = self._evaluate_population(
+                            random_trees, data, forward_returns, existing_factors,
+                        )
+                        fresh_pop = fresh_pop + random_pop
+                    population = population[:n_keep] + fresh_pop
+                    population.sort(key=lambda ind: ind.fitness, reverse=True)
+                    logger.info(
+                        "Gen %3d: LLM diversity refresh — injected %d LLM seeds "
+                        "(same factor '%s' for %d gens)",
+                        gen, len(llm_seeds), best_name, self._same_factor_stall,
+                    )
+                else:
+                    fresh_trees = self._initialize_population()[:n_refresh]
+                    fresh_pop = self._evaluate_population(
+                        fresh_trees, data, forward_returns, existing_factors,
+                    )
+                    population = population[:n_keep] + fresh_pop
+                    population.sort(key=lambda ind: ind.fitness, reverse=True)
+                    logger.info(
+                        "Gen %3d: random diversity refresh — injected %d random "
+                        "individuals (same factor '%s' for %d gens)",
+                        gen, n_refresh, best_name, self._same_factor_stall,
+                    )
+                self._same_factor_stall = 0
+                self._stall_count = 0
+
+            # ── Fitness-based stall detection / diversity injection ───────────
             if best.fitness - self._best_fitness < cfg.min_fitness_improvement:
                 self._stall_count += 1
             else:
                 self._stall_count = 0
                 self._best_fitness = best.fitness
+
+            # Diversity injection: when stalled, replace bottom fraction with
+            # random fresh trees to escape local optima.
+            if self._stall_count >= cfg.refresh_stall_threshold:
+                n_refresh = int(cfg.population_size * cfg.refresh_fraction)
+                # Keep elites + top portion, replace the bottom
+                n_keep = cfg.population_size - n_refresh
+                fresh_trees = self._initialize_population()[:n_refresh]
+                fresh_pop = self._evaluate_population(
+                    fresh_trees, data, forward_returns, existing_factors,
+                )
+                population = population[:n_keep] + fresh_pop
+                population.sort(key=lambda ind: ind.fitness, reverse=True)
+                logger.info(
+                    "Gen %3d: diversity refresh — injected %d random individuals (stall=%d)",
+                    gen, n_refresh, self._stall_count,
+                )
+                self._stall_count = 0  # reset to give fresh blood time to evolve
 
             if self._stall_count >= cfg.early_stop_generations:
                 logger.info("Early stopping at generation %d (no improvement for %d gens)",
@@ -410,7 +519,7 @@ class GPEngine:
         ic_mean = result.ic_mean
         ic_ir = result.ic_ir
         hit_rate = result.hit_rate
-        auto_corr = result.auto_corr if not np.isnan(result.auto_corr) else 1.0
+        auto_corr = result.auto_corr  # keep NaN — skip auto_corr rejection below
 
         # Bail early if core metrics are invalid
         if np.isnan(ic_mean) or np.isnan(ic_ir):
@@ -423,7 +532,7 @@ class GPEngine:
         # Reject near-constant signals (e.g. lt() comparisons with non-overlapping
         # operand ranges).  IC_std ≈ 0 produces spuriously high IR.
         _ic_std = getattr(result, "ic_std", np.nan)
-        if not np.isnan(_ic_std) and _ic_std < 0.005:
+        if not np.isnan(_ic_std) and _ic_std < 0.001:
             return Individual(
                 tree=tree, factor_name=factor_cls.meta.name, factor_cls=factor_cls,
                 fitness=-999, ic_mean=ic_mean, ic_ir=ic_ir,
@@ -459,6 +568,8 @@ class GPEngine:
         # Hard-reject factors with excessive autocorrelation (near-constant).
         # Soft penalties let degenerate factors dominate evolution when their
         # IR is high enough to absorb the penalty (e.g. min(ret_60d, const)).
+        # NaN auto_corr = low-variance factor, already handled by validator
+        # (cross-sectional std check); skip hard-reject for these.
         if not np.isnan(auto_corr) and auto_corr > self._validator.max_auto_corr:
             return Individual(
                 tree=tree, factor_name=factor_cls.meta.name, factor_cls=factor_cls,

@@ -42,7 +42,7 @@ DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1/chat/completions"
 DEEPSEEK_MODELS = ["deepseek-chat", "deepseek-reasoner", "deepseek-v4-pro", "deepseek-v4-flash"]
 
 DEFAULT_MODEL = "deepseek-chat"
-DEFAULT_TIMEOUT = 30
+DEFAULT_TIMEOUT = 120
 DEFAULT_MAX_RETRIES = 3
 DEFAULT_TEMPERATURE = 0.3  # low for structured outputs
 

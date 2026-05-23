@@ -43,6 +43,14 @@ class PureFactorMetrics:
     # IC stability
     ic_dispersion: float = np.nan  # std of IC across sub-periods
 
+    # Tail capture metrics
+    top_decile_spread_capture: float = np.nan
+    market_upside_tail_capture: float = np.nan
+    market_downside_tail_capture: float = np.nan
+    market_tail_win_rate: float = np.nan
+    upside_concentration: float = np.nan
+    downside_concentration: float = np.nan
+
     def to_dict(self) -> dict:
         def _fmt(v):
             if isinstance(v, float) and np.isnan(v):
@@ -66,6 +74,12 @@ class PureFactorMetrics:
             "wf_sharpe_std": _fmt(self.wf_sharpe_std),
             "wf_passed": self.wf_passed,
             "ic_dispersion": _fmt(self.ic_dispersion),
+            "top_decile_spread_capture": _fmt(self.top_decile_spread_capture),
+            "market_upside_tail_capture": _fmt(self.market_upside_tail_capture),
+            "market_downside_tail_capture": _fmt(self.market_downside_tail_capture),
+            "market_tail_win_rate": _fmt(self.market_tail_win_rate),
+            "upside_concentration": _fmt(self.upside_concentration),
+            "downside_concentration": _fmt(self.downside_concentration),
         }
 
 
@@ -127,6 +141,14 @@ class FactorMimickingPortfolio:
             mu = df.mean(axis=1)
             sigma = df.std(axis=1).clip(lower=1e-10)
             z = df.sub(mu, axis=0).div(sigma, axis=0)
+
+        # Zero out weights when cross-sectional dispersion is zero (all factor
+        # values identical).  Tied ranks produce z ≈ 0.0003 instead of 0 for
+        # constant rows, creating phantom equal-weight market exposure.
+        # Binary / rare-event factors are especially affected (93%+ constant days).
+        constant_rows = df.nunique(axis=1) <= 1
+        if constant_rows.any():
+            z.loc[constant_rows] = 0.0
 
         if self.long_only:
             z = z.clip(lower=0.0)
@@ -249,6 +271,101 @@ class FactorMimickingPortfolio:
         except Exception:
             pass
 
+        # ── Metric 1: Top-Decile Spread Capture ──────────────────────────
+        top_decile_spread_capture = np.nan
+        try:
+            from factor.validation import quantile_returns, cross_sectional_range_return
+
+            qr = quantile_returns(factor_values, forward_returns, n_quantiles=10)
+            if not qr.empty:
+                top_q = qr[qr["quantile"] == qr["quantile"].max()]
+                bot_q = qr[qr["quantile"] == qr["quantile"].min()]
+                ret_col = "fwd_ret" if "fwd_ret" in qr.columns else "return"
+                spread_by_date = pd.merge(
+                    top_q[["trade_date", ret_col]],
+                    bot_q[["trade_date", ret_col]],
+                    on="trade_date", suffixes=("_top", "_bot"),
+                )
+                spread_by_date["spread"] = (
+                    spread_by_date[f"{ret_col}_top"] - spread_by_date[f"{ret_col}_bot"]
+                )
+                factor_mean_spread = spread_by_date["spread"].mean()
+
+                cs_range = cross_sectional_range_return(forward_returns, n_quantiles=10)
+                cs_mean_range = cs_range.mean()
+
+                if (not np.isnan(factor_mean_spread)
+                        and not np.isnan(cs_mean_range)
+                        and abs(cs_mean_range) > 1e-10):
+                    top_decile_spread_capture = factor_mean_spread / cs_mean_range
+        except Exception:
+            pass
+
+        # ── Metric 2: Market Tail-Day Capture ────────────────────────────
+        market_upside_tail_capture = np.nan
+        market_downside_tail_capture = np.nan
+        market_tail_win_rate = np.nan
+        try:
+            fwd_unstacked = forward_returns.unstack()
+            market_daily = fwd_unstacked.mean(axis=1).dropna()
+
+            if len(market_daily) >= 30:
+                n_tail = max(1, int(len(market_daily) * 0.10))
+                sorted_mkt = market_daily.sort_values()
+                up_threshold = sorted_mkt.iloc[-n_tail]
+                down_threshold = sorted_mkt.iloc[n_tail - 1]
+
+                up_tail_dates = set(market_daily[market_daily >= up_threshold].index)
+                down_tail_dates = set(market_daily[market_daily <= down_threshold].index)
+
+                common_dates = daily_ret.index.intersection(market_daily.index)
+                fmp_aligned = daily_ret.loc[common_dates]
+                mkt_aligned = market_daily.loc[common_dates]
+
+                # Upside capture
+                up_fmp = fmp_aligned[fmp_aligned.index.isin(up_tail_dates)]
+                up_mkt = mkt_aligned[mkt_aligned.index.isin(up_tail_dates)]
+                if len(up_fmp) >= 3 and abs(up_mkt.mean()) > 1e-10:
+                    market_upside_tail_capture = up_fmp.mean() / up_mkt.mean()
+
+                # Downside capture
+                down_fmp = fmp_aligned[fmp_aligned.index.isin(down_tail_dates)]
+                down_mkt = mkt_aligned[mkt_aligned.index.isin(down_tail_dates)]
+                if len(down_fmp) >= 3 and abs(down_mkt.mean()) > 1e-10:
+                    market_downside_tail_capture = down_fmp.mean() / down_mkt.mean()
+
+                # Win rate on all tail days
+                all_tail_dates = up_tail_dates | down_tail_dates
+                tail_fmp = fmp_aligned[fmp_aligned.index.isin(all_tail_dates)]
+                if len(tail_fmp) >= 5:
+                    market_tail_win_rate = (tail_fmp > 0).mean()
+        except Exception:
+            pass
+
+        # ── Metric 3: Return Concentration in Tails ──────────────────────
+        upside_concentration = np.nan
+        downside_concentration = np.nan
+        try:
+            if len(daily_ret) >= 30:
+                sorted_ret = daily_ret.sort_values()
+                n_tail = max(1, int(len(sorted_ret) * 0.10))
+
+                top_ret = sorted_ret.iloc[-n_tail:]
+                pos_ret = daily_ret[daily_ret > 0]
+                total_positive = pos_ret.sum()
+                if total_positive > 1e-10:
+                    upside_concentration = top_ret[top_ret > 0].sum() / total_positive
+
+                bot_ret = sorted_ret.iloc[:n_tail]
+                neg_ret = daily_ret[daily_ret < 0]
+                total_negative = abs(neg_ret.sum())
+                if total_negative > 1e-10:
+                    downside_concentration = (
+                        abs(bot_ret[bot_ret < 0].sum()) / total_negative
+                    )
+        except Exception:
+            pass
+
         return PureFactorMetrics(
             ic_mean=ic_mean,
             ic_std=ic_std,
@@ -262,6 +379,12 @@ class FactorMimickingPortfolio:
             mean_daily_return=mean_daily,
             win_rate=win_rate,
             ic_dispersion=ic_dispersion,
+            top_decile_spread_capture=top_decile_spread_capture,
+            market_upside_tail_capture=market_upside_tail_capture,
+            market_downside_tail_capture=market_downside_tail_capture,
+            market_tail_win_rate=market_tail_win_rate,
+            upside_concentration=upside_concentration,
+            downside_concentration=downside_concentration,
         )
 
     # ── multi-factor composite ──────────────────────────────────────────
@@ -377,6 +500,26 @@ class FactorMimickingPortfolio:
         drawdowns = (cum_series - running_max) / running_max
         max_dd = drawdowns.min()
 
+        # Return concentration in tails
+        upside_conc = np.nan
+        downside_conc = np.nan
+        try:
+            if len(daily_ret) >= 30:
+                sorted_ret = daily_ret.sort_values()
+                n_tail = max(1, int(len(sorted_ret) * 0.10))
+
+                top_ret = sorted_ret.iloc[-n_tail:]
+                pos_sum = daily_ret[daily_ret > 0].sum()
+                if pos_sum > 1e-10:
+                    upside_conc = top_ret[top_ret > 0].sum() / pos_sum
+
+                bot_ret = sorted_ret.iloc[:n_tail]
+                neg_sum = abs(daily_ret[daily_ret < 0].sum())
+                if neg_sum > 1e-10:
+                    downside_conc = abs(bot_ret[bot_ret < 0].sum()) / neg_sum
+        except Exception:
+            pass
+
         return PureFactorMetrics(
             sharpe_ratio=sharpe,
             max_drawdown=max_dd,
@@ -385,6 +528,8 @@ class FactorMimickingPortfolio:
             volatility=ann_vol,
             mean_daily_return=mean_daily,
             win_rate=win_rate,
+            upside_concentration=upside_conc,
+            downside_concentration=downside_conc,
         )
 
 

@@ -14,6 +14,7 @@ Daily cycle:
 
 from __future__ import annotations
 
+import bisect
 import logging
 from datetime import date
 
@@ -56,6 +57,7 @@ class BacktestEngine:
         # Working state
         self._trading_days: pd.DatetimeIndex | None = None
         self._daily_cache: pd.DataFrame | None = None
+        self._cache_dates: list[pd.Timestamp] = []
         self._all_fills: list[dict] = []
         self._all_positions: list[dict] = []
         self._all_returns: list[dict] = []
@@ -75,10 +77,16 @@ class BacktestEngine:
             len(self._trading_days),
         )
 
-        # Preload daily data for the entire period
-        self._daily_cache = read_daily(
-            self.config.start_date, self.config.end_date
-        )
+        # Preload daily data for the entire period (with 10-day lookback margin
+        # so the first trading day can reference previous close data).
+        load_start = self.config.start_date - pd.Timedelta(days=10)
+        self._daily_cache = read_daily(load_start, self.config.end_date)
+        # Cache sorted unique dates for O(1) previous-trading-day lookup
+        if self._daily_cache is not None and not self._daily_cache.empty:
+            date_level = self._daily_cache.index.names[0]
+            self._cache_dates = sorted(
+                self._daily_cache.index.get_level_values(date_level).unique().tolist()
+            )
 
         symbols = self._get_symbols()
         if not symbols:
@@ -102,11 +110,21 @@ class BacktestEngine:
                 return sorted(self._daily_cache["symbol"].unique().tolist())
         return []
 
+    def _prev_trading_day(self, today: pd.Timestamp) -> pd.Timestamp | None:
+        """Find the most recent date in the cache strictly before `today`."""
+        if not self._cache_dates:
+            return None
+        # bisect_left gives insertion point for `today` in sorted list
+        idx = bisect.bisect_left(self._cache_dates, today) - 1
+        if idx >= 0:
+            return self._cache_dates[idx]
+        return None
+
     def _process_day(self, today: pd.Timestamp, all_symbols: list[str]) -> None:
         # 1. Universe filter
-        yesterday = today - pd.Timedelta(days=1)
+        yesterday = self._prev_trading_day(today)
         yest_data = pd.DataFrame()
-        if self._daily_cache is not None and not self._daily_cache.empty:
+        if yesterday is not None and self._daily_cache is not None:
             try:
                 yest_data = self._daily_cache.xs(yesterday, level="trade_date")
             except KeyError:
@@ -175,12 +193,15 @@ class BacktestEngine:
     ) -> pd.DataFrame:
         """Get data available on `today` for decision-making.
 
-        Uses previous day's close data to avoid look-ahead.
+        Uses previous trading day's close data to avoid look-ahead.
         """
         if self._daily_cache is None or self._daily_cache.empty:
             return pd.DataFrame(index=pd.Index(universe, name="symbol"))
 
-        yesterday = today - pd.Timedelta(days=1)
+        yesterday = self._prev_trading_day(today)
+        if yesterday is None:
+            return pd.DataFrame(index=pd.Index(universe, name="symbol"))
+
         try:
             data = self._daily_cache.xs(yesterday, level="trade_date")
         except KeyError:

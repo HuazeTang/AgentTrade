@@ -76,6 +76,47 @@ def quantile_returns(
     return result
 
 
+def cross_sectional_range_return(
+    forward_returns: pd.Series,
+    n_quantiles: int = 10,
+) -> pd.Series:
+    """Per-date top-minus-bottom decile return spread, sorted by actual outcome.
+
+    Ranks stocks by their *ex-post* forward return each date (not by a factor).
+    This gives the maximum achievable winner-loser spread — the benchmark against
+    which a factor's top-decile spread is compared.
+
+    Args:
+        forward_returns: MultiIndex (trade_date, symbol) Series.
+        n_quantiles: Number of buckets (default 10 for deciles).
+
+    Returns:
+        Series indexed by trade_date with the cross-sectional spread.
+    """
+    fwd = forward_returns.dropna()
+    if fwd.empty:
+        return pd.Series(dtype=float)
+
+    ret_name = fwd.name if fwd.name else "fwd_ret"
+    df = fwd.reset_index()
+
+    def _range_per_date(g):
+        vals = g[ret_name].dropna()
+        if len(vals) < n_quantiles:
+            return np.nan
+        try:
+            labels = pd.qcut(vals, n_quantiles, labels=False, duplicates="drop")
+            top_mask = labels == labels.max()
+            bot_mask = labels == labels.min()
+            return float(vals[top_mask].mean() - vals[bot_mask].mean())
+        except (ValueError, IndexError):
+            return np.nan
+
+    result = df.groupby("trade_date").apply(_range_per_date).dropna()
+    result.name = "cs_range_return"
+    return result
+
+
 def quantile_cumulative_returns(
     factor: pd.Series,
     forward_returns: pd.Series,

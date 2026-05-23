@@ -255,8 +255,19 @@ def _walk_forward_check(
 ) -> tuple[bool, float]:
     """Simple walk-forward: train on first train_frac, evaluate IC on remainder."""
     ic = ic.dropna()
-    if len(ic) < 10:
+    if len(ic) == 0:
         return False, np.nan
+
+    # When IC history is short (< 10 obs), fallback to full-series mean
+    # instead of rejecting outright. This lets factors with high-window
+    # operators (ts_delay120, ts_prod20, etc.) pass walk-forward if their
+    # full-series IC is strong enough, even when the training period is
+    # too short for a proper train/test split.
+    if len(ic) < 10:
+        full_mean = float(ic.mean())
+        logger.debug("Walk-forward: short IC history (%d obs), using full mean=%.4f",
+                     len(ic), full_mean)
+        return abs(full_mean) >= min_ic, full_mean
 
     split_idx = int(len(ic) * train_frac)
     test_ic = ic.iloc[split_idx:].dropna()

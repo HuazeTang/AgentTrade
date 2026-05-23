@@ -187,9 +187,9 @@ class AgentSimulation:
         model: str | None = None,
         output_dir: Path | None = None,
         gp_discover: bool = False,
-        gp_population: int = 200,
-        gp_generations: int = 25,
-        gp_early_stop: int = 10,
+        gp_population: int = 800,
+        gp_generations: int = 60,
+        gp_early_stop: int = 25,
         llm_seed: bool = True,
     ):
         self.start = start
@@ -276,9 +276,14 @@ class AgentSimulation:
         self._baseline_metrics = None
 
         baseline_df, baseline_weights = self._compute_factor_set(baseline_factors)
-        self._baseline_equity = self._run_backtest_loop(
-            baseline_df, baseline_weights, symbols, "baseline",
-        )
+        _saved_mode = self.mode
+        self.mode = "factor"  # force deterministic factor strategy for baseline
+        try:
+            self._baseline_equity = self._run_backtest_loop(
+                baseline_df, baseline_weights, symbols, "baseline",
+            )
+        finally:
+            self.mode = _saved_mode
 
         # 6. GP: discover new factors or load accumulated ones
         gp_ablation = None
@@ -293,9 +298,14 @@ class AgentSimulation:
                 self._factor_df, self._factor_weights = self._compute_factor_set_staged(
                     baseline_factors, gp_factors,
                 )
-                self._gp_equity = self._run_backtest_loop(
-                    self._factor_df, self._factor_weights, symbols, "combined",
-                )
+                _saved_mode3 = self.mode
+                self.mode = "factor"
+                try:
+                    self._gp_equity = self._run_backtest_loop(
+                        self._factor_df, self._factor_weights, symbols, "combined",
+                    )
+                finally:
+                    self.mode = _saved_mode3
             else:
                 self._gp_equity = None
                 self._factor_df = baseline_df
@@ -1157,6 +1167,17 @@ class AgentSimulation:
 
         Returns ablation dict for _finalize(), or None if no factors discovered.
         """
+        # Load prior GP factors for cumulative evaluation context
+        import json as _json
+        prior_gp_names: list[str] = []
+        prior_data: dict = {}
+        gp_file = GP_FACTORS_PATH
+        if gp_file.exists():
+            with open(gp_file, "r", encoding="utf-8") as _f:
+                prior_data = _json.load(_f)
+            prior_gp_names = [e["name"] for e in prior_data.get("gp_factors", [])
+                             if e.get("accepted", True)]
+
         # ── 1. GP Evolution ──────────────────────────────────────────────────
         all_dates = sorted(data.index.get_level_values("trade_date").unique())
         split_idx = int(len(all_dates) * 0.67)
@@ -1167,11 +1188,18 @@ class AgentSimulation:
                      len(gp_train_dates))
 
         train_mask = data.index.get_level_values("trade_date").isin(gp_train_dates)
-        gp_data = data.loc[train_mask]
 
-        close = gp_data["close"].unstack()
-        fwd_ret = close.pct_change(periods=FORWARD_PERIODS).shift(-FORWARD_PERIODS).stack()
-        fwd_ret.name = "fwd_ret"
+        # Use FULL data as gp_data — rolling/ts operators (ts_delay, ts_std,
+        # ts_quantile, etc.) need history beyond the training window to avoid
+        # producing all-NaN factor values.  IC is computed against
+        # training-filtered forward_returns so evaluation stays in-sample.
+        gp_data = data.copy()
+
+        # Forward returns on full data, then filtered to training dates for IC
+        close_all = data["close"].unstack()
+        fwd_ret_all = close_all.pct_change(periods=FORWARD_PERIODS).shift(-FORWARD_PERIODS).stack()
+        fwd_ret_all.name = "fwd_ret"
+        fwd_ret_train = fwd_ret_all.loc[gp_data.loc[train_mask].index]
 
         engine = FactorEngine()
         existing_df = engine.compute(baseline_factors, gp_data)
@@ -1187,57 +1215,34 @@ class AgentSimulation:
         # Inject derived fields (ret_*, vol_*, etc.) that TERMINAL_FIELDS
         # references but that don't exist in raw OHLCV data.  Without these,
         # ~44% of random trees fail compilation with KeyError.
-        _close = gp_data["close"].unstack()
-        _volume = gp_data["volume"].unstack()
-        _amount = gp_data["amount"].unstack()
-        _high = gp_data["high"].unstack()
-        _low = gp_data["low"].unstack()
+        # Compute on FULL data so pct_change/rolling have enough history.
+        _close_all = data["close"].unstack()
+        _volume_all = data["volume"].unstack()
+        _amount_all = data["amount"].unstack()
+        _high_all = data["high"].unstack()
+        _low_all = data["low"].unstack()
         _derived = {}
-        _derived["ret_5d"] = _close.pct_change(5).stack()
-        _derived["ret_20d"] = _close.pct_change(20).stack()
-        _derived["ret_60d"] = _close.pct_change(60).stack()
-        _derived["vol_20d"] = _volume.rolling(20, min_periods=5).mean().stack()
-        _derived["vol_60d"] = _volume.rolling(60, min_periods=10).mean().stack()
-        _derived["hl_ratio"] = ((_high - _low) / _close.clip(lower=1e-8)).stack()
-        _derived["vol_ratio"] = (_volume / _volume.shift(1).clip(lower=1e-8)).stack()
-        _derived["amihud"] = (_close.pct_change().abs() / _amount.clip(lower=1e-8)).stack()
+        _derived["ret_5d"] = _close_all.pct_change(5).stack()
+        _derived["ret_20d"] = _close_all.pct_change(20).stack()
+        _derived["ret_60d"] = _close_all.pct_change(60).stack()
+        _derived["vol_20d"] = _volume_all.rolling(20, min_periods=5).mean().stack()
+        _derived["vol_60d"] = _volume_all.rolling(60, min_periods=10).mean().stack()
+        _derived["hl_ratio"] = ((_high_all - _low_all) / _close_all.clip(lower=1e-8)).stack()
+        _derived["vol_ratio"] = (_volume_all / _volume_all.shift(1).clip(lower=1e-8)).stack()
+        _derived["amihud"] = (_close_all.pct_change().abs() / _amount_all.clip(lower=1e-8)).stack()
         for _name, _series in _derived.items():
             if _name not in gp_data.columns:
                 gp_data[_name] = _series
 
-        # Inject factor values as data columns for GP terminals
+        # Inject baseline factor columns as GP terminals.
+        # Prior GP factors are deliberately excluded — they dominate the
+        # fitness landscape and cause the GP to degenerate into trivial
+        # wrappers instead of discovering novel structures.
         from discovery.expr import TERMINAL_FIELDS
         raw_field_set = set(gp_data.columns) | set(TERMINAL_FIELDS)
-
-        # Also include previously accepted GP factors as terminals (iterative accumulation)
-        gp_file = GP_FACTORS_PATH
-        prior_gp_names: list[str] = []
-        if gp_file.exists():
-            import json as _json
-            try:
-                with open(gp_file, "r", encoding="utf-8") as _f:
-                    prior_data = _json.load(_f)
-                prior_gp_names = [e["name"] for e in prior_data.get("gp_factors", [])
-                                if e.get("accepted", True)]
-            except (json.JSONDecodeError, ValueError, OSError) as e:
-                logger.warning("Failed to load gp_factors.json (%s), starting fresh", e)
-                prior_gp_names = []
-
         factor_terminals = [f for f in usable if f not in raw_field_set]
-        if prior_gp_names:
-            # Register prior GP factors and add their values as terminals
-            self._load_persisted_gp_factors(accepted_only=True)
-            prior_gp_df = engine.compute(prior_gp_names, gp_data)
-            for name in prior_gp_names:
-                if name in prior_gp_df.columns:
-                    gp_data[name] = prior_gp_df[name]
-                    if name not in factor_terminals:
-                        factor_terminals.append(name)
-            logger.info("GP: injected %d prior GP factors as terminals", len(prior_gp_names))
 
         if factor_terminals:
-            # Only join columns that exist in existing_df (prior GP factors are
-            # already injected directly into gp_data above)
             joinable = [f for f in factor_terminals if f in existing_df.columns]
             if joinable:
                 gp_data = gp_data.join(existing_df[joinable], how="left")
@@ -1248,8 +1253,8 @@ class AgentSimulation:
 
         extended_terminals = list(TERMINAL_FIELDS) + factor_terminals
 
-        common_idx = existing_df.index.intersection(fwd_ret.dropna().index)
-        gp_fwd = fwd_ret.loc[common_idx]
+        common_idx = existing_df.index.intersection(fwd_ret_train.dropna().index)
+        gp_fwd = fwd_ret_train.loc[common_idx]
         gp_existing = existing_df.loc[common_idx]
 
         if len(gp_fwd) < 100:
@@ -1284,9 +1289,21 @@ class AgentSimulation:
                 from discovery.llm_seed import LLMSeedGenerator
                 llm = create_default_client()
                 seed_gen = LLMSeedGenerator()
-                # Analyze baseline weaknesses
+
+                # Compute pure factor performance for each existing factor
+                # so the LLM can see which factors make/lose money in backtest
+                logger.info("Computing factor performance for LLM diagnosis ...")
+                factor_perf = seed_gen.compute_factor_performance(gp_existing, gp_fwd)
+                top_perf = sorted(factor_perf.items(), key=lambda x: x[1].get("sharpe", 0), reverse=True)[:3]
+                bot_perf = sorted(factor_perf.items(), key=lambda x: x[1].get("sharpe", 0))[:3]
+                logger.info("Top 3 FMP Sharpe: %s",
+                             ", ".join(f"{n}: SR={p['sharpe']:.2f}" for n, p in top_perf))
+                logger.info("Bot 3 FMP Sharpe: %s",
+                             ", ".join(f"{n}: SR={p['sharpe']:.2f}" for n, p in bot_perf))
+
+                # Analyze baseline weaknesses (IC stats + FMP performance)
                 diagnosis = seed_gen.analyze_baseline_weakness(
-                    gp_existing, gp_fwd, llm,
+                    gp_existing, gp_fwd, llm, factor_performance=factor_perf,
                 )
                 dead_count = diagnosis.get("dead_count", 0)
                 decaying_count = diagnosis.get("decaying_count", 0)
@@ -1294,9 +1311,12 @@ class AgentSimulation:
                              dead_count, decaying_count,
                              diagnosis.get("total_factors", 0) - dead_count - decaying_count)
 
-                # Propose seeds
+                # Propose seeds — target 25% of population as LLM seeds
+                n_seeds = min(100, max(15, self.gp_population // 4))
                 existing_names = list(gp_existing.columns) + prior_gp_names
-                proposals = seed_gen.propose_factors(diagnosis, existing_names, llm, n_ideas=5)
+                proposals = seed_gen.propose_factors(
+                    diagnosis, existing_names, llm, n_ideas=n_seeds,
+                )
                 if proposals:
                     llm_seeds = seed_gen.compile_seeds(proposals)
                     logger.info("LLM generated %d/%d valid seed factors",
@@ -1343,10 +1363,10 @@ class AgentSimulation:
                 break
 
             try:
-                factor_vals = ind.factor_cls().compute(data)
+                factor_vals = ind.factor_cls().compute(gp_data)
                 result = validator.validate(
                     factor_values=factor_vals,
-                    forward_returns=fwd_ret,
+                    forward_returns=fwd_ret_train,
                     factor_name=ind.factor_name,
                     existing_factors=existing_df,
                 )
@@ -1389,7 +1409,7 @@ class AgentSimulation:
         # Orthogonal filter
         if len(new_factors) > 1:
             ortho_selected = orthogonal_filter(
-                validated_values, fwd_ret, min_residual_ir=0.10,
+                validated_values, fwd_ret_train, min_residual_ir=0.10,
             )
             rejected = set(validated_values) - set(ortho_selected)
             if rejected:
@@ -1455,7 +1475,7 @@ class AgentSimulation:
             use_ranks=True,
         )
 
-        fwd_ret = close.pct_change(periods=FORWARD_PERIODS).shift(-FORWARD_PERIODS).stack()
+        fwd_ret = close_all.pct_change(periods=FORWARD_PERIODS).shift(-FORWARD_PERIODS).stack()
         fwd_ret.name = "fwd_ret"
 
         # Solo pure evaluation: each factor individually
@@ -1475,10 +1495,28 @@ class AgentSimulation:
         # Cumulative pure evaluation: weighted composite factor mimicking portfolio
         accepted_factors: list[dict] = []
 
+        # Pre-populate with prior accepted GP factors (accumulated across runs)
+        if prior_gp_names:
+            _prior_fv_df = engine.compute(prior_gp_names, gp_data)
+            for _entry in prior_data.get("gp_factors", []):
+                _n = _entry["name"]
+                if _n in prior_gp_names and _n in _prior_fv_df.columns:
+                    accepted_factors.append({
+                        "name": _n,
+                        "pure_cumulative": _entry.get("pure_cumulative", {}),
+                        "factor_vals": _prior_fv_df[_n],
+                    })
+            if accepted_factors:
+                logger.info("Cumulative eval: preloaded %d prior GP factors (%s)",
+                             len(accepted_factors),
+                             ", ".join(fm["name"] for fm in accepted_factors))
+
         # Calibrate IC-based weights on training data
         all_factor_vals = {}
         for fmeta in new_factors:
             all_factor_vals[fmeta["name"]] = fmeta["factor_vals"]
+        for fm in accepted_factors:
+            all_factor_vals[fm["name"]] = fm["factor_vals"]
         # Add existing factor values for weight calibration context
         for col in gp_existing.columns:
             if col not in all_factor_vals:
@@ -1489,6 +1527,19 @@ class AgentSimulation:
             get_trading_days(TRAIN_PERIOD[0], TRAIN_PERIOD[1]),
             gp_data,
         )
+
+        # Compute fresh cumulative reference from prior GP factors on current data
+        prior_cumul_sharpe = 0.0
+        if accepted_factors:
+            _prior_names = [fm["name"] for fm in accepted_factors]
+            _prior_w = {n: gw.get(n, 1.0 / len(_prior_names)) for n in _prior_names}
+            _total_w = sum(abs(w) for w in _prior_w.values())
+            _prior_w = {n: w / _total_w for n, w in _prior_w.items()}
+            _prior_vals = {n: all_factor_vals[n] for n in _prior_names if n in all_factor_vals}
+            _prior_pfm = portfolio.evaluate_composite(_prior_w, _prior_vals, fwd_ret)
+            prior_cumul_sharpe = _prior_pfm.sharpe_ratio
+            logger.info("Prior GP factors (%d) cumulative pure SR on current data: %.3f",
+                         len(_prior_names), prior_cumul_sharpe)
 
         for i, fmeta in enumerate(new_factors):
             fname = fmeta["name"]
@@ -1507,11 +1558,16 @@ class AgentSimulation:
                 cur_sharpe = pfm.sharpe_ratio
 
                 # Acceptance: cumulative pure Sharpe improvement
+                # First new factor compares against prior GP cumulative reference;
+                # subsequent factors compare against last accepted cumulative.
                 if len(accepted_factors) == 0:
-                    fmeta["accepted"] = cur_sharpe >= 0.3
+                    fmeta["accepted"] = bool(cur_sharpe >= 0.3)
+                elif len(accepted_factors) == len(prior_gp_names):
+                    # First new factor after prior GPs — compare against fresh reference
+                    fmeta["accepted"] = bool(cur_sharpe >= prior_cumul_sharpe + 0.02)
                 else:
                     prev_sharpe = accepted_factors[-1]["pure_cumulative"]["sharpe_ratio"]
-                    fmeta["accepted"] = cur_sharpe >= prev_sharpe + 0.02
+                    fmeta["accepted"] = bool(cur_sharpe >= prev_sharpe + 0.02)
 
                 if fmeta["accepted"]:
                     accepted_factors.append(fmeta)
@@ -1545,6 +1601,7 @@ class AgentSimulation:
                 "depth": fmeta["depth"],
                 "validation_passed": fmeta["validation_passed"],
                 "wf_ic_mean": fmeta["wf_ic_mean"],
+                "walk_forward": fmeta.get("walk_forward", {}),
                 "pure_solo": fmeta.get("pure_solo", {}),
                 "pure_cumulative": fmeta.get("pure_cumulative", {}),
                 "discovered_at": date.today().isoformat(),
@@ -1570,6 +1627,12 @@ class AgentSimulation:
         }
         gp_file.parent.mkdir(parents=True, exist_ok=True)
         import json as _json
+
+        class _NumpyEncoder(_json.JSONEncoder):
+            def default(self, o):
+                if hasattr(o, "item"):  # numpy scalar
+                    return o.item()
+                return super().default(o)
 
         # Merge with existing gp_factors.json to preserve old discoveries
         existing_factors: dict[str, dict] = {}
@@ -1612,7 +1675,7 @@ class AgentSimulation:
         # Atomic write: temp file then rename, to prevent corruption on crash
         _tmp_path = gp_file.with_suffix(".tmp")
         with open(_tmp_path, "w", encoding="utf-8") as _f:
-            _json.dump(persistence, _f, ensure_ascii=False, indent=2)
+            _json.dump(persistence, _f, ensure_ascii=False, indent=2, cls=_NumpyEncoder)
         _tmp_path.rename(gp_file)
         logger.info("GP factors saved to %s (%d accepted / %d total, %d new this run)",
                      gp_file, total_accepted, len(merged_factors), new_count)
@@ -1637,9 +1700,14 @@ class AgentSimulation:
             self._factor_df, self._factor_weights = self._compute_factor_set_staged(
                 baseline_factors, final_gp_names,
             )
-            self._gp_equity = self._run_backtest_loop(
-                self._factor_df, self._factor_weights, symbols, "combined",
-            )
+            _saved_mode2 = self.mode
+            self.mode = "factor"  # force deterministic factor strategy for ablation comparison
+            try:
+                self._gp_equity = self._run_backtest_loop(
+                    self._factor_df, self._factor_weights, symbols, "combined",
+                )
+            finally:
+                self.mode = _saved_mode2
         else:
             self._gp_equity = None
 
@@ -1677,6 +1745,16 @@ class AgentSimulation:
         bl_label = f"baseline ({active_count} factors)"
         print(f"{bl_label:<42s} {'-':>3s} {'-':>7s} {'-':>6s} "
                f"{'-':>8s} {'-':>8s} {'-':>8s} {'-':>8s} {'-':>3s}")
+
+        # Prior GP factor rows (loaded from previous runs, already accepted)
+        prior_in_accepted = [f for f in accepted_factors if f["name"] not in {fm["name"] for fm in new_factors}]
+        for fmeta in prior_in_accepted:
+            name = f"* {fmeta['name']}"[:41]
+            pc = fmeta.get("pure_cumulative", {})
+            pc_sr = pc.get("sharpe_ratio", 0) or 0
+            pc_dd = (pc.get("max_drawdown", 0) or 0) * 100
+            print(f"{name:<42s} {'-':>3s} {'-':>7s} {'-':>6s} "
+                   f"{'-':>8s} {'-':>8s} {pc_sr:7.2f} {pc_dd:>+7.1f}% {'Y':>3s}")
 
         for fmeta in new_factors:
             name = f"+ {fmeta['name']}"[:41]
@@ -3298,36 +3376,49 @@ def _create_pure_factor_callback(
         return _baseline_df_cache
 
     def _compute_cumulative_pure_sharpe(gp_names: list[str]) -> float:
-        """Compute cumulative factor mimicking portfolio Sharpe."""
-        if not gp_names:
-            # Baseline-only: evaluate based on existing factor values
-            composite = pd.Series(0.0, index=existing_factor_values.index)
-            n_cols = len(existing_factor_values.columns)
-            for col in existing_factor_values.columns:
-                fv = existing_factor_values[col]
-                mu = fv.groupby("trade_date").transform("mean")
-                sigma = fv.groupby("trade_date").transform("std").clip(lower=1e-8)
-                z = (fv - mu) / sigma
-                composite = composite.add(z / max(n_cols, 1), fill_value=0.0)
-            metrics = portfolio.evaluate(composite, forward_returns)
-            return metrics.sharpe_ratio
+        """Compute cumulative factor mimicking portfolio Sharpe.
 
-        engine = FactorEngine()
-        gp_df = engine.compute(gp_names, daily_cache)
-        valid = [n for n in gp_names if n in gp_df.columns]
-        if not valid:
-            return 0.0
+        Always includes baseline (existing_factor_values) in the composite,
+        so the comparison is baseline vs baseline+GP rather than 0 vs GP alone.
+        """
+        # Build equal-weight z-score composite from baseline factors
+        composite = pd.Series(0.0, index=existing_factor_values.index)
+        n_baseline = len(existing_factor_values.columns)
+        for col in existing_factor_values.columns:
+            fv = existing_factor_values[col]
+            mu = fv.groupby("trade_date").transform("mean")
+            sigma = fv.groupby("trade_date").transform("std").clip(lower=1e-8)
+            z = (fv - mu) / sigma
+            composite = composite.add(z / max(n_baseline, 1), fill_value=0.0)
+        total_factors = n_baseline
 
-        # Build composite: equal-weight z-score combination of all factors
-        composite = pd.Series(0.0, index=gp_df.index)
-        for name in valid:
-            col = gp_df[name]
-            mu = col.groupby("trade_date").transform("mean")
-            sigma = col.groupby("trade_date").transform("std").clip(lower=1e-8)
-            z = (col - mu) / sigma
-            composite = composite.add(z / len(valid), fill_value=0.0)
+        if gp_names:
+            engine = FactorEngine()
+            gp_df = engine.compute(gp_names, daily_cache)
+            valid = [n for n in gp_names if n in gp_df.columns]
+            if valid:
+                # Debug: compare IC vs FMP direction
+                _dbg_fv = gp_df[valid[0]]
+                _dbg_ic = _dbg_fv.groupby("trade_date").apply(
+                    lambda g: g.corr(forward_returns.loc[g.index.intersection(forward_returns.index)], method="spearman")
+                    if len(g) >= 10 else np.nan
+                ).dropna()
+                _dbg_ic_mean = _dbg_ic.mean() if len(_dbg_ic) > 0 else float('nan')
+                logger.info("DEBUG callback factor=%s raw_IC=%.4f n_dates=%d",
+                             valid[0], _dbg_ic_mean, len(_dbg_ic))
+
+                for name in valid:
+                    col = gp_df[name]
+                    mu = col.groupby("trade_date").transform("mean")
+                    sigma = col.groupby("trade_date").transform("std").clip(lower=1e-8)
+                    z = (col - mu) / sigma
+                    composite = composite.add(z / (n_baseline + len(valid)), fill_value=0.0)
+                total_factors = n_baseline + len(valid)
 
         metrics = portfolio.evaluate(composite, forward_returns)
+        label = f"baseline+{len(gp_names)}GP" if gp_names else "baseline"
+        logger.info("DEBUG callback %s IC=%.4f Sharpe=%.3f daily_ret_mean=%.6f",
+                     label, metrics.ic_mean, metrics.sharpe_ratio, metrics.mean_daily_return)
         return metrics.sharpe_ratio
 
     def pure_factor_callback(population, gen: int) -> None:
@@ -3369,9 +3460,18 @@ def _create_pure_factor_callback(
             _current_cumulative_sharpe = _compute_cumulative_pure_sharpe(
                 _accepted_gp_names)
 
-        # Test each elite CUMULATIVELY via pure factor mimicking portfolio
+        # Test each elite CUMULATIVELY via pure factor mimicking portfolio.
+        # Deduplicate by factor_name: skip if already evaluated this generation
+        # (population can contain many copies of the same expression) or
+        # already accepted in a prior generation.
         accepted_this_gen: list[str] = []
+        seen_this_gen: set[str] = set()
         for ind in compiled:
+            if ind.factor_name in _accepted_gp_names:
+                continue
+            if ind.factor_name in seen_this_gen:
+                continue
+            seen_this_gen.add(ind.factor_name)
             candidate_names = _accepted_gp_names + [ind.factor_name]
             cum_sharpe = _compute_cumulative_pure_sharpe(candidate_names)
             delta_sr = cum_sharpe - _current_cumulative_sharpe
@@ -3390,15 +3490,22 @@ def _create_pure_factor_callback(
                     population[i] = pop_ind._replace(fitness=round(blended, 6))
                     break
 
-            if delta_sr > 0.001:
-                _accepted_gp_names.append(ind.factor_name)
+            # Require BOTH cumulative Sharpe improvement AND non-trivial IC.
+            # Backtest alone can learn noise; IC confirms the factor has real
+            # cross-sectional predictive power (not just market beta).
+            has_sr_improvement = delta_sr > 0.001
+            has_min_ic = abs(ind.ic_mean) >= 0.01
+
+            if has_sr_improvement and has_min_ic:
                 accepted_this_gen.append(ind.factor_name)
+                _accepted_gp_names.append(ind.factor_name)
                 _current_cumulative_sharpe = cum_sharpe
-                logger.info("Gen %d: +%s ΔpureSR=+%.3f cumSR=%.3f -> accepted",
-                             gen, ind.factor_name, delta_sr, cum_sharpe)
+                logger.info("Gen %d: +%s ΔpureSR=+%.3f cumSR=%.3f IC=%.4f -> accepted",
+                             gen, ind.factor_name, delta_sr, cum_sharpe, ind.ic_mean)
             else:
-                logger.info("Gen %d: -%s ΔpureSR=-%.3f cumSR=%.3f -> rejected",
-                             gen, ind.factor_name, abs(delta_sr), cum_sharpe)
+                reason = "ΔSR=0" if not has_sr_improvement else f"IC={ind.ic_mean:.4f} too low"
+                logger.info("Gen %d: -%s ΔpureSR=%.3f cumSR=%.3f IC=%.4f -> rejected (%s)",
+                             gen, ind.factor_name, delta_sr, cum_sharpe, ind.ic_mean, reason)
 
         if accepted_this_gen:
             logger.info("Gen %d: accepted %d/%d elites (cumulative pure SR=%.3f, total=%d)",
@@ -3432,10 +3539,10 @@ def main():
                         help="LLM model to use")
     parser.add_argument("--gp-discover", action="store_true",
                         help="Run GP factor discovery with per-factor backtesting and enriched persistence")
-    parser.add_argument("--gp-population", type=int, default=200,
-                        help="GP population size (default: 200)")
-    parser.add_argument("--gp-generations", type=int, default=25,
-                        help="GP max generations (default: 25)")
+    parser.add_argument("--gp-population", type=int, default=800,
+                        help="GP population size (default: 800)")
+    parser.add_argument("--gp-generations", type=int, default=60,
+                        help="GP max generations (default: 60)")
     parser.add_argument("--llm-seed", action="store_true", default=True,
                         help="Use LLM to seed GP initial population (default: True)")
     parser.add_argument("--no-llm-seed", action="store_false", dest="llm_seed",
