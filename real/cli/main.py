@@ -9,6 +9,7 @@ from cli.commands.factor_cmd import factor
 from cli.commands.train_cmd import train
 from cli.commands.backtest_cmd import backtest
 from cli.commands.analyze_cmd import analyze
+from param_search.cli import search_group
 
 
 @click.group()
@@ -21,6 +22,7 @@ cli.add_command(factor)
 cli.add_command(train)
 cli.add_command(backtest)
 cli.add_command(analyze)
+cli.add_command(search_group)
 
 
 if __name__ == "__main__":
