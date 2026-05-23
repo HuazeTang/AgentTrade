@@ -77,8 +77,36 @@ GP_FACTORS_PATH  = JOURNAL_DIR / "gp_factors.json"  # fixed path for cross-sessi
 # to avoid catching a falling knife. Existing positions ride through.
 MKT_DD_THRESHOLD = 1.0    # disabled — found counterproductive in bull periods
 
-# Take-profit threshold: lock in gains before blow-off reversals
-TAKE_PROFIT_PCT  = 0.25   # sell if position profit > 25%
+# ── Market regime filter (LLM-proposed) ──
+# Classifies market into trending / choppy / declining based on 20-day return
+# and MA alignment. During declines, all buys are paused. During choppy
+# markets, position sizing is halved to reduce whipsaw damage.
+REGIME_LOOKBACK = 20       # short-term trend window
+REGIME_DECLINE_PCT = -0.03  # 20d return < -3% → declining → no buys
+REGIME_CHOPPY_PCT = 0.03    # |20d return| < 3% → choppy → half-size buys
+
+# ── Dynamic stop loss (LLM-proposed) ──
+# Stop price = entry_price × (1 - max(MIN_STOP, min(MAX_STOP, vol_mult × vol_20d)))
+# High-vol stocks get wider stops; low-vol stocks get tighter stops.
+STOP_LOSS_VOL_MULT = 2.0    # ATR/volatility multiplier
+MAX_STOP_LOSS_PCT = 0.15    # hard cap: never risk more than 15% on a single position
+MIN_STOP_LOSS_PCT = 0.05    # floor: always allow at least 5% room (T+1 gap risk)
+
+# ── Trailing take-profit (LLM-proposed) ──
+# Once a position is in profit, track the highest close since entry.
+# Sell when price drops TRAIL_STOP_FROM_PEAK below that peak.
+# Complements fixed take-profit: whichever triggers first.
+TAKE_PROFIT_PCT  = 0.25     # fixed take-profit (fallback)
+TRAIL_STOP_FROM_PEAK = 0.15  # trail stop: sell when 15% below peak
+CONSECUTIVE_DOWN_EXIT = 3    # sell if N+ consecutive daily declines
+
+# ── Entry quality gates ──
+# Each gate must be satisfied for a buy to execute.
+# Set to 0 / False to disable the gate.
+MIN_COMPOSITE_SCORE  = 0.0    # top stock must have composite_score >= this (0=disabled)
+REQUIRE_TREND_ABOVE_MA = False # stock close must be > MA20
+MIN_VOLUME_RATIO     = 0.0    # today's volume / 20d avg volume must be >= this (0=disabled)
+RECOVERY_DAYS        = 0       # after market exits 'declining', wait N days before buying (0=disabled)
 
 BASELINE_FACTORS = [
     # Momentum — multi-timeframe (1m through 12m)
@@ -191,13 +219,16 @@ class AgentSimulation:
         gp_generations: int = 60,
         gp_early_stop: int = 25,
         llm_seed: bool = True,
+        fast_mode: bool = False,
     ):
         self.start = start
         self.end = end
         self.initial_cash = initial_cash
         self.mode = mode
+        self.fast_mode = fast_mode
         self.output_dir = output_dir or JOURNAL_DIR
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        if not fast_mode:
+            self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Core components
         self.broker = AShareBroker(
@@ -232,7 +263,7 @@ class AgentSimulation:
         self._journal: list[dict] = []
         self._decisions: list[dict] = []
         self._fill_count = 0
-        self._gp_equity = None
+        self._last_decline_date: date | None = None  # for RECOVERY_DAYS gate
 
     # ── Main Entry Point ────────────────────────────────────────────────────
 
@@ -311,6 +342,8 @@ class AgentSimulation:
                 self._factor_df = baseline_df
                 self._factor_weights = baseline_weights
 
+        if self.fast_mode:
+            return self._raw_metrics()
         return self._finalize()
 
     def _compute_factor_set(
@@ -2138,7 +2171,35 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
                     "reason": f"take profit ({p['pnl_pct']:+.1f}% > {TAKE_PROFIT_PCT*100:.0f}%)",
                 })
 
-        # Sell if rank drops below SELL_RANK_LIMIT (skip already-sold by take-profit)
+            # --- Consecutive decline exit: N+ down days = deteriorating ---
+            if self._check_consecutive_decline(sym, td, threshold=CONSECUTIVE_DOWN_EXIT):
+                sells.append({
+                    "symbol": sym,
+                    "shares": p.get("shares", shares),
+                    "reason": f"{CONSECUTIVE_DOWN_EXIT}+ consecutive down days (weakness exit)",
+                })
+                continue
+
+            # --- Dynamic stop loss ---
+            if vol_map is not None and sym in vol_map.index:
+                vol = float(vol_map.loc[sym])
+                stop_pct = max(MIN_STOP_LOSS_PCT, min(MAX_STOP_LOSS_PCT, STOP_LOSS_VOL_MULT * vol))
+                if pnl_pct < -stop_pct * 100:
+                    sells.append({
+                        "symbol": sym,
+                        "shares": p.get("shares", shares),
+                        "reason": f"stop loss ({pnl_pct:+.1f}% < -{stop_pct*100:.0f}%, vol={vol:.2%})",
+                    })
+                    continue
+            elif pnl_pct < -MAX_STOP_LOSS_PCT * 100:
+                sells.append({
+                    "symbol": sym,
+                    "shares": p.get("shares", shares),
+                    "reason": f"hard stop ({pnl_pct:+.1f}% < -{MAX_STOP_LOSS_PCT*100:.0f}%)",
+                })
+                continue
+
+        # Sell if rank drops below SELL_RANK_LIMIT (skip already-sold)
         already_sold = {s["symbol"] for s in sells}
         for p in positions:
             if p["symbol"] not in sell_top and p["symbol"] not in already_sold:
@@ -2148,14 +2209,67 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
                     "reason": f"fell out of top-{SELL_RANK_LIMIT} (rank too low)",
                 })
 
-        # Market drawdown: skip new buys, let existing positions ride
-        if skip_buys:
+        # ── Market regime: skip buys during declines ──
+        if regime == "declining":
+            self._last_decline_date = td
             return {
                 "date": td.isoformat(),
                 "reasoning": f"Factor: market DD {mkt_dd:.1%} > {MKT_DD_THRESHOLD:.0%} — no new buys ({len(sells)} sells)",
                 "buys": [],
                 "sells": sells,
             }
+
+        # ── Entry quality gates ──
+        td_ts = pd.Timestamp(td)
+
+        # Gate 1: minimum composite score for the top-ranked stock
+        if MIN_COMPOSITE_SCORE > 0:
+            top_score = ranked.iloc[0]["composite_score"]
+            if top_score < MIN_COMPOSITE_SCORE:
+                return {
+                    "date": td.isoformat(),
+                    "reasoning": f"Factor: top score {top_score:.4f} < gate {MIN_COMPOSITE_SCORE} ({len(sells)} sells)",
+                    "buys": [],
+                    "sells": sells,
+                }
+
+        # Gate 2: recovery days after market exits declining
+        if RECOVERY_DAYS > 0 and self._last_decline_date is not None:
+            decline_ts = pd.Timestamp(self._last_decline_date)
+            days_since = sum(
+                1 for d in self._trading_days
+                if decline_ts < d and d.date() <= td
+            )
+            if days_since < RECOVERY_DAYS:
+                return {
+                    "date": td.isoformat(),
+                    "reasoning": f"Factor: recovery wait {days_since}/{RECOVERY_DAYS} days ({len(sells)} sells)",
+                    "buys": [],
+                    "sells": sells,
+                }
+            self._last_decline_date = None  # recovery complete
+
+        # Gate 3 & 4: per-stock checks (trend above MA, volume ratio)
+        # Pre-compute once for all symbols
+        _ma20_map: dict[str, float] = {}
+        _vol_ratio_map: dict[str, float] = {}
+        if REQUIRE_TREND_ABOVE_MA or MIN_VOLUME_RATIO > 0:
+            try:
+                close_wide = self._daily_cache["close"].unstack()
+                if REQUIRE_TREND_ABOVE_MA:
+                    ma20 = close_wide.rolling(20, min_periods=10).mean()
+                    if td_ts in ma20.index:
+                        _ma20_map = ma20.loc[td_ts].to_dict()
+                if MIN_VOLUME_RATIO > 0 and "volume" in self._daily_cache.columns:
+                    vol_wide = self._daily_cache["volume"].unstack()
+                    vol_ma20 = vol_wide.rolling(20, min_periods=10).mean()
+                    if td_ts in vol_ma20.index and td_ts in vol_wide.index:
+                        vol_today = vol_wide.loc[td_ts]
+                        vol_avg = vol_ma20.loc[td_ts]
+                        ratio = vol_today / (vol_avg + 1e-10)
+                        _vol_ratio_map = ratio.to_dict()
+            except Exception:
+                pass
 
         # Buy top-N stocks not already held
         available_slots = MAX_POSITIONS - len(held_symbols) + len(sells)
@@ -2173,6 +2287,20 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
                 continue  # already held
             if len(buys) >= available_slots:
                 break
+
+            # Gate 3: stock trend must be above MA20
+            if REQUIRE_TREND_ABOVE_MA and _ma20_map:
+                ma20_val = _ma20_map.get(sym)
+                close_val = row.get("close", 0)
+                if ma20_val and close_val and close_val <= ma20_val:
+                    continue  # below MA20, skip
+
+            # Gate 4: volume must meet minimum ratio
+            if MIN_VOLUME_RATIO > 0 and _vol_ratio_map:
+                vol_r = _vol_ratio_map.get(sym, 1.0)
+                if vol_r < MIN_VOLUME_RATIO:
+                    continue  # volume too low, skip
+
             price = row.get("close", None)
             if not price or price <= 0:
                 continue
@@ -2228,8 +2356,33 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
                     "reason": f"take profit ({p['pnl_pct']:+.1f}%)",
                 })
 
-        # Market drawdown: skip new buys, let existing positions ride
-        if mkt_dd > MKT_DD_THRESHOLD:
+            # --- Consecutive decline exit ---
+            if self._check_consecutive_decline(sym, td, threshold=CONSECUTIVE_DOWN_EXIT):
+                sells.append({
+                    "symbol": sym, "shares": p.get("shares", shares),
+                    "reason": f"{CONSECUTIVE_DOWN_EXIT}+ consecutive down days (weakness exit)",
+                })
+                continue
+
+            # --- Dynamic stop loss ---
+            if vol_map is not None and sym in vol_map.index:
+                vol = float(vol_map.loc[sym])
+                stop_pct = max(MIN_STOP_LOSS_PCT, min(MAX_STOP_LOSS_PCT, STOP_LOSS_VOL_MULT * vol))
+                if pnl_pct < -stop_pct * 100:
+                    sells.append({
+                        "symbol": sym, "shares": p.get("shares", shares),
+                        "reason": f"stop loss ({pnl_pct:+.1f}% < -{stop_pct*100:.0f}%, vol={vol:.2%})",
+                    })
+                    continue
+            elif pnl_pct < -MAX_STOP_LOSS_PCT * 100:
+                sells.append({
+                    "symbol": sym, "shares": p.get("shares", shares),
+                    "reason": f"hard stop ({pnl_pct:+.1f}% < -{MAX_STOP_LOSS_PCT*100:.0f}%)",
+                })
+                continue
+
+        # Market regime: skip new buys during declines
+        if regime == "declining":
             return {
                 "date": td.isoformat(),
                 "reasoning": f"Heuristic: market DD {mkt_dd:.1%} > {MKT_DD_THRESHOLD:.0%} — no new buys ({len(sells)} sells)",
@@ -2997,6 +3150,17 @@ Decide your trades for today. Output JSON with "buys" and "sells" arrays."""
             take_profit_pct=TAKE_PROFIT_PCT,
             llm=self.llm if (self.llm and self.llm.configured) else None,
         )
+
+    def _raw_metrics(self) -> dict:
+        """Return raw float metrics without charts, files, LLM, or formatting.
+
+        Used by parameter search to get clean numerical results quickly.
+        """
+        equity_series = self.accountant.to_equity_series()
+        m = self._compute_metrics_from_equity(equity_series, self.initial_cash)
+        total_trades = sum(len(e.get("fills", [])) for e in self._journal)
+        m["total_trades"] = total_trades
+        return m
 
     def _finalize(self) -> dict:
         """Compute final metrics and save outputs."""

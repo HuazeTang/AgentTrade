@@ -38,6 +38,12 @@ def write_daily(df: pd.DataFrame, prefix: str = "daily") -> None:
         path = out_dir / f"{year}{month:02d}.parquet"
         # Remove partition columns from data
         save = group.drop(columns=[c for c in group.columns if c.startswith("year=")], errors="ignore")
+        # Merge with existing month data to avoid overwriting other dates
+        if path.exists():
+            existing = pd.read_parquet(path)
+            save = pd.concat([existing, save]).drop_duplicates(
+                subset=["trade_date", "symbol"], keep="last"
+            )
         save.to_parquet(path, index=False)
 
 
