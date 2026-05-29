@@ -21,9 +21,16 @@ def _partition_path(prefix: str, dt: datetime | pd.Timestamp) -> Path:
     return DATA_DIR / prefix / f"year={dt.year}" / f"month={dt.month:02d}"
 
 
-def write_daily(df: pd.DataFrame, prefix: str = "daily") -> None:
+def write_daily(df: pd.DataFrame, prefix: str = "daily", merge: bool = False) -> None:
     """Write daily data partitioned by date. Accepts either a flat
-    DataFrame with trade_date/symbol columns or a multi-index."""
+    DataFrame with trade_date/symbol columns or a multi-index.
+
+    Args:
+        df: DataFrame with trade_date and symbol columns.
+        prefix: subdirectory name under DATA_DIR.
+        merge: if True, read existing parquet and merge (keep last on duplicate
+               trade_date + symbol). If False (default), overwrite.
+    """
     if df.empty:
         return
     work = df.reset_index() if isinstance(df.index, pd.MultiIndex) else df.copy()
@@ -38,7 +45,13 @@ def write_daily(df: pd.DataFrame, prefix: str = "daily") -> None:
         path = out_dir / f"{year}{month:02d}.parquet"
         # Remove partition columns from data
         save = group.drop(columns=[c for c in group.columns if c.startswith("year=")], errors="ignore")
-        save.to_parquet(path, index=False)
+        if merge and path.exists():
+            existing = pd.read_parquet(path)
+            merged = pd.concat([existing, save], ignore_index=True)
+            merged = merged.drop_duplicates(subset=["trade_date", "symbol"], keep="last")
+            merged.sort_values(["trade_date", "symbol"]).to_parquet(path, index=False)
+        else:
+            save.to_parquet(path, index=False)
 
 
 def read_daily(
