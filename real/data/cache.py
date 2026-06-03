@@ -21,15 +21,15 @@ def _partition_path(prefix: str, dt: datetime | pd.Timestamp) -> Path:
     return DATA_DIR / prefix / f"year={dt.year}" / f"month={dt.month:02d}"
 
 
-def write_daily(df: pd.DataFrame, prefix: str = "daily", merge: bool = False) -> None:
+def write_daily(df: pd.DataFrame, prefix: str = "daily", merge: bool = True) -> None:
     """Write daily data partitioned by date. Accepts either a flat
     DataFrame with trade_date/symbol columns or a multi-index.
 
     Args:
         df: DataFrame with trade_date and symbol columns.
         prefix: subdirectory name under DATA_DIR.
-        merge: if True, read existing parquet and merge (keep last on duplicate
-               trade_date + symbol). If False (default), overwrite.
+        merge: if True (default), read existing parquet and merge (keep last on
+               duplicate trade_date + symbol). If False, overwrite.
     """
     if df.empty:
         return

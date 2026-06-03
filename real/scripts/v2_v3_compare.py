@@ -1,4 +1,4 @@
-"""Compare V2 / V3 / V4 top recommendations on 2026-05-29."""
+"""Compare V2 / V3 / V4 top recommendations on latest available date."""
 from __future__ import annotations
 
 import sys
@@ -31,7 +31,7 @@ CHECKPOINT_V4 = "data/models/yaogu_v4_20260530_1738_best.pt"
 
 # Load data
 load_start = date(2019, 10, 1)
-load_end = date(2026, 5, 29)
+load_end = date(2026, 6, 3)
 
 logging.info("Loading daily badj data...")
 daily = read_daily(load_start, load_end, prefix="daily_badj")
